@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel AML | User Management</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <link href="./css/theme.css" rel="stylesheet">
+
+    <script type="module" src="./js/session.js"></script>
+</head>
+<body class="bg-light font-inter" style="display: none;" id="admin-body">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="admin-dashboard.html">
+                <span class="material-symbols-outlined text-danger fs-4">terminal</span>
+                <span class="fs-6 fw-bold tracking-wide text-white uppercase">Sentinel<span class="text-danger">Admin</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center gap-2 border-start border-secondary ps-3">
+                <div class="text-end text-white">
+                    <div class="fw-semibold" style="font-size: 0.85rem;" id="ui-admin-name">System Administrator</div>
+                </div>
+                <span class="material-symbols-outlined text-muted fs-2">shield_person</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="height: calc(100vh - 57px);">
+            
+            <div class="col-md-2 bg-dark p-0 d-flex flex-column justify-content-between border-end border-secondary">
+                <div class="list-group list-group-flush mt-3 bg-dark">
+                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">dns</span>
+                        <span class="small fw-semibold">Platform Health</span>
+                    </a>
+                    
+                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <span class="small fw-semibold">User Management</span>
+                    </a>
+                    
+                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="small fw-semibold">Global Audit Logs</span>
+                    </a>
+                </div>
+                
+                <div class="p-3 border-top border-secondary">
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Global Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4 overflow-auto">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">System User Management</h4>
+                        <p class="text-muted small">Global IT Administration & Access Control</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm fw-medium d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#adminInviteModal">
+                        <span class="material-symbols-outlined fs-6 me-1">person_add</span> Provision User
+                    </button>
+                </div>
+
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small fw-semibold uppercase tracking-wider">
+                                    <tr>
+                                        <th class="ps-4 py-3">Profile ID</th>
+                                        <th class="py-3">Role</th>
+                                        <th class="py-3">Tenant ID (Bank)</th>
+                                        <th class="py-3">Status</th>
+                                        <th class="pe-4 py-3 text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span> Loading system users...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="adminInviteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Provision System User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="admin-invite-form">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">User Email</label>
+                            <input type="email" class="form-control bg-light" id="admin-invite-email" required placeholder="user@bank.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">System Role</label>
+                            <select class="form-select bg-light" id="admin-invite-role" required>
+                                <option value="" disabled selected>Select assigned role...</option>
+                                <option value="compliance_officer">Compliance Officer</option>
+                                <option value="bank_manager">Bank Manager</option>
+                                <option value="head_of_compliance">Head of Compliance</option>
+                                <option value="it_admin">IT Admin (God-Mode)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-muted">Target Tenant ID (Bank UUID)</label>
+                            <input type="text" class="form-control bg-light font-monospace" id="admin-invite-tenant" required placeholder="e10dad0b-...">
+                            <div class="form-text" style="font-size: 0.7rem;">Copy a Tenant ID from the data grid behind this modal.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold" id="admin-invite-submit-btn">
+                            Dispatch Secure Invite
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <span class="material-symbols-outlined fs-1 text-danger mb-2" id="action-icon">warning</span>
+                    <h6 class="fw-bold text-dark mb-2" id="action-title">Confirm Action</h6>
+                    <p class="text-muted small mb-4" id="action-message">Are you sure you want to proceed?</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light btn-sm fw-medium w-50" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger btn-sm fw-medium w-50" id="action-confirm-btn">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+        <div id="dynamicToast" class="toast align-items-center border-0 shadow text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium font-inter" id="dynamicToastBody"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="./js/user-management.js"></script>
+    <script type="module">
+        import { supabase } from './js/config.js';
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.replace('login.html');
+        });
+    </script>
+</body>
+</html>

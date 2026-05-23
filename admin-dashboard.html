@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel AML | IT Command Center</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <link href="./css/theme.css" rel="stylesheet">
+
+    <script type="module" src="./js/session.js"></script>
+</head>
+<body class="bg-light font-inter" style="display: none;" id="secure-admin-body">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <span class="material-symbols-outlined text-danger fs-4">terminal</span>
+                <span class="fs-6 fw-bold tracking-wide text-white uppercase">Sentinel<span class="text-danger">Admin</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center gap-2 border-start border-secondary ps-3">
+                <div class="text-end text-white">
+                    <div class="fw-semibold" style="font-size: 0.85rem;" id="ui-admin-name">Loading...</div>
+                    <div class="text-danger fw-bold uppercase" style="font-size: 0.65rem;">System Administrator</div>
+                </div>
+                <span class="material-symbols-outlined text-muted fs-2">shield_person</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="height: calc(100vh - 57px);">
+            
+            <div class="col-md-2 bg-dark p-0 d-flex flex-column justify-content-between border-end border-secondary">
+               <div class="list-group list-group-flush mt-3 bg-dark">
+                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3">
+                        <span class="material-symbols-outlined">dns</span>
+                        <span class="small fw-semibold">Platform Health</span>
+                    </a>
+                    
+                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <span class="small fw-semibold">User Management</span>
+                    </a>
+                    
+                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="small fw-semibold">Global Audit Logs</span>
+                    </a>
+                </div>
+                
+                <div class="p-3 border-top border-secondary">
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Global Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4 overflow-auto">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2">Supabase API Status</div>
+                                <h4 class="fw-bold text-success mb-0 d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined fs-5">check_circle</span> Operational
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2">Total Tenants (Banks)</div>
+                                <h4 class="fw-bold mb-0">3 Active Nodes</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2">Edge Functions</div>
+                                <h4 class="fw-bold mb-0">2 Deployed</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center gap-3">
+                    <span class="material-symbols-outlined fs-2 text-danger">gavel</span>
+                    <div>
+                        <h6 class="fw-bold mb-1">God-Mode Active</h6>
+                        <p class="mb-0 small text-muted">You are operating with unrestricted system access. All actions are indelibly written to the global audit log.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        async function initializeAdminDashboard() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return window.location.replace('login.html');
+
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            if (jwtPayload.app_metadata?.role !== 'it_admin') {
+                return window.location.replace('dashboard.html');
+            }
+
+            document.getElementById('secure-admin-body').style.display = 'block';
+            document.getElementById('ui-admin-name').innerText = session.user.email;
+        }
+
+        initializeAdminDashboard();
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.replace('login.html');
+        });
+    </script>
+</body>
+</html>

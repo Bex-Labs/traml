@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel AML | Command Center</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:;">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <script type="module" src="./js/session.js"></script>
+
+    <link href="./css/theme.css" rel="stylesheet">
+</head>
+<body class="bg-light" style="display: none;" id="secure-body">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <span class="material-symbols-outlined text-primary fs-4">account_balance</span>
+                <span class="fs-6 fw-bold tracking-wide text-dark uppercase">Sentinel<span class="text-primary">AML</span></span>
+            </a>
+
+            <div class="d-flex align-items-center gap-4">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0"><span class="material-symbols-outlined fs-6">search</span></span>
+                    <input type="text" class="form-control bg-light border-start-0" placeholder="Search BVN, TxID...">
+                </div>
+                
+                <div class="d-flex align-items-center gap-2 border-start ps-3">
+                    <div class="text-end">
+                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;" id="ui-user-name">Loading...</div>
+                        <div class="text-primary fw-bold uppercase" style="font-size: 0.65rem;" id="ui-user-role">...</div>
+                    </div>
+                    <span class="material-symbols-outlined text-muted fs-2">account_circle</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="height: calc(100vh - 57px);">
+            
+            <div class="col-md-2 bg-white border-end p-0 d-flex flex-column justify-content-between">
+                <div class="list-group list-group-flush mt-3">
+                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="small fw-semibold">Command Center</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                        <span class="material-symbols-outlined">badge</span>
+                        <span class="small fw-semibold">KYC & Identity</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                        <span class="material-symbols-outlined">monitoring</span>
+                        <span class="small fw-semibold">Tx Monitoring</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                        <span class="material-symbols-outlined">folder_managed</span>
+                        <span class="small fw-semibold">Case Management</span>
+                    </a>
+                    
+                    <a href="#" id="nav-system-config" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span class="small fw-semibold">System Config</span>
+                    </a>
+
+                    <a href="#" id="nav-team-management" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none" data-bs-toggle="modal" data-bs-target="#inviteModal">
+                        <span class="material-symbols-outlined">group_add</span>
+                        <span class="small fw-semibold">Team Management</span>
+                    </a>
+
+                    <a href="compliance-audit.html" id="nav-audit-logs" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">plagiarism</span>
+                        <span class="small fw-semibold">Branch Audit Ledger</span>
+                    </a>
+                </div>
+                
+                <div class="p-3 border-top">
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Secure Logout
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4 overflow-auto">
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                    Total Nodes Scanned <span class="material-symbols-outlined text-primary fs-5">memory</span>
+                                </div>
+                                <h3 class="fw-bold mb-0">24,892</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                    High Risk Alerts <span class="material-symbols-outlined text-danger fs-5">warning</span>
+                                </div>
+                                <h3 class="fw-bold text-danger mb-0">14</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                    Pending STR Filings <span class="material-symbols-outlined text-warning fs-5">assignment_late</span>
+                                </div>
+                                <h3 class="fw-bold text-warning mb-0">03</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                    System Status <span class="material-symbols-outlined text-success fs-5">check_circle</span>
+                                </div>
+                                <h5 class="fw-bold text-success mb-0 mt-2">CBN Sync Active</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-primary fs-5">stream</span> Live Transaction Stream
+                        </h6>
+                        <span class="badge bg-light text-dark border">Tenant ID: <span id="ui-tenant-id">...</span></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small uppercase">
+                                <tr>
+                                    <th class="py-3 px-4 fw-semibold">Timestamp</th>
+                                    <th class="py-3 fw-semibold">TxID / Entity</th>
+                                    <th class="py-3 fw-semibold">Amount (NGN)</th>
+                                    <th class="py-3 fw-semibold">Rule Triggered</th>
+                                    <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transaction-feed">
+                                <tr>
+                                    <td class="px-4 text-muted small">14:22:01</td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">TX_99342A</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">ALPHA_CORP_LTD</div>
+                                    </td>
+                                    <td class="fw-semibold small">₦ 45,500,000.00</td>
+                                    <td><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Velocity Exceeded</span></td>
+                                    <td class="text-end px-4"><button class="btn btn-sm btn-outline-danger fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 text-muted small">14:21:12</td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">TX_99340C</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">GAMMA_LOGISTICS</div>
+                                    </td>
+                                    <td class="fw-semibold small">₦ 450,000.00</td>
+                                    <td><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Standard Pattern</span></td>
+                                    <td class="text-end px-4"><span class="text-success small fw-bold uppercase">Cleared</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="inviteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Invite Team Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-4">Send a secure setup link to a new compliance officer. They will automatically be assigned to your institution.</p>
+                    <form id="invite-form">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Institutional Email</label>
+                            <input type="email" class="form-control bg-light" id="invite-email" required placeholder="officer@bank.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-muted">Platform Role</label>
+                            <select class="form-select bg-light" id="role-select" required>
+                                <option value="" disabled selected>Select assigned role...</option>
+                                <option value="compliance_officer">Compliance Officer</option>
+                                <option value="bank_manager">Bank Manager</option>
+                                <option value="head_of_compliance">Head of Compliance</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold" id="invite-submit-btn">
+                            Send Secure Invite
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+      
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-medium font-inter">
+                <span class="material-symbols-outlined align-middle fs-5 me-2">check_circle</span>
+                <span id="toastMessage">User invitation sent successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        async function initializeDashboard() {
+            // 1. Verify Session
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            // 2. Extract JWT Metadata (THE FIX)
+            // We must explicitly decode the raw access token string to see the custom hook data
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            console.log("🚨 DECODED JWT PAYLOAD:", jwtPayload);
+
+            const userRole = jwtPayload.app_metadata?.role;
+            const tenantId = jwtPayload.app_metadata?.tenant_id;
+
+            // Check if it's missing OR if it caught our diagnostic error
+            if (!userRole || !tenantId || userRole === 'DEBUG_PROFILE_NOT_FOUND') {
+                console.error("Tenancy Context Failed. Check the Console.");
+                
+                // I have commented out the kick-out so we can read the console if it fails
+                // await supabase.auth.signOut();
+                // window.location.replace('login.html');
+                return;
+            }
+
+            // 3. Unhide the page securely
+            document.getElementById('secure-body').style.display = 'block';
+
+            // 4. Populate UI with User Data
+            document.getElementById('ui-user-name').innerText = session.user.user_metadata?.full_name || session.user.email;
+            document.getElementById('ui-user-role').innerText = userRole.replace(/_/g, ' ');
+            document.getElementById('ui-tenant-id').innerText = tenantId.split('-')[0] + '...';
+
+           // 5. Enforce UI Permissions (RBAC)
+            if (userRole === 'system_admin' || userRole === 'head_of_compliance' || userRole === 'it_engineer') {
+                document.getElementById('nav-system-config').classList.remove('d-none');
+                document.getElementById('nav-team-management').classList.remove('d-none'); 
+                document.getElementById('nav-audit-logs').classList.remove('d-none'); // <--- THIS LINE UNHIDES THE TAB
+            }
+        }
+
+        // --- NEW: Invite User Logic ---
+        document.getElementById('invite-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('invite-submit-btn');
+            submitBtn.innerHTML = 'Sending...';
+            submitBtn.disabled = true;
+
+            const email = document.getElementById('invite-email').value;
+            const role = document.getElementById('invite-role').value;
+
+            // Grab the current user's JWT to extract the tenantId they belong to
+            const { data: { session } } = await supabase.auth.getSession();
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            const tenantId = jwtPayload.app_metadata.tenant_id;
+
+            // Call the secure backend Edge Function
+            const { data, error } = await supabase.functions.invoke('invite-user', {
+                body: { email: email, role: role, tenantId: tenantId }
+            });
+
+            if (error) {
+                alert(`Error: ${error.message}`);
+            } else {
+                // 1. Grab the Toast element from the DOM
+                const toastElement = document.getElementById('successToast');
+
+                // 2. Optional: Dynamically update the message if you want to include the specific email
+                document.getElementById('toastMessage').innerText = `Invitation sent to ${email}`;
+
+                // 3. Initialize and show the Bootstrap Toast (it will auto-hide after 3 seconds)
+                const successToast = new bootstrap.Toast(toastElement, { delay: 3000 });
+                successToast.show();
+            }
+
+            submitBtn.innerHTML = 'Send Secure Invite';
+            submitBtn.disabled = false;
+        });
+
+        // Run initialization
+        initializeDashboard();
+
+        // Logout Handler
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.replace('login.html');
+        });
+    </script>
+</body>
+</html>

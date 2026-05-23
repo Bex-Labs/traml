@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel AML | Secure Login</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:;">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    
+    <link href="./css/theme.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center vh-100 font-inter">
+
+    <div class="container" style="max-width: 450px;">
+        
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <span class="material-symbols-outlined text-primary fs-2">account_balance</span>
+                <span class="fs-4 fw-bold tracking-wide text-dark uppercase">Sentinel<span class="text-primary">AML</span></span>
+            </div>
+            <p class="text-muted small">Financial Intelligence Command Center</p>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-4 p-md-5">
+                
+                <div id="login-stage-1">
+                    <h5 class="card-title fw-bold text-dark mb-4">Authorized Access Only</h5>
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="email" class="form-label small fw-semibold text-muted">Institutional Email</label>
+                            <input type="email" class="form-control bg-light" id="email" required placeholder="name@bank.com">
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label small fw-semibold text-muted">Password</label>
+                            <input type="password" class="form-control bg-light" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            Authenticate <span class="material-symbols-outlined align-middle fs-6 ms-1">lock</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="login-stage-2" class="d-none text-center">
+                    <span class="material-symbols-outlined text-primary fs-1 mb-3">security</span>
+                    <h5 class="card-title fw-bold text-dark mb-2">Two-Factor Authentication</h5>
+                    <p class="text-muted small mb-4">Enter the 6-digit code from your authenticator app.</p>
+                    <form id="mfa-form">
+                        <div class="mb-4">
+                            <input type="text" class="form-control form-control-lg text-center tracking-widest" id="mfa-code" placeholder="000000" maxlength="6" required autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            Verify Identity
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted" style="font-size: 0.7rem;">
+                <span class="material-symbols-outlined align-middle" style="font-size: 1rem;">gavel</span>
+                System activity is heavily monitored and audited for CBN/NFIU compliance.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Check for session expiry and inject a Bootstrap alert
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('expired')) {
+                // 1. Build the alert element
+                const alertBox = document.createElement('div');
+                alertBox.className = 'alert alert-warning alert-dismissible fade show mb-4 shadow-sm text-start';
+                alertBox.setAttribute('role', 'alert');
+                
+                // 2. Add the enterprise-grade messaging
+                alertBox.innerHTML = `
+                    <strong>Session Expired</strong><br>
+                    <span class="small">For your security, you were logged out due to inactivity. Please authenticate again.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+
+                // 3. Inject it cleanly right above the login card
+                const loginCard = document.querySelector('.card');
+                if (loginCard) {
+                    loginCard.parentNode.insertBefore(alertBox, loginCard);
+                }
+            }
+        });
+    </script>
+    <script type="module" src="./js/auth.js"></script>
+</body>
+</html>

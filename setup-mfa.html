@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MFA Setup | Sentinel AML</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script type="module" src="./js/session.js"></script>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center vh-100">
+
+    <div class="card border-0 shadow-sm p-4" style="width: 400px;">
+        <h5 class="fw-bold text-center mb-3">Secure Your Account</h5>
+        <p class="text-muted small text-center mb-4">Scan this QR code with Google Authenticator, Authy, or Apple Passwords.</p>
+        
+        <div id="qr-container" class="d-flex justify-content-center mb-4 border rounded p-2 bg-white">
+            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+        </div>
+
+        <div class="mb-3">
+            <input type="text" class="form-control text-center tracking-wide" id="setup-code" placeholder="Enter 6-digit code" maxlength="6">
+        </div>
+        
+        <button id="verify-btn" class="btn btn-primary w-100 fw-bold">Verify & Enable MFA</button>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+        <div id="dynamicToast" class="toast align-items-center border-0 shadow text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium" id="dynamicToastBody">
+                    </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        let currentFactorId = null;
+
+        // --- Enterprise Toast Controller ---
+        function showToast(message, isError = false) {
+            const toastEl = document.getElementById('dynamicToast');
+            const toastBody = document.getElementById('dynamicToastBody');
+
+            // Switch colors based on success/error
+            toastEl.classList.remove('bg-success', 'bg-danger');
+            toastEl.classList.add(isError ? 'bg-danger' : 'bg-success');
+
+            // Inject message 
+            toastBody.innerHTML = `<strong>${isError ? 'Error:' : 'Success:'}</strong> ${message}`;
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+            toast.show();
+        }
+        // -----------------------------------
+
+        async function initSetup() {
+            const { data: factors } = await supabase.auth.mfa.listFactors();
+            const existingTotp = factors?.totp?.[0];
+
+            if (existingTotp && existingTotp.status === 'verified') {
+                document.getElementById('qr-container').innerHTML = '<p class="text-success fw-bold mt-3 text-center">MFA is already active on this account.</p>';
+                document.getElementById('setup-code').disabled = true;
+                document.getElementById('verify-btn').disabled = true;
+                document.getElementById('verify-btn').innerText = 'Secured';
+                return;
+            }
+
+            const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
+            
+            if (error) {
+                showToast(error.message, true); // Replaced alert
+                return;
+            }
+
+            currentFactorId = data.id;
+            const rawSvg = data.totp.qr_code.replace('data:image/svg+xml;utf-8,', '');
+            const qrContainer = document.getElementById('qr-container');
+            qrContainer.innerHTML = rawSvg;
+
+            const svgElement = qrContainer.querySelector('svg');
+            if (svgElement) {
+                svgElement.style.width = '100%';
+                svgElement.style.height = 'auto';
+                svgElement.style.maxWidth = '250px';
+                svgElement.classList.add('d-block', 'mx-auto');
+            }
+        }
+
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            const code = document.getElementById('setup-code').value;
+            const btn = document.getElementById('verify-btn');
+            btn.disabled = true;
+            btn.innerText = 'Verifying...';
+
+            const challenge = await supabase.auth.mfa.challenge({ factorId: currentFactorId });
+            const { error } = await supabase.auth.mfa.verify({
+                factorId: currentFactorId,
+                challengeId: challenge.data.id,
+                code: code
+            });
+
+            if (error) {
+                showToast('Invalid code. Please try again.', true); // Replaced alert
+                btn.disabled = false;
+                btn.innerText = 'Verify & Enable MFA';
+            } else {
+                showToast('MFA Successfully Enabled! Redirecting...', false); // Replaced alert
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000); // Give the user 2 seconds to read the success toast before redirecting
+            }
+        });
+
+        initSetup();
+    </script>
+</body>
+</html>
