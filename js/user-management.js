@@ -1,5 +1,7 @@
 import { supabase } from './config.js';
 
+let globalAccessData = [];
+
 // --- Enterprise Toast Controller ---
 function showToast(message, isError = false) {
     const toastEl = document.getElementById('dynamicToast');
@@ -52,6 +54,9 @@ async function loadUsers() {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error loading users.</td></tr>`;
         return;
     }
+
+    globalAccessData = users;
+
     if (users.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No users found.</td></tr>`;
         return;
@@ -210,3 +215,35 @@ document.getElementById('admin-invite-form')?.addEventListener('submit', async (
 
 // Start the sequence
 initializeAdminPortal();
+
+// --- TAML-73: Export Engine (Audit Requirement) ---
+document.getElementById('export-csv-btn')?.addEventListener('click', () => {
+    if (globalAccessData.length === 0) return showToast("No matrix data available to export.", true);
+
+    const headers = ['Profile ID', 'Identity (Email)', 'Platform Role', 'Assigned Node (Tenant ID)', 'Account Status', 'Access Granted On'];
+    const csvRows = [headers.join(',')];
+
+    globalAccessData.forEach(user => {
+        const row = [
+            `"${user.id}"`,
+            `"${user.email}"`,
+            `"${user.role.toUpperCase()}"`,
+            `"${user.tenant_id || 'GLOBAL_ACCESS'}"`,
+            `"${user.is_active ? 'ACTIVE' : 'SUSPENDED'}"`,
+            `"${new Date(user.created_at).toISOString()}"`
+        ];
+        csvRows.push(row.join(','));
+    });
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `Sentinel_Access_Review_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    showToast("Access Review Log compiled and downloaded securely.");
+});

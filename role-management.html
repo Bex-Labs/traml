@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel AML | Role Management</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <link href="./css/theme.css" rel="stylesheet">
+
+    <script type="module" src="./js/session.js"></script>
+</head>
+<body class="bg-light font-inter" style="display: none;" id="secure-admin-body">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="admin-dashboard.html">
+                <span class="material-symbols-outlined text-danger fs-4">terminal</span>
+                <span class="fs-6 fw-bold tracking-wide text-white uppercase">Sentinel<span class="text-danger">Admin</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center gap-2 border-start border-secondary ps-3">
+                <div class="text-end text-white">
+                    <div class="fw-semibold" style="font-size: 0.85rem;" id="ui-admin-name">Loading...</div>
+                    <div class="text-danger fw-bold uppercase" style="font-size: 0.65rem;">System Administrator</div>
+                </div>
+                <span class="material-symbols-outlined text-muted fs-2">shield_person</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="height: calc(100vh - 57px);">
+            
+            <div class="col-md-2 bg-dark p-0 d-flex flex-column justify-content-between border-end border-secondary">
+               <div class="list-group list-group-flush mt-3 bg-dark">
+                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">dns</span>
+                        <span class="small fw-semibold">Platform Health</span>
+                    </a>
+                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <span class="small fw-semibold">User Management</span>
+                    </a>
+                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="small fw-semibold">Global Audit Logs</span>
+                    </a>
+                    
+                    <a href="role-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span class="small fw-semibold">Role Management</span>
+                    </a>
+                </div>
+                
+                <div class="p-3 border-top border-secondary">
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Global Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4 overflow-auto bg-light">
+                
+                <div class="mb-4">
+                    <h3 class="fw-bold text-dark mb-1">Role Management</h3>
+                    <p class="text-muted small">Define, audit, and deploy custom enterprise access matrices.</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary fs-5">inventory_2</span> Deployed Roles
+                                </h6>
+                            </div>
+                            <div class="card-body p-0" id="roles-inventory">
+                                <div class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined fs-1 mb-2 opacity-50">search_off</span>
+                                    <p class="small mb-0">No custom roles deployed yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-danger fs-5">add_box</span> Define New Matrix
+                                </h6>
+                            </div>
+                            <div class="card-body bg-white p-4">
+                                <form id="custom-role-form">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted">Role Name</label>
+                                            <input type="text" class="form-control bg-light" id="role-name" required placeholder="e.g., Junior Analyst">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold text-muted">Description</label>
+                                            <input type="text" class="form-control bg-light" id="role-desc" placeholder="Briefly describe responsibilities...">
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive border rounded">
+                                        <table class="table table-borderless table-hover align-middle mb-0 text-center" style="font-size: 0.85rem;">
+                                            <thead class="table-light text-muted small uppercase border-bottom">
+                                                <tr>
+                                                    <th class="text-start ps-3 py-3">Module</th>
+                                                    <th>View</th>
+                                                    <th>Create</th>
+                                                    <th>Update</th>
+                                                    <th>Approve</th>
+                                                    <th class="text-danger">Export</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="permission-matrix-body">
+                                                <tr class="border-bottom">
+                                                    <td class="text-start ps-3 fw-semibold">KYC & Identity</td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="kyc" data-act="view"></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="kyc" data-act="create"></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="kyc" data-act="update"></td>
+                                                    <td><input class="form-check-input perm-cb border-warning" type="checkbox" data-mod="kyc" data-act="approve"></td>
+                                                    <td><input class="form-check-input perm-cb border-danger" type="checkbox" data-mod="kyc" data-act="export"></td>
+                                                </tr>
+                                                <tr class="border-bottom">
+                                                    <td class="text-start ps-3 fw-semibold">Tx Monitoring</td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="tx" data-act="view"></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="tx" data-act="create" disabled></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="tx" data-act="update"></td>
+                                                    <td><input class="form-check-input perm-cb border-warning" type="checkbox" data-mod="tx" data-act="approve"></td>
+                                                    <td><input class="form-check-input perm-cb border-danger" type="checkbox" data-mod="tx" data-act="export"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start ps-3 fw-semibold">Case Management</td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="case" data-act="view"></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="case" data-act="create"></td>
+                                                    <td><input class="form-check-input perm-cb border-secondary" type="checkbox" data-mod="case" data-act="update"></td>
+                                                    <td><input class="form-check-input perm-cb border-warning" type="checkbox" data-mod="case" data-act="approve"></td>
+                                                    <td><input class="form-check-input perm-cb border-danger" type="checkbox" data-mod="case" data-act="export"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="mt-4 text-end">
+                                        <button type="submit" class="btn btn-danger fw-bold" id="save-role-btn">Deploy Custom Role</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+        <div id="dynamicToast" class="toast align-items-center border-0 shadow text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium font-inter d-flex align-items-center" id="dynamicToastBody"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        // --- Enterprise Toast Controller ---
+        function showToast(message, isError = false) {
+            const toastEl = document.getElementById('dynamicToast');
+            const toastBody = document.getElementById('dynamicToastBody');
+            
+            toastEl.classList.remove('bg-success', 'bg-danger');
+            toastEl.classList.add(isError ? 'bg-danger' : 'bg-success');
+            
+            const icon = isError ? 'error' : 'check_circle';
+            toastBody.innerHTML = `<span class="material-symbols-outlined align-middle fs-5 me-2">${icon}</span> ${message}`;
+            
+            new bootstrap.Toast(toastEl, { delay: 3500 }).show();
+        }
+
+        async function initializeAdminDashboard() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return window.location.replace('login.html');
+
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            if (jwtPayload.app_metadata?.role !== 'it_admin') {
+                return window.location.replace('dashboard.html');
+            }
+
+            document.getElementById('secure-admin-body').style.display = 'block';
+            document.getElementById('ui-admin-name').innerText = session.user.email;
+        }
+
+        // --- Custom Role Compiler & Database Hookup ---
+        document.getElementById('custom-role-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('save-role-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Deploying to Database...';
+            submitBtn.disabled = true;
+
+            try {
+                // 1. Gather session to record WHO created this role
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                // 2. Gather UI inputs
+                const roleName = document.getElementById('role-name').value;
+                const roleDesc = document.getElementById('role-desc').value;
+
+                // 3. Build the JSON Permissions Object
+                let permissions = {};
+                document.querySelectorAll('.perm-cb').forEach(cb => {
+                    if (cb.checked) {
+                        const key = `${cb.getAttribute('data-mod')}_${cb.getAttribute('data-act')}`;
+                        permissions[key] = true;
+                    }
+                });
+
+                // 4. Send the payload to Supabase
+                const { error } = await supabase
+                    .from('custom_roles')
+                    .insert([
+                        {
+                            role_name: roleName,
+                            description: roleDesc,
+                            permissions: permissions,
+                            created_by: session.user.id
+                            // Note: tenant_id is left null intentionally so this role is available globally
+                        }
+                    ]);
+
+                if (error) {
+                    // Catch unique constraint errors (e.g., trying to make two "Junior Analyst" roles)
+                    if (error.code === '23505') throw new Error("A role with this exact name already exists.");
+                    throw error;
+                }
+
+                // 5. Success UI Reset
+                showToast(`Success! The "${roleName}" enterprise role has been securely deployed.`);
+                document.getElementById('custom-role-form').reset();
+                
+                // Refresh the inventory list automatically
+                loadDeployedRoles();
+
+            } catch (error) {
+                console.error("Deployment Error:", error);
+                showToast(`Deployment Failed: ${error.message}`, true);
+            } finally {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        initializeAdminDashboard();
+        loadDeployedRoles();
+
+        // --- TAML-73: Load and Render Deployed Roles ---
+        async function loadDeployedRoles() {
+            const inventoryContainer = document.getElementById('roles-inventory');
+            inventoryContainer.innerHTML = '<div class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm mb-2"></span><p class="small mb-0">Querying matrix...</p></div>';
+
+            // 1. Fetch from database (newest first)
+            const { data: roles, error } = await supabase
+                .from('custom_roles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Fetch Error:", error);
+                inventoryContainer.innerHTML = `<div class="text-center py-4 text-danger small">Database connection failed.</div>`;
+                return;
+            }
+
+            // 2. Handle empty state
+            if (roles.length === 0) {
+                inventoryContainer.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <span class="material-symbols-outlined fs-1 mb-2 opacity-50">search_off</span>
+                        <p class="small mb-0">No custom roles deployed yet.</p>
+                    </div>`;
+                return;
+            }
+
+            // 3. Render the UI List
+            inventoryContainer.innerHTML = roles.map(role => {
+                // Count the number of true keys in the JSON object
+                const permCount = Object.keys(role.permissions).length;
+                const deployDate = new Date(role.created_at).toLocaleDateString();
+                
+                return `
+                <div class="border-bottom p-3" style="transition: background 0.2s; cursor: pointer;" onmouseover="this.classList.add('bg-light')" onmouseout="this.classList.remove('bg-light')">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;">${role.role_name}</h6>
+                        <span class="badge bg-secondary bg-opacity-10 text-dark border" style="font-size: 0.65rem;">${permCount} Flags</span>
+                    </div>
+                    <p class="small text-muted mb-2" style="font-size: 0.8rem;">${role.description || 'No description provided.'}</p>
+                    <div class="text-muted d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                        <span class="font-monospace">Deployed: ${deployDate}</span>
+                        <span class="text-primary fw-semibold uppercase" style="font-size: 0.65rem;">Audit Matrix &rarr;</span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            await supabase.rpc('log_user_logout');
+            await supabase.auth.signOut();
+            window.location.replace('login.html');
+        });
+    </script>
+</body>
+</html>
