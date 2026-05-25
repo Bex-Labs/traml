@@ -60,10 +60,26 @@ async function loadLogs() {
     // 2. Build the Supabase Query
     let query = supabase.from('audit_logs').select('*').order('created_at', { ascending: false });
 
-    // Apply active filters
-    if (startDate) query = query.gte('created_at', `${startDate}T00:00:00Z`);
-    if (endDate) query = query.lte('created_at', `${endDate}T23:59:59Z`);
-    if (eventType !== 'all') query = query.eq('event_type', eventType);
+    // 1. Grab current values from the UI filters
+        const typeFilter = document.getElementById('filter-type')?.value;
+        const startFilter = document.getElementById('filter-start')?.value;
+        const endFilter = document.getElementById('filter-end')?.value;
+
+        // 2. Dynamically modify the Supabase query if filters are active
+        if (typeFilter && typeFilter !== 'all' && typeFilter !== 'All Events') {
+            // Note: Adjust the value matching depending on how your HTML options are set up
+            query = query.ilike('event_type', `%${typeFilter}%`); 
+        }
+        
+        if (startFilter) {
+            // Append midnight to catch the very start of the day
+            query = query.gte('created_at', `${startFilter}T00:00:00Z`);
+        }
+        
+        if (endFilter) {
+            // Append 11:59 PM to catch the very end of the day
+            query = query.lte('created_at', `${endFilter}T23:59:59.999Z`);
+        }
 
     // 3. Execute Query
     const { data: logs, error } = await query;
@@ -184,6 +200,11 @@ function exportToPDF() {
     doc.save(`Sentinel_Audit_Log_${new Date().toISOString().split('T')[0]}.pdf`);
     showToast("PDF Export generated successfully.");
 }
+
+// Attach real-time listeners to the UI filters
+document.getElementById('filter-type')?.addEventListener('change', loadLogs);
+document.getElementById('filter-start')?.addEventListener('change', loadLogs);
+document.getElementById('filter-end')?.addEventListener('change', loadLogs);
 
 // Start the sequence
 initializeAuditPortal();

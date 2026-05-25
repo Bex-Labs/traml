@@ -118,7 +118,12 @@
 
         initializeAdminDashboard();
 
-        document.getElementById('logout-btn').addEventListener('click', async () => {
+        // Logout Handler
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            // 1. Write the logout event to the database BEFORE destroying the session
+            await supabase.rpc('log_user_logout');
+            
+            // 2. Destroy the session and redirect
             await supabase.auth.signOut();
             window.location.replace('login.html');
         });
