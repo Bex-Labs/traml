@@ -34,6 +34,9 @@ async function initializeAdminPortal() {
         // 4. Fetch the global user list
         loadUsers();
 
+        // 5. Populate the invite dropdown with custom roles
+        loadDynamicRoles();
+
     } catch (error) {
         window.location.replace('login.html');
     }
@@ -63,7 +66,13 @@ async function loadUsers() {
     }
 
     // Render the grid
-    tbody.innerHTML = users.map(user => `
+    tbody.innerHTML = users.map(user => {
+        // Format the audit timestamps and actors
+        const assignedDate = new Date(user.created_at).toLocaleDateString();
+        // Graceful fallback if the specific 'assigned_by' UUID isn't in your schema yet
+        const assignedBy = user.assigned_by ? `${user.assigned_by.substring(0,8)}...` : 'SYSTEM ADMIN';
+
+        return `
         <tr>
             <td class="ps-4 fw-medium text-dark font-monospace small">${user.id.substring(0, 8)}...</td>
             <td>
@@ -71,7 +80,9 @@ async function loadUsers() {
                     ${user.role.replace(/_/g, ' ')}
                 </span>
             </td>
-            <td class="font-monospace small text-muted">${user.tenant_id.substring(0, 8)}...</td>
+            <td class="font-monospace small text-muted">${user.tenant_id ? user.tenant_id.substring(0, 8) + '...' : 'GLOBAL'}</td>
+            <td class="small text-muted">${assignedDate}</td>
+            <td class="font-monospace small text-muted">${assignedBy}</td>
             <td>
                 <span class="badge ${user.is_active ? 'bg-success' : 'bg-danger'} rounded-pill">
                     ${user.is_active ? 'Active' : 'Deactivated'}
@@ -87,7 +98,7 @@ async function loadUsers() {
                 </button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 // UI Helper for Badge Colors
@@ -213,6 +224,37 @@ document.getElementById('admin-invite-form')?.addEventListener('submit', async (
     }
 });
 
+// --- Dynamic Role Dropdown Auto-Populator ---
+async function loadDynamicRoles() {
+    const roleSelect = document.getElementById('admin-invite-role');
+    if (!roleSelect) return;
+
+    // Supabase RLS automatically filters this list based on who is logged in!
+    const { data: customRoles, error } = await supabase
+        .from('custom_roles')
+        .select('role_name');
+
+    if (error) {
+        console.error("Failed to load custom roles:", error);
+        return;
+    }
+
+    if (customRoles && customRoles.length > 0) {
+        // Create a distinct category header for the custom roles
+        const optGroup = document.createElement('optgroup');
+        optGroup.label = "Custom Enterprise Roles";
+        
+        customRoles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role.role_name; // Send the exact name to the backend
+            option.innerText = role.role_name;
+            optGroup.appendChild(option);
+        });
+        
+        roleSelect.appendChild(optGroup);
+    }
+}
+
 // Start the sequence
 initializeAdminPortal();
 
@@ -220,7 +262,8 @@ initializeAdminPortal();
 document.getElementById('export-csv-btn')?.addEventListener('click', () => {
     if (globalAccessData.length === 0) return showToast("No matrix data available to export.", true);
 
-    const headers = ['Profile ID', 'Identity (Email)', 'Platform Role', 'Assigned Node (Tenant ID)', 'Account Status', 'Access Granted On'];
+    // Added new audit headers
+    const headers = ['Profile ID', 'Identity (Email)', 'Platform Role', 'Assigned Node (Tenant ID)', 'Assigned On', 'Assigned By', 'Account Status'];
     const csvRows = [headers.join(',')];
 
     globalAccessData.forEach(user => {
@@ -229,8 +272,9 @@ document.getElementById('export-csv-btn')?.addEventListener('click', () => {
             `"${user.email}"`,
             `"${user.role.toUpperCase()}"`,
             `"${user.tenant_id || 'GLOBAL_ACCESS'}"`,
-            `"${user.is_active ? 'ACTIVE' : 'SUSPENDED'}"`,
-            `"${new Date(user.created_at).toISOString()}"`
+            `"${new Date(user.created_at).toISOString()}"`,
+            `"${user.assigned_by || 'SYSTEM_ADMIN'}"`,
+            `"${user.is_active ? 'ACTIVE' : 'SUSPENDED'}"`
         ];
         csvRows.push(row.join(','));
     });

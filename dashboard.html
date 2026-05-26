@@ -267,6 +267,9 @@
                 document.getElementById('nav-team-management').classList.remove('d-none'); 
                 document.getElementById('nav-audit-logs').classList.remove('d-none'); // <--- THIS LINE UNHIDES THE TAB
             }
+
+            // 6. Populate the invite dropdown with custom roles
+            loadDynamicRoles();
         }
 
         // --- NEW: Invite User Logic ---
@@ -309,6 +312,32 @@
 
         // Run initialization
         initializeDashboard();
+
+        // --- Dynamic Role Dropdown Auto-Populator ---
+        async function loadDynamicRoles() {
+            const roleSelect = document.getElementById('role-select'); // Note the different ID here!
+            if (!roleSelect) return;
+
+            const { data: customRoles, error } = await supabase
+                .from('custom_roles')
+                .select('role_name');
+
+            if (error) return console.error("Failed to load custom roles:", error);
+
+            if (customRoles && customRoles.length > 0) {
+                const optGroup = document.createElement('optgroup');
+                optGroup.label = "Bank-Specific Roles"; // Changed label for branch view
+                
+                customRoles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.role_name;
+                    option.innerText = role.role_name;
+                    optGroup.appendChild(option);
+                });
+                
+                roleSelect.appendChild(optGroup);
+            }
+        }
 
         // Logout Handler
         document.getElementById('logout-btn')?.addEventListener('click', async () => {

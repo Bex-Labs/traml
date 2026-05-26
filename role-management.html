@@ -95,7 +95,7 @@
                             </div>
                             <div class="card-body bg-white p-4">
                                 <form id="custom-role-form">
-                                    <div class="row mb-4">
+                                    <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label small fw-semibold text-muted">Role Name</label>
                                             <input type="text" class="form-control bg-light" id="role-name" required placeholder="e.g., Junior Analyst">
@@ -104,6 +104,15 @@
                                             <label class="form-label small fw-semibold text-muted">Description</label>
                                             <input type="text" class="form-control bg-light" id="role-desc" placeholder="Briefly describe responsibilities...">
                                         </div>
+                                    </div>
+                                    
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <label class="form-label small fw-semibold text-muted">Target Bank (Tenant ID)</label>
+                                            <input type="text" class="form-control bg-light font-monospace" id="role-tenant" placeholder="e10dad0b-...">
+                                            <div class="form-text" style="font-size: 0.7rem;">If provided, this role will ONLY be available to this specific institution. Leave blank for a global platform role.</div>
+                                        </div>
+                                    </div>
                                     </div>
 
                                     <div class="table-responsive border rounded">
@@ -216,6 +225,7 @@
                 // 2. Gather UI inputs
                 const roleName = document.getElementById('role-name').value;
                 const roleDesc = document.getElementById('role-desc').value;
+                const targetTenant = document.getElementById('role-tenant').value.trim(); // Get the new Tenant ID
 
                 // 3. Build the JSON Permissions Object
                 let permissions = {};
@@ -234,8 +244,8 @@
                             role_name: roleName,
                             description: roleDesc,
                             permissions: permissions,
-                            created_by: session.user.id
-                            // Note: tenant_id is left null intentionally so this role is available globally
+                            created_by: session.user.id,
+                            tenant_id: targetTenant ? targetTenant : null // Bind to bank, or leave null for global
                         }
                     ]);
 
