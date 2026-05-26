@@ -94,11 +94,37 @@
                     </div>
                 </div>
 
-                <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center gap-3">
-                    <span class="material-symbols-outlined fs-2 text-danger">gavel</span>
-                    <div>
-                        <h6 class="fw-bold mb-1">God-Mode Active</h6>
-                        <p class="mb-0 small text-muted">You are operating with unrestricted system access. All actions are indelibly written to the global audit log.</p>
+                <div class="card border-0 shadow-sm mt-4 rounded-3 overflow-hidden">
+                    <div class="card-header bg-dark border-bottom border-secondary py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold text-white d-flex align-items-center gap-2 uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-success" id="pulse-icon">sensors</span> 
+                            Live System Telemetry
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <button id="refresh-telemetry-btn" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 fw-medium">
+                                <span class="material-symbols-outlined fs-6">refresh</span> Sync Feed
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive bg-white">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light text-muted uppercase fw-semibold tracking-wider">
+                                <tr>
+                                    <th class="ps-4 py-3">Timestamp</th>
+                                    <th class="py-3">Event Vector</th>
+                                    <th class="py-3">Severity</th>
+                                    <th class="py-3 w-50">System Message</th>
+                                    <th class="pe-4 py-3 text-end">Payload</th>
+                                </tr>
+                            </thead>
+                            <tbody id="telemetry-feed-body">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <span class="spinner-border spinner-border-sm me-2"></span> Initializing secure telemetry link...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -121,6 +147,12 @@
 
             document.getElementById('secure-admin-body').style.display = 'block';
             document.getElementById('ui-admin-name').innerText = session.user.email;
+            
+            // Boot the telemetry feed
+            loadTelemetryFeed();
+
+            // Initiate Realtime WebSockets
+            subscribeToSystemTelemetry();
         }
 
         // --- Custom Role Compiler ---
@@ -149,6 +181,114 @@
             submitBtn.innerHTML = 'Deploy Custom Role';
             submitBtn.disabled = false;
         });
+
+        // --- TAML-76: Telemetry Engine ---
+        async function loadTelemetryFeed() {
+            const tbody = document.getElementById('telemetry-feed-body');
+            const refreshBtn = document.getElementById('refresh-telemetry-btn');
+            
+            // UI Loading State
+            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
+            refreshBtn.disabled = true;
+
+            try {
+                // Fetch the latest 50 system events
+                const { data: events, error } = await supabase
+                    .from('system_events')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                if (events.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No system telemetry recorded.</td></tr>`;
+                    return;
+                }
+
+                // Render the feed
+                tbody.innerHTML = events.map(ev => {
+                    // 1. Format Time (HH:MM:SS)
+                    const time = new Date(ev.created_at).toLocaleTimeString([], { hour12: false });
+                    
+                    // 2. Map Severity to Colors
+                    let badge = 'bg-secondary';
+                    let rowClass = '';
+                    if (ev.severity === 'INFO') badge = 'bg-info bg-opacity-25 text-info border border-info';
+                    if (ev.severity === 'WARNING') badge = 'bg-warning bg-opacity-25 text-warning border border-warning';
+                    if (ev.severity === 'ERROR') badge = 'bg-danger text-white';
+                    if (ev.severity === 'CRITICAL') {
+                        badge = 'bg-dark text-danger border border-danger';
+                        rowClass = 'table-danger bg-opacity-25'; // Highlight the whole row
+                    }
+
+                    // 3. Stringify the JSON metadata for the inspector button
+                    const metaString = JSON.stringify(ev.metadata).replace(/"/g, '&quot;');
+
+                    return `
+                    <tr class="${rowClass}">
+                        <td class="ps-4 text-muted font-monospace small">${time}</td>
+                        <td class="fw-bold text-dark">${ev.event_type}</td>
+                        <td><span class="badge ${badge} fw-semibold">${ev.severity}</span></td>
+                        <td class="text-truncate text-muted" style="max-width: 400px;" title="${ev.message}">${ev.message}</td>
+                        <td class="pe-4 text-end">
+                            <button class="btn btn-sm btn-light border font-monospace text-muted fw-bold" style="font-size: 0.7rem;" onclick="alert('RAW JSON METADATA:\\n\\n${metaString}')">
+                                { JSON }
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error("Telemetry Sync Failed:", err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger fw-bold">Link Offline: ${err.message}</td></tr>`;
+            } finally {
+                // Restore UI State
+                refreshBtn.innerHTML = '<span class="material-symbols-outlined fs-6">refresh</span> Sync Feed';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // Attach listener to the manual refresh button
+        document.getElementById('refresh-telemetry-btn')?.addEventListener('click', loadTelemetryFeed);
+
+        // --- TAML-76: Realtime WebSocket Link ---
+        function subscribeToSystemTelemetry() {
+            console.log("📡 Initializing secure WebSocket link...");
+            
+            supabase
+                .channel('system_telemetry_feed')
+                .on('postgres_changes', 
+                    { event: 'INSERT', schema: 'public', table: 'system_events' }, 
+                    (payload) => {
+                        console.log('🚨 Incoming Telemetry Packet:', payload.new);
+                        
+                        // 1. Visual Indicator (Flash the Refresh Button)
+                        const refreshBtn = document.getElementById('refresh-telemetry-btn');
+                        const originalHtml = refreshBtn.innerHTML;
+                        
+                        refreshBtn.classList.replace('btn-outline-light', 'btn-warning');
+                        refreshBtn.classList.add('text-dark');
+                        refreshBtn.innerHTML = '<span class="material-symbols-outlined fs-6 animate-pulse">warning</span> New Event Detected!';
+                        
+                        // 2. Auto-pull the latest data grid
+                        loadTelemetryFeed().then(() => {
+                            // 3. Reset the button after 2 seconds
+                            setTimeout(() => {
+                                refreshBtn.classList.replace('btn-warning', 'btn-outline-light');
+                                refreshBtn.classList.remove('text-dark');
+                                refreshBtn.innerHTML = originalHtml;
+                            }, 2000);
+                        });
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log("✅ WebSocket Link Established.");
+                    }
+                });
+        }
 
         initializeAdminDashboard();
 
