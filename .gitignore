@@ -1,0 +1,6 @@
+# Python environments
+venv/
+__pycache__/
+
+# Massive data files (we generated these locally, no need to push)
+*.csv
