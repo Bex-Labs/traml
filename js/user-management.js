@@ -38,7 +38,7 @@ async function initializeAdminPortal() {
         loadDynamicRoles();
 
     } catch (error) {
-        window.location.replace('login.html');
+        window.location.replace('index.html');
     }
 }
 
@@ -284,7 +284,7 @@ document.getElementById('export-csv-btn')?.addEventListener('click', () => {
     const a = document.createElement('a');
     a.setAttribute('hidden', '');
     a.setAttribute('href', url);
-    a.setAttribute('download', `Sentinel_Access_Review_${new Date().toISOString().split('T')[0]}.csv`);
+    a.setAttribute('download', `BexAML_Access_Review_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

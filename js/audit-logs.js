@@ -44,7 +44,7 @@ async function initializeAuditPortal() {
         loadLogs();
 
     } catch (error) {
-        window.location.replace('login.html');
+        window.location.replace('index.html');
     }
 }
 
@@ -153,7 +153,7 @@ function exportToCSV() {
     const a = document.createElement('a');
     a.setAttribute('hidden', '');
     a.setAttribute('href', url);
-    a.setAttribute('download', `Sentinel_Audit_Log_${new Date().toISOString().split('T')[0]}.csv`);
+    a.setAttribute('download', `BexAML_Audit_Log_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -170,8 +170,8 @@ function exportToPDF() {
 
     // Enterprise Header
     doc.setFontSize(16);
-    doc.setTextColor(14, 165, 233); // Sentinel Primary Blue
-    doc.text("Sentinel AML", 14, 15);
+    doc.setTextColor(14, 165, 233); // Bex Primary Blue
+    doc.text("BexAML", 14, 15);
     
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -197,7 +197,7 @@ function exportToPDF() {
     });
 
     // Download
-    doc.save(`Sentinel_Audit_Log_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`BexAML_Audit_Log_${new Date().toISOString().split('T')[0]}.pdf`);
     showToast("PDF Export generated successfully.");
 }
 

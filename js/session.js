@@ -22,7 +22,7 @@ async function triggerAutoLogout() {
     await supabase.auth.signOut();
     
     // Redirect to login page with an optional URL parameter to show a message
-    window.location.href = 'login.html?expired=true';
+    window.location.href = 'index.html?expired=true';
 }
 
 /**
@@ -35,7 +35,7 @@ export async function terminateAllSessions() {
     // The { scope: 'global' } parameter specifically targets all devices
     await supabase.auth.signOut({ scope: 'global' });
     
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
 // Attach the watchdog to all major physical interactions
