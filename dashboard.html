@@ -280,7 +280,7 @@
             submitBtn.disabled = true;
 
             const email = document.getElementById('invite-email').value;
-            const role = document.getElementById('invite-role').value;
+            const role = document.getElementById('role-select').value;
 
             // Grab the current user's JWT to extract the tenantId they belong to
             const { data: { session } } = await supabase.auth.getSession();
