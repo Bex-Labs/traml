@@ -7,13 +7,14 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:;">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
     <script type="module" src="./js/session.js"></script>
 
     <link href="./css/theme.css" rel="stylesheet">
 </head>
-<body class="bg-light" style="display: none;" id="secure-body">
+<body class="bg-light vh-100 overflow-hidden" style="display: none;" id="secure-body">
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
         <div class="container-fluid p-0">
@@ -39,11 +40,12 @@
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row" style="height: calc(100vh - 57px);">
+    <div class="container-fluid px-0">
+        <div class="row g-0" style="height: calc(100vh - 57px);">
             
-            <div class="col-md-2 bg-white border-end p-0 d-flex flex-column justify-content-between">
-                <div class="list-group list-group-flush mt-3">
+            <div class="col-md-2 bg-white border-end p-0 d-flex flex-column h-100">
+                
+                <div class="list-group list-group-flush mt-3 flex-grow-1 overflow-y-auto">
                     <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3">
                         <span class="material-symbols-outlined">dashboard</span>
                         <span class="small fw-semibold">Command Center</span>
@@ -77,53 +79,420 @@
                     </a>
                 </div>
                 
-                <div class="p-3 border-top">
+                <div class="p-3 border-top mt-auto">
                     <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
                         <span class="material-symbols-outlined fs-6">logout</span> Secure Logout
                     </button>
                 </div>
             </div>
 
-            <div class="col-md-10 p-4 overflow-auto">
+            <div class="col-md-10 p-4 overflow-auto h-100">
                 
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                    Total Nodes Scanned <span class="material-symbols-outlined text-primary fs-5">memory</span>
+                <div id="view-head-compliance" class="d-none">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Global Compliance Overview</h4>
+                            <p class="text-muted small mb-0">System-wide alert metrics, team performance, and SAR tracking (Last 30 Days).</p>
+                        </div>
+                    </div>
+
+                    <!-- Row 1: Top-Line KPI Cards (TAML-100 & TAML-111) -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Total Alerts <span class="material-symbols-outlined text-primary fs-5">notifications_active</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0" id="kpi-total-alerts">4,192</h3>
                                 </div>
-                                <h3 class="fw-bold mb-0">24,892</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Alert-to-Case Conversion <span class="material-symbols-outlined text-warning fs-5">filter_alt</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-conversion">14.2%</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        SAR Filing Rate <span class="material-symbols-outlined text-danger fs-5">gavel</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-sar-rate">3.8%</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Avg Resolution Time <span class="material-symbols-outlined text-success fs-5">schedule</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-resolution">4.2 Hrs</h3>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                    High Risk Alerts <span class="material-symbols-outlined text-danger fs-5">warning</span>
+
+                    <!-- Row 2: Charts -->
+                    <div class="row g-4 mb-4">
+                        <!-- Alert Volume Trend -->
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Alert Volume Trend (30 Days)</h6>
                                 </div>
-                                <h3 class="fw-bold text-danger mb-0">14</h3>
+                                <div class="card-body">
+                                    <canvas id="alertTrendChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Open Cases by Status -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Open Cases by Status</h6>
+                                </div>
+                                <div class="card-body d-flex justify-content-center align-items-center">
+                                    <canvas id="caseStatusChart" height="200"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                    Pending STR Filings <span class="material-symbols-outlined text-warning fs-5">assignment_late</span>
+
+                    <!-- Row 3: Performance Tables -->
+                    <div class="row g-4 mb-5">
+                        <!-- Rule Performance Summary -->
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Rule Performance Summary</h6>
                                 </div>
-                                <h3 class="fw-bold text-warning mb-0">03</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small uppercase">
+                                            <tr>
+                                                <th class="py-3 px-4 fw-semibold">AML Rule</th>
+                                                <th class="py-3 fw-semibold">Triggers</th>
+                                                <th class="py-3 fw-semibold">False Positives</th>
+                                                <th class="py-3 fw-semibold">Conversion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="px-4 fw-semibold small text-dark">Velocity Exceeded (24hr)</td>
+                                                <td class="small">1,245</td>
+                                                <td class="small text-danger">82%</td>
+                                                <td class="small fw-bold">18%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 fw-semibold small text-dark">Structuring / Smurfing</td>
+                                                <td class="small">890</td>
+                                                <td class="small text-warning">45%</td>
+                                                <td class="small fw-bold">55%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 fw-semibold small text-dark">Round-Tripping Detected</td>
+                                                <td class="small">312</td>
+                                                <td class="small text-success">12%</td>
+                                                <td class="small fw-bold">88%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Team Workload Distribution -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Team Workload</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="workloadChart" height="200"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                    System Status <span class="material-symbols-outlined text-success fs-5">check_circle</span>
+                </div>
+
+                <div id="view-compliance-officer" class="d-none">
+                    
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Frontline Triage Workspace</h4>
+                            <p class="text-muted small mb-0">Evaluate, escalate, or dismiss pending transaction alerts.</p>
+                        </div>
+                        <span class="badge bg-white text-dark border shadow-sm px-3 py-2 d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-success fs-6">sync</span> Engine Synchronized
+                        </span>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        My Open Cases <span class="material-symbols-outlined text-primary fs-5">folder_shared</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0">12</h3>
                                 </div>
-                                <h5 class="fw-bold text-success mb-0 mt-2">CBN Sync Active</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Critical Alerts (Pool) <span class="material-symbols-outlined text-danger fs-5">warning</span>
+                                    </div>
+                                    <h3 class="fw-bold text-danger mb-0">277</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        SLA Breach Warning <span class="material-symbols-outlined text-warning fs-5">timer</span>
+                                    </div>
+                                    <h3 class="fw-bold text-warning mb-0">04</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        My Conversion Rate <span class="material-symbols-outlined text-success fs-5">moving</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0">18.5%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">priority_high</span> Pending Alerts Queue
+                                    </h6>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-secondary active">Unassigned</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Assigned to Me</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small uppercase">
+                                            <tr>
+                                                <th class="py-3 px-4 fw-semibold">Alert ID / Time</th>
+                                                <th class="py-3 fw-semibold">Rule Triggered</th>
+                                                <th class="py-3 fw-semibold">Severity</th>
+                                                <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="px-4">
+                                                    <div class="fw-bold text-dark small font-monospace">ALT-8091</div>
+                                                    <div class="text-muted" style="font-size: 0.7rem;">10 mins ago</div>
+                                                </td>
+                                                <td class="fw-semibold small">Round-Tripping Detected <br><span class="text-muted fw-normal" style="font-size: 0.7rem;">₦50M out, ₦49.5M returned</span></td>
+                                                <td><span class="badge bg-danger">CRITICAL</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4">
+                                                    <div class="fw-bold text-dark small font-monospace">ALT-8092</div>
+                                                    <div class="text-muted" style="font-size: 0.7rem;">14 mins ago</div>
+                                                </td>
+                                                <td class="fw-semibold small">Structuring / Smurfing Detected <br><span class="text-muted fw-normal" style="font-size: 0.7rem;">4 txns just under ₦5M limit</span></td>
+                                                <td><span class="badge bg-danger">CRITICAL</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4">
+                                                    <div class="fw-bold text-dark small font-monospace">ALT-8093</div>
+                                                    <div class="text-muted" style="font-size: 0.7rem;">1 hour ago</div>
+                                                </td>
+                                                <td class="fw-semibold small">High Value Cumulative Daily<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">Volume reached ₦14.2M</span></td>
+                                                <td><span class="badge bg-warning text-dark">HIGH</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary fs-5">history</span> Recent Activity
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="position-relative border-start border-2 border-light ms-3 space-y-4" style="padding-left: 1rem;">
+                                        
+                                        <div class="position-relative mb-4">
+                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-primary rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
+                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">You escalated Case #C-1092</p>
+                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Sent to Head of Compliance</p>
+                                            <span class="text-muted" style="font-size: 0.7rem;">20 mins ago</span>
+                                        </div>
+
+                                        <div class="position-relative mb-4">
+                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-danger rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
+                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">Engine generated 441 new alerts</p>
+                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Batch scan completed.</p>
+                                            <span class="text-muted" style="font-size: 0.7rem;">1 hour ago</span>
+                                        </div>
+
+                                        <div class="position-relative mb-0">
+                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-success rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
+                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">You closed Case #C-1088</p>
+                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Outcome: SAR Filed</p>
+                                            <span class="text-muted" style="font-size: 0.7rem;">3 hours ago</span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-bank-manager" class="d-none">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Executive Risk Exposure</h4>
+                            <p class="text-muted small mb-0">Institutional compliance health, customer risk tiers, and exposure segmentation.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Compliance Health <span class="material-symbols-outlined text-success fs-5">health_and_safety</span>
+                                    </div>
+                                    <h3 class="fw-bold text-success mb-0">94%</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        High-Risk Entities <span class="material-symbols-outlined text-danger fs-5">report</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0">412</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Open Cases (Branch) <span class="material-symbols-outlined text-warning fs-5">folder_open</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0">47</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        SARs Filed (YTD) <span class="material-symbols-outlined text-primary fs-5">gavel</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0">18</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Customer Risk Tiers</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="riskTierChart" height="220"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Exposure by Industry</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="industryRiskChart" height="220"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">warning</span> High-Risk Customer Watchlist
+                                    </h6>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-secondary active">Corporate</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Individual</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small uppercase">
+                                            <tr>
+                                                <th class="py-3 px-4 fw-semibold">Entity Name</th>
+                                                <th class="py-3 fw-semibold">Industry / Sector</th>
+                                                <th class="py-3 fw-semibold">Geography</th>
+                                                <th class="py-3 fw-semibold">Risk Score</th>
+                                                <th class="py-3 text-end px-4 fw-semibold">Profile</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="px-4"><div class="fw-bold text-dark small">Zenith Trading Ltd</div><div class="text-muted" style="font-size: 0.7rem;">RC-192834</div></td>
+                                                <td class="fw-semibold small">Import / Export</td>
+                                                <td class="small">Lagos, NG</td>
+                                                <td><span class="badge bg-danger">92/100</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View EDD</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4"><div class="fw-bold text-dark small">Abuja Gold Exchange</div><div class="text-muted" style="font-size: 0.7rem;">RC-009123</div></td>
+                                                <td class="fw-semibold small">Precious Metals</td>
+                                                <td class="small">Abuja, NG</td>
+                                                <td><span class="badge bg-danger">88/100</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View EDD</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4"><div class="fw-bold text-dark small">Oasis Logistics</div><div class="text-muted" style="font-size: 0.7rem;">RC-772190</div></td>
+                                                <td class="fw-semibold small">Transportation</td>
+                                                <td class="small">Kano, NG</td>
+                                                <td><span class="badge bg-warning text-dark">75/100</span></td>
+                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View CDD</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -261,11 +630,28 @@
             document.getElementById('ui-user-role').innerText = userRole.replace(/_/g, ' ');
             document.getElementById('ui-tenant-id').innerText = tenantId.split('-')[0] + '...';
 
-           // 5. Enforce UI Permissions (RBAC)
+           // 5. Enforce UI Permissions (RBAC) & Handle Views
             if (userRole === 'system_admin' || userRole === 'head_of_compliance' || userRole === 'it_engineer') {
                 document.getElementById('nav-system-config').classList.remove('d-none');
                 document.getElementById('nav-team-management').classList.remove('d-none'); 
-                document.getElementById('nav-audit-logs').classList.remove('d-none'); // <--- THIS LINE UNHIDES THE TAB
+                document.getElementById('nav-audit-logs').classList.remove('d-none');
+                
+                document.getElementById('view-head-compliance').classList.remove('d-none');
+                document.getElementById('view-compliance-officer').classList.add('d-none');
+                document.getElementById('view-bank-manager').classList.add('d-none'); // Hide new view
+                renderComplianceCharts();
+                
+            } else if (userRole === 'compliance_officer') {
+                document.getElementById('view-compliance-officer').classList.remove('d-none');
+                document.getElementById('view-head-compliance').classList.add('d-none');
+                document.getElementById('view-bank-manager').classList.add('d-none'); // Hide new view
+                
+            } else if (userRole === 'bank_manager') {
+                // Show Bank Manager View
+                document.getElementById('view-bank-manager').classList.remove('d-none');
+                document.getElementById('view-head-compliance').classList.add('d-none');
+                document.getElementById('view-compliance-officer').classList.add('d-none');
+                renderManagerCharts(); // Draw the risk charts
             }
 
             // 6. Populate the invite dropdown with custom roles
@@ -309,6 +695,106 @@
             submitBtn.innerHTML = 'Send Secure Invite';
             submitBtn.disabled = false;
         });
+
+        // --- Head of Compliance Chart Initialization ---
+        function renderComplianceCharts() {
+            // 1. Alert Volume Trend (Line Chart)
+            const trendCtx = document.getElementById('alertTrendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Total Alerts Generated',
+                        data: [850, 1120, 940, 1282],
+                        borderColor: '#0ea5e9', // Primary blue
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 2. Open Cases by Status (Doughnut Chart)
+            const statusCtx = document.getElementById('caseStatusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending Review', 'Under Investigation', 'Escalated'],
+                    datasets: [{
+                        data: [45, 25, 10],
+                        backgroundColor: ['#64748b', '#f59e0b', '#ef4444'], // Slate, Warning, Danger
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+            });
+
+            // 3. Team Workload (Bar Chart)
+            const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+            new Chart(workloadCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Unassigned', 'Officer A', 'Officer B'],
+                    datasets: [{
+                        label: 'Active Cases',
+                        data: [120, 45, 38],
+                        backgroundColor: ['#cbd5e1', '#3b82f6', '#3b82f6'],
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+            });
+        }
+
+        // --- Bank Manager Chart Initialization ---
+        function renderManagerCharts() {
+            // 1. Risk Tier Doughnut Chart
+            const tierCtx = document.getElementById('riskTierChart').getContext('2d');
+            new Chart(tierCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [8200, 1500, 412],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Emerald, Amber, Rose
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
+            });
+
+            // 2. Exposure by Industry Stacked Bar Chart
+            const indCtx = document.getElementById('industryRiskChart').getContext('2d');
+            new Chart(indCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Real Estate', 'Import/Export', 'Crypto/Virtual', 'Retail', 'Logistics'],
+                    datasets: [
+                        {
+                            label: 'High Risk',
+                            data: [120, 150, 85, 20, 37],
+                            backgroundColor: '#ef4444' // Rose
+                        },
+                        {
+                            label: 'Medium/Low Risk',
+                            data: [400, 300, 45, 1200, 800],
+                            backgroundColor: '#cbd5e1' // Slate
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true }
+                    }
+                }
+            });
+        }
 
         // Run initialization
         initializeDashboard();

@@ -24,14 +24,20 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // DIAGNOSTIC TRAP 2: The Auth API (Rate limits & duplicates)
+    // DIAGNOSTIC TRAP 2: The Auth API (Ghost Bypass)
     let authData, authError;
     try {
-        const result = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
+        // Bypass the SMTP mailer entirely and force-create an active user
+        const result = await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            email_confirm: true, // Bypasses the email click requirement
+            password: 'SecurePassword123!', // Hardcodes an initial password
+            user_metadata: { role: role }
+        });
         authData = result.data;
         authError = result.error;
     } catch (err) {
-        throw new Error("DIAGNOSTIC 2: The Supabase Auth API completely crashed (Likely the 3-email-per-hour Rate Limit).")
+        throw new Error("DIAGNOSTIC 2: The Supabase Auth API failed during ghost creation.");
     }
     
     if (authError) throw new Error(`AUTH ERROR: ${authError.message}`)
