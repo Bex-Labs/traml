@@ -24,20 +24,17 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // DIAGNOSTIC TRAP 2: The Auth API (Ghost Bypass)
+    // DIAGNOSTIC TRAP 2: The Auth API (Standard Email Invite)
     let authData, authError;
     try {
-        // Bypass the SMTP mailer entirely and force-create an active user
-        const result = await supabaseAdmin.auth.admin.createUser({
-            email: email,
-            email_confirm: true, // Bypasses the email click requirement
-            password: 'SecurePassword123!', // Hardcodes an initial password
-            user_metadata: { role: role }
+        // Trigger the standard Supabase SMTP invitation email
+        const result = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+            data: { role: role } // Injects the role into user_metadata during the invite
         });
         authData = result.data;
         authError = result.error;
     } catch (err) {
-        throw new Error("DIAGNOSTIC 2: The Supabase Auth API failed during ghost creation.");
+        throw new Error("DIAGNOSTIC 2: The Supabase Auth API failed during standard email invite.");
     }
     
     if (authError) throw new Error(`AUTH ERROR: ${authError.message}`)
