@@ -130,7 +130,6 @@
                 const userRole = jwtPayload.app_metadata?.role;
 
                 if (userRole === 'it_admin')          window.location.replace('admin-dashboard.html');
-                else if (userRole === 'compliance_officer') window.location.replace('compliance-officer.html');
                 else                                  window.location.replace('dashboard.html');
             }
         });
