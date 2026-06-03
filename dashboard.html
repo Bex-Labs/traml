@@ -46,11 +46,11 @@
             <div class="col-md-2 bg-white border-end p-0 d-flex flex-column h-100">
                 
                 <div class="list-group list-group-flush mt-3 flex-grow-1 overflow-y-auto">
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3">
+                    <a href="#" id="nav-command-center" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3">
                         <span class="material-symbols-outlined">dashboard</span>
                         <span class="small fw-semibold">Command Center</span>
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                    <a href="#" id="nav-kyc" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted border-start border-transparent border-3">
                         <span class="material-symbols-outlined">badge</span>
                         <span class="small fw-semibold">KYC & Identity</span>
                     </a>
@@ -184,25 +184,7 @@
                                                 <th class="py-3 fw-semibold">Conversion</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="px-4 fw-semibold small text-dark">Velocity Exceeded (24hr)</td>
-                                                <td class="small">1,245</td>
-                                                <td class="small text-danger">82%</td>
-                                                <td class="small fw-bold">18%</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4 fw-semibold small text-dark">Structuring / Smurfing</td>
-                                                <td class="small">890</td>
-                                                <td class="small text-warning">45%</td>
-                                                <td class="small fw-bold">55%</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4 fw-semibold small text-dark">Round-Tripping Detected</td>
-                                                <td class="small">312</td>
-                                                <td class="small text-success">12%</td>
-                                                <td class="small fw-bold">88%</td>
-                                            </tr>
+                                        <tbody id="rule-performance-body">
                                         </tbody>
                                     </table>
                                 </div>
@@ -218,6 +200,37 @@
                                     <canvas id="workloadChart" height="200"></canvas>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Customer Profile Directory</h4>
+                            <p class="text-muted small mb-0">Global repository of all institutional and retail entities.</p>
+                        </div>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
+                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by name or RC number...">
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Entity Name</th>
+                                        <th class="py-3 fw-semibold">Industry / Sector</th>
+                                        <th class="py-3 fw-semibold">Geography</th>
+                                        <th class="py-3 fw-semibold">Risk Score</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kyc-directory-body" class="bg-white">
+                                    </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -291,43 +304,18 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light text-muted small uppercase">
+                                        <thead class="table-light text-muted small text-uppercase">
                                             <tr>
-                                                <th class="py-3 px-4 fw-semibold">Alert ID / Time</th>
+                                                <th class="py-3 px-4 fw-semibold">Alert Ref</th>
+                                                <th class="py-3 fw-semibold">Customer</th>
                                                 <th class="py-3 fw-semibold">Rule Triggered</th>
                                                 <th class="py-3 fw-semibold">Severity</th>
+                                                <th class="py-3 fw-semibold">Date</th>
                                                 <th class="py-3 text-end px-4 fw-semibold">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="px-4">
-                                                    <div class="fw-bold text-dark small font-monospace">ALT-8091</div>
-                                                    <div class="text-muted" style="font-size: 0.7rem;">10 mins ago</div>
-                                                </td>
-                                                <td class="fw-semibold small">Round-Tripping Detected <br><span class="text-muted fw-normal" style="font-size: 0.7rem;">₦50M out, ₦49.5M returned</span></td>
-                                                <td><span class="badge bg-danger">CRITICAL</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4">
-                                                    <div class="fw-bold text-dark small font-monospace">ALT-8092</div>
-                                                    <div class="text-muted" style="font-size: 0.7rem;">14 mins ago</div>
-                                                </td>
-                                                <td class="fw-semibold small">Structuring / Smurfing Detected <br><span class="text-muted fw-normal" style="font-size: 0.7rem;">4 txns just under ₦5M limit</span></td>
-                                                <td><span class="badge bg-danger">CRITICAL</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4">
-                                                    <div class="fw-bold text-dark small font-monospace">ALT-8093</div>
-                                                    <div class="text-muted" style="font-size: 0.7rem;">1 hour ago</div>
-                                                </td>
-                                                <td class="fw-semibold small">High Value Cumulative Daily<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">Volume reached ₦14.2M</span></td>
-                                                <td><span class="badge bg-warning text-dark">HIGH</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-primary fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
-                                            </tr>
-                                        </tbody>
+                                        <tbody id="alerts-table-body" class="bg-white">
+                                            </tbody>
                                     </table>
                                 </div>
                             </div>
@@ -498,7 +486,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm">
+                <div id="live-stream-section" class="card border-0 shadow-sm mt-4">
                     <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
                             <span class="material-symbols-outlined text-primary fs-5">stream</span> Live Transaction Stream
@@ -517,26 +505,7 @@
                                 </tr>
                             </thead>
                             <tbody id="transaction-feed">
-                                <tr>
-                                    <td class="px-4 text-muted small">14:22:01</td>
-                                    <td>
-                                        <div class="fw-bold text-dark small">TX_99342A</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">ALPHA_CORP_LTD</div>
-                                    </td>
-                                    <td class="fw-semibold small">₦ 45,500,000.00</td>
-                                    <td><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Velocity Exceeded</span></td>
-                                    <td class="text-end px-4"><button class="btn btn-sm btn-outline-danger fw-bold uppercase" style="font-size: 0.7rem;">Triage</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4 text-muted small">14:21:12</td>
-                                    <td>
-                                        <div class="fw-bold text-dark small">TX_99340C</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">GAMMA_LOGISTICS</div>
-                                    </td>
-                                    <td class="fw-semibold small">₦ 450,000.00</td>
-                                    <td><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Standard Pattern</span></td>
-                                    <td class="text-end px-4"><span class="text-success small fw-bold uppercase">Cleared</span></td>
-                                </tr>
+            
                             </tbody>
                         </table>
                     </div>
@@ -574,6 +543,55 @@
                         </button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end shadow" tabindex="-1" id="customer360Panel" style="width: 550px; border-left: 1px solid #e2e8f0;">
+        <div class="offcanvas-header bg-light border-bottom">
+            <div>
+                <h5 class="offcanvas-title fw-bold text-dark mb-0" id="panel-entity-name">Loading...</h5>
+                <span class="text-muted small" id="panel-entity-id">...</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body p-0">
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted uppercase small fw-bold mb-1">Current Risk Tier</p>
+                    <div id="panel-risk-badge">
+                        <span class="badge bg-secondary">Unknown</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted uppercase small fw-bold mb-1">Total Alerts</p>
+                    <h4 class="fw-bold mb-0 text-dark" id="panel-total-alerts">0</h4>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <h6 class="fw-bold uppercase text-dark mb-3 small">KYC Data Points</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Industry</p>
+                        <p class="fw-medium text-dark small" id="panel-industry">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Geography</p>
+                        <p class="fw-medium text-dark small" id="panel-geography">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Account Type</p>
+                        <p class="fw-medium text-dark small" id="panel-account-type">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Date Onboarded</p>
+                        <p class="fw-medium text-dark small" id="panel-onboarded">-</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-danger w-100 fw-bold uppercase">File Suspicious Activity Report (SAR)</button>
             </div>
         </div>
     </div>
@@ -644,7 +662,9 @@
             } else if (userRole === 'compliance_officer') {
                 document.getElementById('view-compliance-officer').classList.remove('d-none');
                 document.getElementById('view-head-compliance').classList.add('d-none');
-                document.getElementById('view-bank-manager').classList.add('d-none'); // Hide new view
+                document.getElementById('view-bank-manager').classList.add('d-none'); 
+
+                loadAlertsQueue(); 
                 
             } else if (userRole === 'bank_manager') {
                 // Show Bank Manager View
@@ -656,6 +676,54 @@
 
             // 6. Populate the invite dropdown with custom roles
             loadDynamicRoles();
+        }
+
+        // --- View Router Logic ---
+        document.getElementById('nav-command-center')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('command-center', e.currentTarget);
+        });
+
+        document.getElementById('nav-kyc')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('kyc', e.currentTarget);
+        });
+
+        function switchView(viewName, activeElement) {
+            // 1. Reset all nav links
+            document.querySelectorAll('.nav-link-item').forEach(el => {
+                el.classList.remove('text-primary', 'bg-light', 'border-primary');
+                el.classList.add('text-muted', 'border-transparent');
+            });
+
+            // 2. Set active nav link
+            if(activeElement) {
+                activeElement.classList.remove('text-muted', 'border-transparent');
+                activeElement.classList.add('text-primary', 'bg-light', 'border-primary');
+            }
+
+            // 3. Hide ALL views and global components by default
+            document.getElementById('view-head-compliance').classList.add('d-none');
+            document.getElementById('view-compliance-officer').classList.add('d-none');
+            document.getElementById('view-bank-manager').classList.add('d-none');
+            document.getElementById('view-kyc-directory').classList.add('d-none');
+            document.getElementById('live-stream-section')?.classList.add('d-none'); // Hide stream
+
+            // 4. Show requested view
+            if (viewName === 'kyc') {
+                // Show ONLY the KYC directory
+                document.getElementById('view-kyc-directory').classList.remove('d-none');
+                loadKYCDirectory(); 
+            } else {
+                // Show the global live stream for all command center roles
+                document.getElementById('live-stream-section')?.classList.remove('d-none');
+                
+                // Fallback to role-based command center view
+                const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
+                if (userRole === 'bank_manager') document.getElementById('view-bank-manager').classList.remove('d-none');
+                else if (userRole === 'head_of_compliance' || userRole === 'system_admin') document.getElementById('view-head-compliance').classList.remove('d-none');
+                else document.getElementById('view-compliance-officer').classList.remove('d-none');
+            }
         }
 
         // --- NEW: Invite User Logic ---
@@ -696,108 +764,421 @@
             submitBtn.disabled = false;
         });
 
-        // --- Head of Compliance Chart Initialization ---
-        function renderComplianceCharts() {
-            // 1. Alert Volume Trend (Line Chart)
-            const trendCtx = document.getElementById('alertTrendChart').getContext('2d');
-            new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    datasets: [{
-                        label: 'Total Alerts Generated',
-                        data: [850, 1120, 940, 1282],
-                        borderColor: '#0ea5e9', // Primary blue
-                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+        // --- Head of Compliance Chart Initialization (UPGRADED ENGINE) ---
+        async function renderComplianceCharts() {
+            try {
+                // Fetch all alerts for global analytics
+                const { data: alerts, error } = await supabase
+                    .from('alerts')
+                    .select('status, severity, rule_triggered, created_at')
+                    .order('created_at', { ascending: true });
 
-            // 2. Open Cases by Status (Doughnut Chart)
-            const statusCtx = document.getElementById('caseStatusChart').getContext('2d');
-            new Chart(statusCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pending Review', 'Under Investigation', 'Escalated'],
-                    datasets: [{
-                        data: [45, 25, 10],
-                        backgroundColor: ['#64748b', '#f59e0b', '#ef4444'], // Slate, Warning, Danger
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
-            });
+                if (error) throw error;
 
-            // 3. Team Workload (Bar Chart)
-            const workloadCtx = document.getElementById('workloadChart').getContext('2d');
-            new Chart(workloadCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Unassigned', 'Officer A', 'Officer B'],
-                    datasets: [{
-                        label: 'Active Cases',
-                        data: [120, 45, 38],
-                        backgroundColor: ['#cbd5e1', '#3b82f6', '#3b82f6'],
-                        borderRadius: 4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
-            });
-        }
+                // 1. Update Top-Line KPI: Total Alerts
+                const totalAlertsElement = document.getElementById('kpi-total-alerts');
+                if (totalAlertsElement) totalAlertsElement.innerText = alerts.length.toLocaleString();
 
-        // --- Bank Manager Chart Initialization ---
-        function renderManagerCharts() {
-            // 1. Risk Tier Doughnut Chart
-            const tierCtx = document.getElementById('riskTierChart').getContext('2d');
-            new Chart(tierCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
-                    datasets: [{
-                        data: [8200, 1500, 412],
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Emerald, Amber, Rose
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
-            });
+                // --- AGGREGATION LOGIC ---
+                let statusCounts = { unassigned: 0, investigation: 0, escalated: 0 };
+                let rulesMap = {};
+                let dateMap = {};
 
-            // 2. Exposure by Industry Stacked Bar Chart
-            const indCtx = document.getElementById('industryRiskChart').getContext('2d');
-            new Chart(indCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Real Estate', 'Import/Export', 'Crypto/Virtual', 'Retail', 'Logistics'],
-                    datasets: [
-                        {
-                            label: 'High Risk',
-                            data: [120, 150, 85, 20, 37],
-                            backgroundColor: '#ef4444' // Rose
-                        },
-                        {
-                            label: 'Medium/Low Risk',
-                            data: [400, 300, 45, 1200, 800],
-                            backgroundColor: '#cbd5e1' // Slate
-                        }
-                    ]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true },
-                        y: { stacked: true }
+                alerts.forEach(alert => {
+                    // Tally Statuses
+                    if (alert.status === 'UNASSIGNED') statusCounts.unassigned++;
+                    else if (alert.status === 'INVESTIGATING') statusCounts.investigation++;
+                    else if (alert.status === 'ESCALATED') statusCounts.escalated++;
+
+                    // Tally Rules
+                    const rule = alert.rule_triggered || 'Unknown Rule';
+                    if (!rulesMap[rule]) rulesMap[rule] = { triggers: 0, escalations: 0 };
+                    rulesMap[rule].triggers++;
+                    if (alert.status === 'ESCALATED') rulesMap[rule].escalations++;
+
+                    // Tally Dates (for Trend Chart)
+                    const dateStr = new Date(alert.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    if (!dateMap[dateStr]) dateMap[dateStr] = 0;
+                    dateMap[dateStr]++;
+                });
+
+                // 2. Open Cases by Status (Doughnut Chart)
+                const statusCtx = document.getElementById('caseStatusChart');
+                if (Chart.getChart(statusCtx)) Chart.getChart(statusCtx).destroy(); // Destroy old chart if exists
+                
+                new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Unassigned', 'Under Investigation', 'Escalated'],
+                        datasets: [{
+                            data: [statusCounts.unassigned, statusCounts.investigation, statusCounts.escalated],
+                            backgroundColor: ['#64748b', '#f59e0b', '#ef4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+                });
+
+                // 3. Alert Volume Trend (Line Chart)
+                const trendCtx = document.getElementById('alertTrendChart');
+                if (Chart.getChart(trendCtx)) Chart.getChart(trendCtx).destroy();
+                
+                new Chart(trendCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(dateMap),
+                        datasets: [{
+                            label: 'Daily Alerts',
+                            data: Object.values(dateMap),
+                            borderColor: '#0ea5e9',
+                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                     }
+                });
+
+                // 4. Rule Performance Table Injection
+                const tbody = document.getElementById('rule-performance-body');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    
+                    // Convert map to array and sort by highest triggers
+                    const sortedRules = Object.entries(rulesMap).sort((a, b) => b[1].triggers - a[1].triggers);
+                    
+                    sortedRules.forEach(([ruleName, metrics]) => {
+                        const row = document.createElement('tr');
+                        
+                        // Mock calculation for false positives/conversion since we haven't built the closure workflow yet
+                        const conversionRate = metrics.triggers > 0 ? Math.round((metrics.escalations / metrics.triggers) * 100) : 0;
+                        const fpRate = 100 - conversionRate;
+                        
+                        let fpColor = fpRate > 60 ? 'text-danger' : 'text-success';
+
+                        row.innerHTML = `
+                            <td class="px-4 fw-semibold small text-dark">${ruleName}</td>
+                            <td class="small fw-medium">${metrics.triggers}</td>
+                            <td class="small fw-bold ${fpColor}">${fpRate}%</td>
+                            <td class="small fw-bold">${conversionRate}%</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 }
-            });
+
+            } catch (err) {
+                console.error("Error loading Compliance charts:", err);
+            }
         }
+
+        // --- Live Transaction Stream Engine (FIXED PATH) ---
+        async function loadLiveTransactions() {
+            try {
+                const tbody = document.getElementById('transaction-feed');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted small">Syncing live stream...</td></tr>';
+
+                // Fix: Query customers nested inside accounts
+                const { data: transactions, error } = await supabase
+                    .from('transactions')
+                    .select(`
+                        id,
+                        amount,
+                        transaction_type,
+                        transaction_timestamp,
+                        transaction_reference,
+                        accounts (
+                            customers ( entity_name )
+                        )
+                    `)
+                    .order('transaction_timestamp', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted small">No recent transactions.</td></tr>';
+                    return;
+                }
+
+                transactions.forEach(tx => {
+                    const row = document.createElement('tr');
+                    
+                    const dateObj = new Date(tx.transaction_timestamp);
+                    const timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    
+                    const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(tx.amount);
+
+                    // Fix: Extract entity name from the nested chain
+                    const companyName = tx.accounts?.customers?.entity_name || 'UNKNOWN ENTITY';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-muted small">${timeString}</td>
+                        <td class="py-3">
+                            <div class="fw-bold text-dark small">${tx.transaction_reference}</div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.7rem;">${companyName}</div>
+                        </td>
+                        <td class="py-3 fw-semibold small">${formattedAmount}</td>
+                        <td class="py-3">
+                            <span class="badge bg-light text-dark border border-secondary border-opacity-25">${tx.transaction_type}</span>
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <span class="text-success small fw-bold text-uppercase">Logged</span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Error loading live transactions:", err);
+                // Fallback UI so it never stays stuck on "Syncing..." if a database issue occurs
+                document.getElementById('transaction-feed').innerHTML = 
+                    '<tr><td colspan="5" class="text-center py-3 text-danger small">Stream sync failed.</td></tr>';
+            }
+        }
+
+        // --- Bank Manager Chart Initialization (LIVE DATA) ---
+        async function renderManagerCharts() {
+            try {
+                // Fetch live customer risk data
+                const { data: customers, error } = await supabase
+                    .from('customers')
+                    .select('risk_tier, industry');
+
+                if (error) throw error;
+
+                // Aggregate the data for the Doughnut Chart
+                let tierCounts = { low: 0, medium: 0, high: 0 };
+                
+                customers.forEach(customer => {
+                    if (customer.risk_tier === 'HIGH') tierCounts.high++;
+                    else if (customer.risk_tier === 'MEDIUM') tierCounts.medium++;
+                    else tierCounts.low++;
+                });
+
+                // 1. Risk Tier Doughnut Chart
+                const tierCtx = document.getElementById('riskTierChart').getContext('2d');
+                new Chart(tierCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                        datasets: [{
+                            // Injecting the live counts here
+                            data: [tierCounts.low, tierCounts.medium, tierCounts.high],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Emerald, Amber, Rose
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
+                });
+
+                // 2. Exposure by Industry Stacked Bar Chart (Using standard placeholder for now until more data is seeded)
+                const indCtx = document.getElementById('industryRiskChart').getContext('2d');
+                new Chart(indCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Import/Export', 'Precious Metals', 'Transportation', 'Software'],
+                        datasets: [
+                            { label: 'High Risk', data: [1, 1, 0, 0], backgroundColor: '#ef4444' },
+                            { label: 'Medium/Low Risk', data: [0, 0, 1, 1], backgroundColor: '#cbd5e1' }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { x: { stacked: true }, y: { stacked: true } }
+                    }
+                });
+            } catch (err) {
+                console.error("Error loading Bank Manager charts:", err);
+            }
+        }
+
+        async function loadAlertsQueue() {
+            try {
+                // Show a loading state (optional but good practice)
+                const tbody = document.getElementById('alerts-table-body');
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Fetching live alerts...</td></tr>';
+
+                // Fetch alerts and JOIN the customers table to get the entity_name
+                const { data: alerts, error } = await supabase
+                    .from('alerts')
+                    .select(`
+                        id,
+                        alert_ref,
+                        rule_triggered,
+                        severity,
+                        status,
+                        created_at,
+                        customers ( entity_name )
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Clear the loading text
+                tbody.innerHTML = ''; 
+
+                // If no alerts exist
+                if (alerts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No open alerts.</td></tr>';
+                    return;
+                }
+
+                // Loop through the live data and inject it into the HTML
+                alerts.forEach(alert => {
+                    const row = document.createElement('tr');
+                    
+                    // Format the timestamp nicely
+                    const dateObj = new Date(alert.created_at);
+                    const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    // Dynamic color badge based on severity (Updated for Bootstrap 5)
+                    let badgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary'; 
+                    if (alert.severity === 'CRITICAL') badgeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
+                    if (alert.severity === 'HIGH') badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-medium text-dark small">${alert.alert_ref}</td>
+                        <td class="py-3 text-muted small">${alert.customers?.entity_name || 'Unknown Entity'}</td>
+                        <td class="py-3 text-muted small">${alert.rule_triggered}</td>
+                        <td class="py-3">
+                            <span class="badge ${badgeClass} border border-opacity-25 rounded-pill px-2 py-1">
+                                ${alert.severity}
+                            </span>
+                        </td>
+                        <td class="py-3 text-muted small text-nowrap">${formattedDate}</td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" style="font-size: 0.7rem;">Review Case</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Critical Error loading alerts:", err);
+                document.getElementById('alerts-table-body').innerHTML = 
+                    '<tr><td colspan="6" class="text-center py-4 text-red-500">Failed to load alerts from database.</td></tr>';
+            }
+        }
+
+        // --- KYC Directory Engine ---
+        async function loadKYCDirectory() {
+            try {
+                const tbody = document.getElementById('kyc-directory-body');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Loading directory...</td></tr>';
+
+                // Fetch all customers from the database
+                const { data: customers, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .order('risk_score', { ascending: false }); // Highest risk at the top
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No customers found.</td></tr>';
+                    return;
+                }
+
+                customers.forEach(cust => {
+                    const row = document.createElement('tr');
+                    
+                    // Dynamic risk badge styling
+                    let badgeClass = 'bg-success';
+                    if (cust.risk_score >= 75) badgeClass = 'bg-danger';
+                    else if (cust.risk_score >= 40) badgeClass = 'bg-warning text-dark';
+
+                    // Determine if EDD (Enhanced) or CDD (Customer Due Diligence) based on tier
+                    const btnText = cust.risk_tier === 'HIGH' ? 'View EDD' : 'View CDD';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark small">${cust.entity_name}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">ID: ${cust.id.split('-')[0]}</div>
+                        </td>
+                        <td class="py-3 fw-semibold small text-muted">${cust.industry || '-'}</td>
+                        <td class="py-3 small text-muted">${cust.geography || '-'}</td>
+                        <td class="py-3"><span class="badge ${badgeClass}">${cust.risk_score}/100</span></td>
+                        <td class="py-3 text-end px-4">
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase btn-view-profile" data-customer-id="${cust.id}" style="font-size: 0.7rem;">
+                                ${btnText}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Error loading KYC Directory:", err);
+            }
+        }
+
+        // --- Customer 360 Drill-Down Engine ---
+        async function loadCustomerProfile(customerId) {
+            try {
+                // 1. Fetch specific customer details
+                const { data: customer, error: custError } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .eq('id', customerId)
+                    .single();
+
+                if (custError) throw custError;
+
+                // 2. Count total alerts for this customer
+                const { count, error: countError } = await supabase
+                    .from('alerts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('customer_id', customerId);
+
+                if (countError) throw countError;
+
+                // 3. Populate the Offcanvas Panel UI
+                document.getElementById('panel-entity-name').innerText = customer.entity_name;
+                document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
+                
+                let badgeClass = customer.risk_tier === 'HIGH' ? 'bg-danger' : (customer.risk_tier === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success');
+                document.getElementById('panel-risk-badge').innerHTML = `<span class="badge ${badgeClass}">${customer.risk_tier} RISK (${customer.risk_score}/100)</span>`;
+                
+                document.getElementById('panel-total-alerts').innerText = count || 0;
+                document.getElementById('panel-industry').innerText = customer.industry || 'Not Provided';
+                document.getElementById('panel-geography').innerText = customer.geography || 'Not Provided';
+                document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
+                
+                // 4. Trigger the Bootstrap Offcanvas to slide in
+                const panelElement = document.getElementById('customer360Panel');
+                const bsOffcanvas = new bootstrap.Offcanvas(panelElement);
+                bsOffcanvas.show();
+
+            } catch (err) {
+                console.error("Error loading 360 profile:", err);
+                alert("Failed to load customer profile.");
+            }
+        }
+
+        // Attach event listener to the table body to catch profile button clicks (Event Delegation)
+        document.getElementById('kyc-directory-body')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view-profile');
+            if (btn) {
+                const customerId = btn.getAttribute('data-customer-id');
+                loadCustomerProfile(customerId);
+            }
+        });
 
         // Run initialization
         initializeDashboard();
+        loadLiveTransactions();
 
         // --- Dynamic Role Dropdown Auto-Populator ---
         async function loadDynamicRoles() {
