@@ -20,7 +20,24 @@
             <p class="text-muted small">Account Provisioning & Security Setup</p>
         </div>
 
-        <div class="card shadow-sm border-0 rounded-3">
+        <!-- Loading state while we wait for Supabase to exchange the token -->
+        <div id="loading-state" class="text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <p class="text-muted small">Verifying your invitation link...</p>
+        </div>
+
+        <!-- Error state if token is invalid/expired -->
+        <div id="error-state" class="card shadow-sm border-0 rounded-3 d-none">
+            <div class="card-body p-4 p-md-5 text-center">
+                <span class="material-symbols-outlined text-danger fs-1 mb-3">error</span>
+                <h5 class="card-title fw-bold text-dark mb-2">Link Invalid or Expired</h5>
+                <p class="text-muted small mb-4" id="error-message">This invitation link is no longer valid. Please contact your IT Administrator for a new invite.</p>
+                <a href="index.html" class="btn btn-outline-primary btn-sm">Return to Login</a>
+            </div>
+        </div>
+
+        <!-- Main form, shown only after session is confirmed -->
+        <div id="setup-card" class="card shadow-sm border-0 rounded-3 d-none">
             <div class="card-body p-4 p-md-5">
                 <h5 class="card-title fw-bold text-dark mb-2">Set Your Password</h5>
                 <p class="text-muted small mb-4">Your identity has been verified. Please create a strong password to secure your compliance workspace.</p>
@@ -45,10 +62,50 @@
     <script type="module">
         import { supabase } from './js/config.js';
 
+        const loadingEl = document.getElementById('loading-state');
+        const errorEl   = document.getElementById('error-state');
+        const setupEl   = document.getElementById('setup-card');
+
+        function showError(msg) {
+            loadingEl.classList.add('d-none');
+            errorEl.classList.remove('d-none');
+            if (msg) document.getElementById('error-message').textContent = msg;
+        }
+
+        function showForm() {
+            loadingEl.classList.add('d-none');
+            setupEl.classList.remove('d-none');
+        }
+
+        // FIX: Listen for the auth state change event.
+        // When Supabase detects #access_token in the URL hash (from the invite link),
+        // it fires 'SIGNED_IN' with type 'invite'. We must wait for this before
+        // allowing the user to set their password — otherwise updateUser() will fail.
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                // Session is live — show the password form
+                showForm();
+            } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+                // Ignore these
+            } else if (!session) {
+                // No session established after a brief delay = bad/expired link
+                showError('This invitation link is invalid or has already been used. Please contact your IT Administrator.');
+            }
+        });
+
+        // Safety net: if onAuthStateChange never fires with a session
+        // (e.g. the user lands here without a valid token), show an error.
+        setTimeout(() => {
+            if (!loadingEl.classList.contains('d-none')) {
+                showError('Verification timed out. The link may be invalid or expired.');
+            }
+        }, 6000);
+
+        // Password form submission
         document.getElementById('setup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            const pass = document.getElementById('new-password').value;
+            const pass    = document.getElementById('new-password').value;
             const confirm = document.getElementById('confirm-password').value;
 
             if (pass !== confirm) {
@@ -59,25 +116,22 @@
             btn.innerHTML = 'Securing...';
             btn.disabled = true;
 
-            // Supabase already established the session when they clicked the invite link.
-            // We just need to update the user profile with the new password.
-            const { data, error } = await supabase.auth.updateUser({
-                password: pass
-            });
+            // Session is already live from onAuthStateChange — just update the password
+            const { error } = await supabase.auth.updateUser({ password: pass });
 
             if (error) {
                 alert(`Security Error: ${error.message}`);
                 btn.innerHTML = 'Secure Account & Enter';
                 btn.disabled = false;
             } else {
-                // Password set successfully! Route them to the correct dashboard.
+                // Route to the correct dashboard based on role
                 const { data: { session } } = await supabase.auth.getSession();
                 const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
                 const userRole = jwtPayload.app_metadata?.role;
 
-                if (userRole === 'it_admin') window.location.replace('admin-dashboard.html');
+                if (userRole === 'it_admin')          window.location.replace('admin-dashboard.html');
                 else if (userRole === 'compliance_officer') window.location.replace('compliance-officer.html');
-                else window.location.replace('dashboard.html');
+                else                                  window.location.replace('dashboard.html');
             }
         });
     </script>
