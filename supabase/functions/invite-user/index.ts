@@ -24,12 +24,19 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // FIX: The site URL is read from the env var Supabase injects automatically.
+    // The redirectTo MUST be passed here so it is baked into the invite token.
+    const siteUrl = Deno.env.get('SUPABASE_URL')
+      ? 'https://traml.vercel.app' // <-- your production site URL
+      : 'http://localhost:3000';
+    const redirectTo = `${siteUrl}/setup-account.html`;
+
     // DIAGNOSTIC TRAP 2: The Auth API (Standard Email Invite)
     let authData, authError;
     try {
-        // Trigger the standard Supabase SMTP invitation email
         const result = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-            data: { role: role } // Injects the role into user_metadata during the invite
+            data: { role: role },
+            redirectTo: redirectTo, // <-- THIS IS THE KEY FIX
         });
         authData = result.data;
         authError = result.error;
@@ -58,7 +65,6 @@ serve(async (req: Request) => {
     })
     
   } catch (error) {
-    // Return the exact diagnostic message to your browser
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     
     return new Response(JSON.stringify({ error: errorMessage }), {
