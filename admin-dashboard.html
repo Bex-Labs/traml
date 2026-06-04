@@ -94,6 +94,75 @@
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mt-4 rounded-3 overflow-hidden border-danger border border-2">
+                    <div class="card-header bg-dark border-bottom border-secondary py-3">
+                        <h6 class="mb-0 fw-bold text-danger d-flex align-items-center gap-2 uppercase tracking-wide">
+                            <span class="material-symbols-outlined">science</span> 
+                            AML Engine Sandbox (UAT / Demo Controls)
+                        </h6>
+                    </div>
+                    <div class="card-body bg-white p-4">
+                        <p class="text-muted small mb-4">Select a typology below to instantly inject synthetic transaction data into the live PostgreSQL database. The backend PL/pgSQL triggers will evaluate the stream and spawn alerts in real-time.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('smurfing')" id="btn-smurfing">
+                                    <span class="material-symbols-outlined fs-3">call_split</span>
+                                    <span class="fw-bold text-dark">Structuring (Smurfing)</span>
+                                    <span class="small text-muted" style="font-size: 0.7rem;">Injects 3x ₦3.5M deposits rapidly to evade the ₦10M static reporting threshold.</span>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('round-trip')" id="btn-round-trip">
+                                    <span class="material-symbols-outlined fs-3">sync_alt</span>
+                                    <span class="fw-bold text-dark">Round-Tripping</span>
+                                    <span class="small text-muted" style="font-size: 0.7rem;">₦50.5M out to vendor, ₦50M returned as "consulting" within 24 hours.</span>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('whale')" id="btn-whale">
+                                    <span class="material-symbols-outlined fs-3">water_drop</span>
+                                    <span class="fw-bold text-dark">The Whale Spike</span>
+                                    <span class="small text-muted" style="font-size: 0.7rem;">A massive, anomalous single transfer of ₦150,000,000 in one hit.</span>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('velocity')" id="btn-velocity">
+                                    <span class="material-symbols-outlined fs-3">speed</span>
+                                    <span class="fw-bold text-dark">Velocity Attack</span>
+                                    <span class="small text-muted" style="font-size: 0.7rem;">Injects 15 rapid micro-transactions in under 5 minutes to simulate a bot.</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 border-secondary border-opacity-25">
+                        <h6 class="fw-bold text-dark mb-3 uppercase tracking-wide" style="font-size: 0.8rem;">Manual Precision Injector</h6>
+                        <form id="manual-injector-form">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold text-muted">Target Account UUID</label>
+                                    <input type="text" class="form-control bg-light" id="manual-account-id" placeholder="e.g. 550e8400-e29b..." required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted">Amount (NGN)</label>
+                                    <input type="number" class="form-control bg-light" id="manual-amount" placeholder="5000000" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted">Type</label>
+                                    <select class="form-select bg-light" id="manual-type" required>
+                                        <option value="CREDIT">CREDIT</option>
+                                        <option value="DEBIT">DEBIT</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-dark w-100 fw-bold" id="btn-manual-inject">Inject</button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
                 <div class="card border-0 shadow-sm mt-4 rounded-3 overflow-hidden">
                     <div class="card-header bg-dark border-bottom border-secondary py-3 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-bold text-white d-flex align-items-center gap-2 uppercase tracking-wide">
@@ -289,6 +358,133 @@
                     }
                 });
         }
+
+        // --- TAML-21: SIMULATION SANDBOX ENGINE ---
+        window.simulateTypology = async (typology) => {
+            const btn = document.getElementById(`btn-${typology}`);
+            const originalHtml = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm text-danger"></span><span class="fw-bold text-dark mt-2">Injecting Payload...</span>';
+                btn.disabled = true;
+
+                // 1. Grab a random active account to use as the target victim
+                const { data: accounts, error: accErr } = await supabase.from('accounts').select('id').limit(10);
+                if (accErr || !accounts.length) throw new Error("No accounts found. Please run seed_master.py first.");
+                const targetAccount = accounts[Math.floor(Math.random() * accounts.length)].id;
+
+                let txns = [];
+                const now = new Date();
+
+                // 2. Build the specific typology payload
+                if (typology === 'smurfing') {
+                    for(let i=0; i<3; i++) {
+                        txns.push(createTxnPayload(targetAccount, 3500000, 'CREDIT', 'Smurf Deposit'));
+                    }
+                } else if (typology === 'whale') {
+                    txns.push(createTxnPayload(targetAccount, 150000000, 'CREDIT', 'Anomalous Wire In'));
+                } else if (typology === 'round-trip') {
+                    txns.push(createTxnPayload(targetAccount, 50500000, 'DEBIT', 'Consulting Fees Out'));
+                    // Make the return happen exactly 2 hours later
+                    const returnTime = new Date(now.getTime() + (2 * 60 * 60 * 1000)); 
+                    txns.push(createTxnPayload(targetAccount, 50000000, 'CREDIT', 'Refund/Adjustment In', returnTime.toISOString()));
+                } else if (typology === 'velocity') {
+                    for(let i=0; i<15; i++) {
+                        // Spread by 1 minute each
+                        const spreadTime = new Date(now.getTime() + (i * 60000));
+                        txns.push(createTxnPayload(targetAccount, Math.random() * (150000 - 50000) + 50000, 'CREDIT', 'Micro Transfer', spreadTime.toISOString()));
+                    }
+                }
+
+                // 3. Inject into database (Because RLS is disabled on transactions, this works natively from the client)
+                const { error: txErr } = await supabase.from('transactions').insert(txns);
+                if (txErr) throw txErr;
+
+                // 4. Log the action to the Admin Telemetry Feed
+                await supabase.from('system_events').insert([{
+                    event_type: 'SIMULATION_TRIGGERED',
+                    severity: 'WARNING',
+                    message: `Admin injected '${typology}' typology payload (${txns.length} records) into Account ${targetAccount.substring(0,8)}.`,
+                    metadata: { typology: typology, injected_records: txns.length, target: targetAccount }
+                }]);
+
+                // Success feedback animation
+                btn.innerHTML = '<span class="material-symbols-outlined fs-3 text-success">check_circle</span><span class="fw-bold text-success mt-2">Payload Sent</span>';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }, 3000);
+
+            } catch (err) {
+                console.error("Simulation Error:", err);
+                alert("Simulation failed: " + err.message);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+
+        // Helper function to structure the transaction records
+        function createTxnPayload(accountId, amount, type, narration, timestamp = new Date().toISOString()) {
+            return {
+                id: crypto.randomUUID(),
+                account_id: accountId,
+                amount: amount,
+                transaction_type: type,
+                transaction_timestamp: timestamp,
+                transaction_reference: `SIM-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
+                channel: 'WEB',
+                narration: narration
+            };
+        }
+
+        // --- TAML-22: MANUAL PRECISION INJECTOR ---
+        document.getElementById('manual-injector-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-manual-inject');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                btn.disabled = true;
+                
+                const accountId = document.getElementById('manual-account-id').value.trim();
+                const amount = parseFloat(document.getElementById('manual-amount').value);
+                const type = document.getElementById('manual-type').value;
+                
+                // Use our existing helper to build the payload
+                const txn = createTxnPayload(accountId, amount, type, 'Manual UAT Injection');
+                
+                // Push directly to the live transactions table
+                const { error } = await supabase.from('transactions').insert([txn]);
+                if (error) throw error;
+                
+                // Log to telemetry
+                await supabase.from('system_events').insert([{
+                    event_type: 'MANUAL_INJECTION',
+                    severity: 'INFO',
+                    message: `Admin manually injected ₦${amount.toLocaleString()} ${type} into Account ${accountId.substring(0,8)}.`,
+                    metadata: { amount: amount, type: type, target: accountId }
+                }]);
+                
+                // Visual Success Feedback
+                btn.classList.replace('btn-dark', 'btn-success');
+                btn.innerHTML = 'Success';
+                document.getElementById('manual-injector-form').reset();
+                
+                setTimeout(() => {
+                    btn.classList.replace('btn-success', 'btn-dark');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                console.error("Manual Injection Error:", err);
+                alert("Failed to inject transaction. Check the console and ensure the UUID is valid.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
 
         initializeAdminDashboard();
 
