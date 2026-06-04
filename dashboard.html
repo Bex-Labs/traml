@@ -58,7 +58,7 @@
                         <span class="material-symbols-outlined">monitoring</span>
                         <span class="small fw-semibold">Tx Monitoring</span>
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                    <a href="#" id="nav-case-management" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
                         <span class="material-symbols-outlined">folder_managed</span>
                         <span class="small fw-semibold">Case Management</span>
                     </a>
@@ -204,6 +204,35 @@
                     </div>
                 </div>
 
+                <!-- Row 4: Executive Escalation Queue -->
+                    <div class="row mt-2 mb-5">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                                <div class="card-header bg-dark border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-white d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">gavel</span> Pending Executive Approval (SARs)
+                                    </h6>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small text-uppercase">
+                                            <tr>
+                                                <th class="py-3 px-4 fw-semibold">Case Ref</th>
+                                                <th class="py-3 fw-semibold">Target Entity</th>
+                                                <th class="py-3 fw-semibold">Trigger / Typology</th>
+                                                <th class="py-3 fw-semibold">Investigator Notes</th>
+                                                <th class="py-3 text-end px-4 fw-semibold">Executive Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="escalation-queue-body" class="bg-white">
+                                            <!-- Escalated cases will load here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4">
                         <div>
@@ -229,6 +258,38 @@
                                     </tr>
                                 </thead>
                                 <tbody id="kyc-directory-body" class="bg-white">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-case-management" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Case Management & Archives</h4>
+                            <p class="text-muted small mb-0">Review escalated investigations and closed Suspicious Activity Reports (SARs).</p>
+                        </div>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
+                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by Case Ref or Entity...">
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Case Ref</th>
+                                        <th class="py-3 fw-semibold">Customer / Entity</th>
+                                        <th class="py-3 fw-semibold">Rule Triggered</th>
+                                        <th class="py-3 fw-semibold">Status</th>
+                                        <th class="py-3 fw-semibold">Investigator Notes</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="case-management-body" class="bg-white">
                                     </tbody>
                             </table>
                         </div>
@@ -298,8 +359,8 @@
                                         <span class="material-symbols-outlined text-danger fs-5">priority_high</span> Pending Alerts Queue
                                     </h6>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-secondary active">Unassigned</button>
-                                        <button class="btn btn-sm btn-outline-secondary">Assigned to Me</button>
+                                        <button id="tab-unassigned" class="btn btn-sm btn-outline-secondary active">Unassigned</button>
+                                        <button id="tab-assigned" class="btn btn-sm btn-outline-secondary">Assigned to Me</button>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -547,6 +608,47 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- COMPONENT: EXECUTIVE SAR REVIEW MODAL      -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="executiveReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-danger">verified_user</span> Executive SAR Sign-Off
+                        </h5>
+                        <p class="mb-0 small text-white-50" id="exec-modal-ref">Case Ref: Loading...</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form id="exec-resolution-form">
+                        <input type="hidden" id="exec-alert-id">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark uppercase">Frontline Investigator Notes</label>
+                            <div class="p-3 bg-white border border-secondary border-opacity-25 rounded small text-muted fst-italic" id="exec-frontline-notes">
+                                Loading notes...
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-dark uppercase">Executive Decision & Justification</label>
+                            <textarea class="form-control border-secondary border-opacity-25" id="exec-notes" rows="3" required placeholder="Provide final justification for NFIU submission or reason for rejection..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-danger fw-bold px-4" id="btn-reject-sar">Reject (Return to Investigator)</button>
+                            <button type="submit" class="btn btn-success fw-bold px-4" id="btn-approve-sar">Approve & Dispatch to NFIU</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="sarFilingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -666,7 +768,7 @@
                 </div>
             </div>
                 
-                <button class="btn btn-danger w-100 fw-bold uppercase">File Suspicious Activity Report (SAR)</button>
+                <button id="btn-manual-sar" class="btn btn-danger w-100 fw-bold uppercase">File Suspicious Activity Report (SAR)</button>
             </div>
         </div>
     </div>
@@ -764,36 +866,39 @@
             switchView('kyc', e.currentTarget);
         });
 
+        document.getElementById('nav-case-management')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('case-management', e.currentTarget);
+        });
+
         function switchView(viewName, activeElement) {
-            // 1. Reset all nav links
+            // 1. Reset nav links
             document.querySelectorAll('.nav-link-item').forEach(el => {
                 el.classList.remove('text-primary', 'bg-light', 'border-primary');
                 el.classList.add('text-muted', 'border-transparent');
             });
-
-            // 2. Set active nav link
             if(activeElement) {
                 activeElement.classList.remove('text-muted', 'border-transparent');
                 activeElement.classList.add('text-primary', 'bg-light', 'border-primary');
             }
 
-            // 3. Hide ALL views and global components by default
+            // 2. Hide ALL views
             document.getElementById('view-head-compliance').classList.add('d-none');
             document.getElementById('view-compliance-officer').classList.add('d-none');
             document.getElementById('view-bank-manager').classList.add('d-none');
             document.getElementById('view-kyc-directory').classList.add('d-none');
-            document.getElementById('live-stream-section')?.classList.add('d-none'); // Hide stream
+            document.getElementById('view-case-management').classList.add('d-none'); // <-- Add this
+            document.getElementById('live-stream-section')?.classList.add('d-none'); 
 
-            // 4. Show requested view
+            // 3. Show requested view
             if (viewName === 'kyc') {
-                // Show ONLY the KYC directory
                 document.getElementById('view-kyc-directory').classList.remove('d-none');
-                loadKYCDirectory(); 
+                loadKYCDirectory();
+            } else if (viewName === 'case-management') {
+                document.getElementById('view-case-management').classList.remove('d-none'); // <-- Show Case View
+                loadCaseManagement(); // Fetch the closed/escalated alerts!
             } else {
-                // Show the global live stream for all command center roles
                 document.getElementById('live-stream-section')?.classList.remove('d-none');
-                
-                // Fallback to role-based command center view
                 const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
                 if (userRole === 'bank_manager') document.getElementById('view-bank-manager').classList.remove('d-none');
                 else if (userRole === 'head_of_compliance' || userRole === 'system_admin') document.getElementById('view-head-compliance').classList.remove('d-none');
@@ -838,6 +943,108 @@
             submitBtn.innerHTML = 'Send Secure Invite';
             submitBtn.disabled = false;
         });
+
+        // --- Head of Compliance Escalation Queue ---
+        async function loadEscalationQueue() {
+            try {
+                const tbody = document.getElementById('escalation-queue-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Fetching escalated cases...</td></tr>';
+
+                // Fetch strictly ESCALATED cases
+                const { data: cases, error } = await supabase
+                    .from('alerts')
+                    .select('id, alert_ref, rule_triggered, severity, status, details, customers(entity_name)')
+                    .eq('status', 'ESCALATED')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (cases.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No cases pending executive approval.</td></tr>';
+                    return;
+                }
+
+                cases.forEach(c => {
+                    const row = document.createElement('tr');
+                    
+                    let noteSnippet = c.details ? (c.details.length > 40 ? c.details.substring(0, 40) + '...' : c.details) : 'No notes provided.';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</td>
+                        <td class="py-3 text-muted small">${c.customers?.entity_name || 'Unknown'}</td>
+                        <td class="py-3 text-muted small">${c.rule_triggered}</td>
+                        <td class="py-3 text-muted small fst-italic">"${noteSnippet}"</td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-danger fw-bold uppercase" onclick="openExecutiveReview('${c.id}', '${c.alert_ref.replace('ALT', 'CASE')}', \`${c.details || 'No notes provided.'}\`)" style="font-size: 0.7rem;">Review Case</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading escalation queue:", err);
+            }
+        }
+
+        // --- Executive Review Logic ---
+        window.openExecutiveReview = (alertId, alertRef, frontlineNotes) => {
+            document.getElementById('exec-alert-id').value = alertId;
+            document.getElementById('exec-modal-ref').innerText = `Case Ref: ${alertRef}`;
+            document.getElementById('exec-frontline-notes').innerText = frontlineNotes;
+            
+            const modalElement = document.getElementById('executiveReviewModal');
+            new bootstrap.Modal(modalElement).show();
+        };
+
+        // Handle Approval / Rejection
+        document.getElementById('exec-resolution-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            processExecutiveDecision('CLOSED'); // <-- Updated to match DB constraints
+        });
+
+        document.getElementById('btn-reject-sar')?.addEventListener('click', () => {
+            if(!document.getElementById('exec-notes').value) {
+                alert("Please provide a justification for rejection.");
+                return;
+            }
+            processExecutiveDecision('INVESTIGATING'); // Sends it back to the officer
+        });
+
+        async function processExecutiveDecision(newStatus) {
+            try {
+                const alertId = document.getElementById('exec-alert-id').value;
+                const execNotes = document.getElementById('exec-notes').value;
+                const previousNotes = document.getElementById('exec-frontline-notes').innerText;
+                
+                // Append executive notes to the existing dossier
+                const combinedNotes = `${previousNotes}\n\n[EXECUTIVE REVIEW]: ${execNotes}`;
+
+                const { error } = await supabase
+                    .from('alerts')
+                    .update({ status: newStatus, details: combinedNotes })
+                    .eq('id', alertId);
+
+                if (error) throw error;
+
+                // Log audit event
+                await supabase.from('system_events').insert([{
+                    event_type: 'EXECUTIVE_REVIEW',
+                    severity: newStatus === 'INVESTIGATING' ? 'WARNING' : 'INFO',
+                    message: `Head of Compliance ${newStatus === 'INVESTIGATING' ? 'rejected' : 'approved'} SAR.`,
+                    metadata: { alert_id: alertId, outcome: newStatus }
+                }]);
+
+                bootstrap.Modal.getInstance(document.getElementById('executiveReviewModal')).hide();
+                document.getElementById('exec-resolution-form').reset();
+                loadEscalationQueue(); // Refresh queue
+                renderComplianceCharts(); // Refresh charts
+                
+            } catch (err) {
+                console.error("Error processing executive decision:", err);
+                alert("Failed to process decision.");
+            }
+        }
 
         // --- Head of Compliance Chart Initialization (UPGRADED ENGINE) ---
         async function renderComplianceCharts() {
@@ -946,6 +1153,9 @@
                     });
                 }
 
+                // --- NEW: Load the Executive Escalation Queue ---
+                loadEscalationQueue();
+
             } catch (err) {
                 console.error("Error loading Compliance charts:", err);
             }
@@ -1019,6 +1229,57 @@
             }
         }
 
+        // --- Case Management Engine ---
+        async function loadCaseManagement() {
+            try {
+                const tbody = document.getElementById('case-management-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading cases...</td></tr>';
+
+                // Fetch alerts that are NOT Unassigned (i.e., Escalated or Closed)
+                const { data: cases, error } = await supabase
+                    .from('alerts')
+                    .select(`
+                        id, alert_ref, rule_triggered, severity, status, details, created_at,
+                        customer_id, 
+                        customers ( entity_name )
+                    `)
+                    .neq('status', 'UNASSIGNED')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (cases.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No active or archived cases found.</td></tr>';
+                    return;
+                }
+
+                cases.forEach(c => {
+                    const row = document.createElement('tr');
+                    
+                    let statusBadge = c.status === 'ESCALATED' ? 'bg-warning text-dark' : 'bg-dark text-white';
+                    
+                    // Truncate long notes for the table view
+                    let noteSnippet = c.details ? (c.details.length > 40 ? c.details.substring(0, 40) + '...' : c.details) : 'No notes provided.';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</td>
+                        <td class="py-3 text-muted small">${c.customers?.entity_name || 'Unknown'}</td>
+                        <td class="py-3 text-muted small">${c.rule_triggered}</td>
+                        <td class="py-3"><span class="badge ${statusBadge}">${c.status}</span></td>
+                        <td class="py-3 text-muted small fst-italic">"${noteSnippet}"</td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-light border text-primary fw-bold uppercase" onclick="loadCustomerProfile('${c.customer_id}')" style="font-size: 0.7rem;">View Dossier</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading cases:", err);
+            }
+        }
+
         // --- Bank Manager Chart Initialization (LIVE DATA) ---
         async function renderManagerCharts() {
             try {
@@ -1076,49 +1337,44 @@
             }
         }
 
-        async function loadAlertsQueue() {
+        // --- Alerts Queue Engine (UPGRADED WITH FILTERING) ---
+        async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
             try {
-                // Show a loading state (optional but good practice)
                 const tbody = document.getElementById('alerts-table-body');
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Fetching live alerts...</td></tr>';
+                if (!tbody) return;
 
-                // Fetch alerts and JOIN the customers table to get the entity_name
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Fetching ${filterStatus.toLowerCase()} alerts...</td></tr>`;
+
+                // Fetch alerts strictly matching the requested status
                 const { data: alerts, error } = await supabase
                     .from('alerts')
                     .select(`
-                        id,
-                        alert_ref,
-                        rule_triggered,
-                        severity,
-                        status,
-                        created_at,
+                        id, alert_ref, rule_triggered, severity, status, created_at,
                         customers ( entity_name )
                     `)
+                    .eq('status', filterStatus)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
-                // Clear the loading text
                 tbody.innerHTML = ''; 
 
-                // If no alerts exist
                 if (alerts.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No open alerts.</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No ${filterStatus.toLowerCase()} alerts found.</td></tr>`;
                     return;
                 }
 
-                // Loop through the live data and inject it into the HTML
                 alerts.forEach(alert => {
                     const row = document.createElement('tr');
                     
-                    // Format the timestamp nicely
                     const dateObj = new Date(alert.created_at);
                     const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
-                    // Dynamic color badge based on severity (Updated for Bootstrap 5)
                     let badgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary'; 
                     if (alert.severity === 'CRITICAL') badgeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
                     if (alert.severity === 'HIGH') badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
+
+                    // If it's already assigned, change the button text to "Resume Case"
+                    const btnText = filterStatus === 'INVESTIGATING' ? 'Resume Case' : 'Review Case';
 
                     row.innerHTML = `
                         <td class="px-4 py-3 fw-medium text-dark small">${alert.alert_ref}</td>
@@ -1131,7 +1387,7 @@
                         </td>
                         <td class="py-3 text-muted small text-nowrap">${formattedDate}</td>
                         <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="reviewCase('${alert.id}', '${alert.alert_ref}')" style="font-size: 0.7rem;">Review Case</button>
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="reviewCase('${alert.id}', '${alert.alert_ref}')" style="font-size: 0.7rem;">${btnText}</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -1140,9 +1396,22 @@
             } catch (err) {
                 console.error("Critical Error loading alerts:", err);
                 document.getElementById('alerts-table-body').innerHTML = 
-                    '<tr><td colspan="6" class="text-center py-4 text-red-500">Failed to load alerts from database.</td></tr>';
+                    '<tr><td colspan="6" class="text-center py-4 text-danger small">Failed to load alerts from database.</td></tr>';
             }
         }
+
+        // --- Tab Switching Logic for the Pending Queue ---
+        document.getElementById('tab-unassigned')?.addEventListener('click', (e) => {
+            e.currentTarget.classList.add('active');
+            document.getElementById('tab-assigned').classList.remove('active');
+            loadAlertsQueue('UNASSIGNED'); // Fetch new alerts
+        });
+
+        document.getElementById('tab-assigned')?.addEventListener('click', (e) => {
+            e.currentTarget.classList.add('active');
+            document.getElementById('tab-unassigned').classList.remove('active');
+            loadAlertsQueue('INVESTIGATING'); // Fetch WIP cases
+        });
 
         // --- KYC Directory Engine ---
         async function loadKYCDirectory() {
@@ -1200,7 +1469,7 @@
         }
 
         // --- Customer 360 Drill-Down Engine (UPGRADED WITH EDD) ---
-        async function loadCustomerProfile(customerId) {
+        window.loadCustomerProfile = async (customerId) => {
             try {
                 // 1. Fetch specific customer details
                 const { data: customer, error: custError } = await supabase
@@ -1255,6 +1524,9 @@
                     document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
+                // Store the customer ID on the SAR button so it knows who to report
+                document.getElementById('btn-manual-sar').setAttribute('data-customer-id', customerId);
+
                 // 5. Trigger the Bootstrap Offcanvas to slide in
                 const panelElement = document.getElementById('customer360Panel');
                 const bsOffcanvas = new bootstrap.Offcanvas(panelElement);
@@ -1272,6 +1544,58 @@
             if (btn) {
                 const customerId = btn.getAttribute('data-customer-id');
                 loadCustomerProfile(customerId);
+            }
+        });
+
+        // --- Manual Entity-Driven SAR (From 360° Profile) ---
+        document.getElementById('btn-manual-sar')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const customerId = btn.getAttribute('data-customer-id');
+            
+            if (!customerId) return;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating Case...';
+            btn.disabled = true;
+
+            try {
+                // 1. Generate a "Manual" alert directly into the INVESTIGATING state
+                const alertRef = 'MNL-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                
+                const { data: newAlert, error } = await supabase
+                    .from('alerts')
+                    .insert([{
+                        alert_ref: alertRef,
+                        customer_id: customerId,
+                        rule_triggered: 'Manual Entity Review',
+                        severity: 'HIGH',
+                        status: 'INVESTIGATING',
+                        details: 'Manual investigation initiated directly from 360° Profile.'
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // 2. Hide the 360° side panel
+                const panelElement = document.getElementById('customer360Panel');
+                const offcanvasInstance = bootstrap.Offcanvas.getInstance(panelElement);
+                if (offcanvasInstance) offcanvasInstance.hide();
+
+                // 3. Populate and Open the SAR Filing Modal
+                document.getElementById('sar-alert-id').value = newAlert.id;
+                document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${newAlert.alert_ref}`;
+                
+                const modalElement = document.getElementById('sarFilingModal');
+                const bsModal = new bootstrap.Modal(modalElement);
+                bsModal.show();
+
+            } catch (err) {
+                console.error("Error creating manual SAR:", err);
+                alert("Failed to initiate manual SAR.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
