@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
     <script type="module" src="./js/session.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <link href="./css/theme.css" rel="stylesheet">
 </head>
@@ -610,6 +609,222 @@
             </div>
         </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- COMPONENT: EXECUTIVE SAR REVIEW MODAL      -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="executiveReviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-danger">verified_user</span> Executive SAR Sign-Off
+                        </h5>
+                        <p class="mb-0 small text-white-50" id="exec-modal-ref">Case Ref: Loading...</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form id="exec-resolution-form">
+                        <input type="hidden" id="exec-alert-id">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark uppercase">Frontline Investigator Notes</label>
+                            <div class="p-3 bg-white border border-secondary border-opacity-25 rounded small text-muted fst-italic" id="exec-frontline-notes">
+                                Loading notes...
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-dark uppercase">Executive Decision & Justification</label>
+                            <textarea class="form-control border-secondary border-opacity-25" id="exec-notes" rows="3" required placeholder="Provide final justification for NFIU submission or reason for rejection..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-danger fw-bold px-4" id="btn-reject-sar">Reject (Return to Investigator)</button>
+                            <button type="submit" class="btn btn-success fw-bold px-4" id="btn-approve-sar">Approve & Dispatch to NFIU</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- COMPONENT: UNASSIGNED ALERT PREVIEW MODAL  -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="alertPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-warning">visibility</span> Alert Preview (Read-Only)
+                        </h5>
+                        <p class="mb-0 small text-white-50" id="preview-modal-ref">Alert Ref: Loading...</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    
+                    <div class="alert alert-secondary border-secondary bg-secondary bg-opacity-10 d-flex gap-3 align-items-start mb-4">
+                        <span class="material-symbols-outlined text-secondary">info</span>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Unassigned Queue</h6>
+                            <p class="small text-muted mb-0">This alert is currently in the general pool. You must claim it to lock it to your user ID before you can begin an investigation.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4 p-3 bg-white border rounded">
+                        <div class="col-12 border-bottom pb-2">
+                            <p class="text-muted small mb-0 uppercase fw-bold">Target Entity</p>
+                            <p class="fw-bold text-dark mb-0 fs-5" id="preview-entity">Loading...</p>
+                        </div>
+                        <div class="col-12 pt-2">
+                            <p class="text-muted small mb-0 uppercase fw-bold">Rule Triggered</p>
+                            <p class="fw-bold text-danger mb-0" id="preview-rule">Loading...</p>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="preview-alert-id">
+                    <input type="hidden" id="preview-alert-ref">
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Leave in Pool</button>
+                        <button type="button" class="btn btn-primary fw-bold px-4 d-flex align-items-center gap-2" id="btn-claim-alert">
+                            <span class="material-symbols-outlined fs-6">lock</span> Claim & Investigate
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="sarFilingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined">gavel</span> File Suspicious Activity Report (SAR)
+                        </h5>
+                        <p class="mb-0 small text-white-50" id="sar-modal-ref">Alert Ref: Loading...</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="alert alert-warning border-warning bg-warning bg-opacity-10 d-flex gap-3 align-items-start mb-4">
+                        <span class="material-symbols-outlined text-warning">warning</span>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Legal Declaration</h6>
+                            <p class="small text-muted mb-0">Filing a SAR is a legal action under the AML/CFT regulations. Ensure all provided details are factual and supported by the transaction ledger.</p>
+                        </div>
+                    </div>
+
+                    <form id="sar-resolution-form">
+                        <input type="hidden" id="sar-alert-id">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark uppercase">Investigation Findings</label>
+                            <textarea class="form-control border-secondary border-opacity-25" id="sar-notes" rows="4" required placeholder="Detail the specific anomalies, evasion tactics, or sanctions matches discovered during your review..."></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Recommended Action</label>
+                                <select class="form-select border-secondary border-opacity-25" id="sar-action" required>
+                                    <option value="" disabled selected>Select an action...</option>
+                                    <option value="FREEZE">Freeze Account & Report to NFIU</option>
+                                    <option value="MONITOR">Place on Enhanced Monitoring</option>
+                                    <option value="DISMISS">Dismiss (False Positive)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Compliance Officer PIN</label>
+                                <input type="password" class="form-control border-secondary border-opacity-25" required placeholder="****">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger fw-bold px-4" id="btn-submit-sar">Finalize & Submit SAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end shadow" tabindex="-1" id="customer360Panel" style="width: 550px; border-left: 1px solid #e2e8f0;">
+        <div class="offcanvas-header bg-light border-bottom">
+            <div>
+                <h5 class="offcanvas-title fw-bold text-dark mb-0" id="panel-entity-name">Loading...</h5>
+                <span class="text-muted small" id="panel-entity-id">...</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body p-0">
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted uppercase small fw-bold mb-1">Current Risk Tier</p>
+                    <div id="panel-risk-badge">
+                        <span class="badge bg-secondary">Unknown</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted uppercase small fw-bold mb-1">Total Alerts</p>
+                    <h4 class="fw-bold mb-0 text-dark" id="panel-total-alerts">0</h4>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <h6 class="fw-bold uppercase text-dark mb-3 small">KYC Data Points</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Industry</p>
+                        <p class="fw-medium text-dark small" id="panel-industry">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Geography</p>
+                        <p class="fw-medium text-dark small" id="panel-geography">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Account Type</p>
+                        <p class="fw-medium text-dark small" id="panel-account-type">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Date Onboarded</p>
+                        <p class="fw-medium text-dark small" id="panel-onboarded">-</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+            <h6 class="fw-bold uppercase text-danger mb-3 small d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined fs-6">policy</span> Enhanced Due Diligence
+            </h6>
+            <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <p class="text-muted small mb-0">Ultimate Beneficial Owner (UBO)</p>
+                        <p class="fw-bold text-dark small mb-0" id="panel-ubo">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">IEI Exposure</p>
+                        <div id="panel-iei" class="mt-1">-</div>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Sanctions Check</p>
+                        <div id="panel-sanctions" class="mt-1">-</div>
+                    </div>
+                </div>
+            </div>
+                
+                <button id="btn-manual-sar" class="btn btn-danger w-100 fw-bold uppercase">File Suspicious Activity Report (SAR)</button>
+            </div>
+        </div>
+    </div>
       
     <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
@@ -1159,41 +1374,445 @@
                     options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
                 });
 
-            // 2. Exposure by Industry Stacked Bar Chart
-            const indCtx = document.getElementById('industryRiskChart').getContext('2d');
-            new Chart(indCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Real Estate', 'Import/Export', 'Crypto/Virtual', 'Retail', 'Logistics'],
-                    datasets: [
-                        {
-                            label: 'High Risk',
-                            data: [120, 150, 85, 20, 37],
-                            backgroundColor: '#ef4444' // Rose
-                        },
-                        {
-                            label: 'Medium/Low Risk',
-                            data: [400, 300, 45, 1200, 800],
-                            backgroundColor: '#cbd5e1' // Slate
-                        }
-                    ]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true },
-                        y: { stacked: true }
+                // 2. Exposure by Industry Stacked Bar Chart (Using standard placeholder for now until more data is seeded)
+                const indCtx = document.getElementById('industryRiskChart').getContext('2d');
+                new Chart(indCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Import/Export', 'Precious Metals', 'Transportation', 'Software'],
+                        datasets: [
+                            { label: 'High Risk', data: [1, 1, 0, 0], backgroundColor: '#ef4444' },
+                            { label: 'Medium/Low Risk', data: [0, 0, 1, 1], backgroundColor: '#cbd5e1' }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { x: { stacked: true }, y: { stacked: true } }
                     }
-                }
-            });
-        } catch (err) {
-            console.error("Error loading Bank Manager charts:", err);
+                });
+            } catch (err) {
+                console.error("Error loading Bank Manager charts:", err);
+            }
         }
-    }
 
-    // Run initialization
-    initializeDashboard();
+        // --- Alerts Queue Engine (UPGRADED WITH FILTERING & NAMES) ---
+        async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
+            try {
+                const tbody = document.getElementById('alerts-table-body');
+                if (!tbody) return;
+
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Fetching ${filterStatus.toLowerCase()} alerts...</td></tr>`;
+
+                // Fetch alerts strictly matching the requested status (NOW WITH ALL NAMES)
+                const { data: alerts, error } = await supabase
+                    .from('alerts')
+                    .select(`
+                        id, alert_ref, rule_triggered, severity, status, created_at,
+                        customers ( entity_name, first_name, last_name )
+                    `)
+                    .eq('status', filterStatus)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = ''; 
+
+                if (alerts.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No ${filterStatus.toLowerCase()} alerts found.</td></tr>`;
+                    return;
+                }
+
+                alerts.forEach(alert => {
+                    const row = document.createElement('tr');
+                    
+                    const dateObj = new Date(alert.created_at);
+                    const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    let badgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary'; 
+                    if (alert.severity === 'CRITICAL') badgeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
+                    if (alert.severity === 'HIGH') badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
+
+                    const isUnassigned = filterStatus === 'UNASSIGNED';
+                    const btnText = isUnassigned ? 'Review Case' : 'Resume Case';
+                    
+                    // NEW FALLBACK LOGIC
+                    const cust = alert.customers || {};
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
+                    
+                    const clickAction = isUnassigned 
+                        ? `previewUnassignedAlert('${alert.id}', '${alert.alert_ref}', '${entityName.replace(/'/g, "\\'")}', '${alert.rule_triggered}')` 
+                        : `resumeCase('${alert.id}', '${alert.alert_ref}')`;
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-medium text-dark small">${alert.alert_ref}</td>
+                        <td class="py-3 text-muted small">${entityName}</td>
+                        <td class="py-3 text-muted small">${alert.rule_triggered}</td>
+                        <td class="py-3">
+                            <span class="badge ${badgeClass} border border-opacity-25 rounded-pill px-2 py-1">
+                                ${alert.severity}
+                            </span>
+                        </td>
+                        <td class="py-3 text-muted small text-nowrap">${formattedDate}</td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="${clickAction}" style="font-size: 0.7rem;">${btnText}</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Critical Error loading alerts:", err);
+                document.getElementById('alerts-table-body').innerHTML = 
+                    '<tr><td colspan="6" class="text-center py-4 text-danger small">Failed to load alerts from database.</td></tr>';
+            }
+        }
+
+        // --- Tab Switching Logic for the Pending Queue ---
+        document.getElementById('tab-unassigned')?.addEventListener('click', (e) => {
+            e.currentTarget.classList.add('active');
+            document.getElementById('tab-assigned').classList.remove('active');
+            loadAlertsQueue('UNASSIGNED'); // Fetch new alerts
+        });
+
+        document.getElementById('tab-assigned')?.addEventListener('click', (e) => {
+            e.currentTarget.classList.add('active');
+            document.getElementById('tab-unassigned').classList.remove('active');
+            loadAlertsQueue('INVESTIGATING'); // Fetch WIP cases
+        });
+
+        // --- KYC Directory Engine (UPGRADED FALLBACKS) ---
+        async function loadKYCDirectory() {
+            try {
+                const tbody = document.getElementById('kyc-directory-body');
+                if (!tbody) return;
+
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Loading directory...</td></tr>';
+
+                // Fetch all customers from the database
+                const { data: customers, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .order('risk_score', { ascending: false }); // Highest risk at the top
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No customers found.</td></tr>';
+                    return;
+                }
+
+                customers.forEach(cust => {
+                    const row = document.createElement('tr');
+                    
+                    // Dynamic risk badge styling
+                    let badgeClass = 'bg-success';
+                    if (cust.risk_score >= 75) badgeClass = 'bg-danger';
+                    else if (cust.risk_score >= 40) badgeClass = 'bg-warning text-dark';
+
+                    // Determine if EDD or CDD
+                    const btnText = cust.risk_tier === 'HIGH' ? 'View EDD' : 'View CDD';
+
+                    // PERFECT DATA FALLBACKS
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Customer');
+                    const industry = cust.industry || (cust.customer_type === 'Individual' ? 'Retail / Personal' : 'Uncategorized');
+                    const geography = cust.geography || 'NG (Domestic)';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark small">${entityName}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">ID: ${cust.id.split('-')[0]}</div>
+                        </td>
+                        <td class="py-3 fw-semibold small text-muted">${industry}</td>
+                        <td class="py-3 small text-muted">${geography}</td>
+                        <td class="py-3"><span class="badge ${badgeClass}">${cust.risk_score}/100</span></td>
+                        <td class="py-3 text-end px-4">
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase btn-view-profile" data-customer-id="${cust.id}" style="font-size: 0.7rem;">
+                                ${btnText}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Error loading KYC Directory:", err);
+            }
+        }
+
+        // --- Customer 360 Drill-Down Engine (UPGRADED WITH EDD) ---
+        window.loadCustomerProfile = async (customerId) => {
+            try {
+                // 1. Fetch specific customer details
+                const { data: customer, error: custError } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .eq('id', customerId)
+                    .single();
+
+                if (custError) throw custError;
+
+                // 2. Count total alerts for this customer
+                const { count, error: countError } = await supabase
+                    .from('alerts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('customer_id', customerId);
+
+                if (countError) throw countError;
+
+                // 3. Populate the Standard KYC UI
+                document.getElementById('panel-entity-name').innerText = customer.entity_name;
+                document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
+                
+                let badgeClass = customer.risk_tier === 'HIGH' ? 'bg-danger' : (customer.risk_tier === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success');
+                document.getElementById('panel-risk-badge').innerHTML = `<span class="badge ${badgeClass}">${customer.risk_tier} RISK (${customer.risk_score}/100)</span>`;
+                
+                document.getElementById('panel-total-alerts').innerText = count || 0;
+                document.getElementById('panel-industry').innerText = customer.industry || 'Not Provided';
+                document.getElementById('panel-geography').innerText = customer.geography || 'Not Provided';
+                document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
+                
+                // 4. Populate the Enhanced Due Diligence (EDD) UI
+                const uboName = customer.ubo_name || 'Not Disclosed';
+                document.getElementById('panel-ubo').innerText = uboName;
+
+                // IEI Logic Evaluation
+                if (customer.iei_exposure) {
+                    document.getElementById('panel-iei').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">IEI DETECTED</span>';
+                } else {
+                    document.getElementById('panel-iei').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
+                }
+
+                // Sanctions Cross-Reference (Checks if the UBO is on our newly created watchlist)
+                const { data: sanctionMatch } = await supabase
+                    .from('sanctions_watchlist')
+                    .select('id')
+                    .ilike('entity_name', `%${uboName}%`)
+                    .limit(1);
+
+                if (sanctionMatch && sanctionMatch.length > 0) {
+                    document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-dark text-danger border border-danger">UBO SANCTIONED</span>';
+                } else {
+                    document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
+                }
+
+                // Store the customer ID on the SAR button so it knows who to report
+                document.getElementById('btn-manual-sar').setAttribute('data-customer-id', customerId);
+
+                // 5. Trigger the Bootstrap Offcanvas to slide in
+                const panelElement = document.getElementById('customer360Panel');
+                const bsOffcanvas = new bootstrap.Offcanvas(panelElement);
+                bsOffcanvas.show();
+
+            } catch (err) {
+                console.error("Error loading 360 profile:", err);
+                alert("Failed to load customer profile.");
+            }
+        }
+
+        // Attach event listener to the table body to catch profile button clicks (Event Delegation)
+        document.getElementById('kyc-directory-body')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view-profile');
+            if (btn) {
+                const customerId = btn.getAttribute('data-customer-id');
+                loadCustomerProfile(customerId);
+            }
+        });
+
+        // --- Manual Entity-Driven SAR (From 360° Profile) ---
+        document.getElementById('btn-manual-sar')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const customerId = btn.getAttribute('data-customer-id');
+            
+            if (!customerId) return;
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating Case...';
+            btn.disabled = true;
+
+            try {
+                // 1. Generate a "Manual" alert directly into the INVESTIGATING state
+                const alertRef = 'MNL-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                
+                const { data: newAlert, error } = await supabase
+                    .from('alerts')
+                    .insert([{
+                        alert_ref: alertRef,
+                        customer_id: customerId,
+                        rule_triggered: 'Manual Entity Review',
+                        severity: 'HIGH',
+                        status: 'INVESTIGATING',
+                        details: 'Manual investigation initiated directly from 360° Profile.'
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // 2. Hide the 360° side panel
+                const panelElement = document.getElementById('customer360Panel');
+                const offcanvasInstance = bootstrap.Offcanvas.getInstance(panelElement);
+                if (offcanvasInstance) offcanvasInstance.hide();
+
+                // 3. Populate and Open the SAR Filing Modal
+                document.getElementById('sar-alert-id').value = newAlert.id;
+                document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${newAlert.alert_ref}`;
+                
+                const modalElement = document.getElementById('sarFilingModal');
+                const bsModal = new bootstrap.Modal(modalElement);
+                bsModal.show();
+
+            } catch (err) {
+                console.error("Error creating manual SAR:", err);
+                alert("Failed to initiate manual SAR.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- Case Management Workflow Engine ---
+
+        // --- 1. The Read-Only Preview (No Database Update) ---
+        window.previewUnassignedAlert = (alertId, alertRef, entityName, ruleTriggered) => {
+            // Populate the preview modal
+            document.getElementById('preview-alert-id').value = alertId;
+            document.getElementById('preview-alert-ref').value = alertRef;
+            document.getElementById('preview-modal-ref').innerText = `Alert Ref: ${alertRef}`;
+            document.getElementById('preview-entity').innerText = entityName;
+            document.getElementById('preview-rule').innerText = ruleTriggered;
+            
+            // Open the preview modal
+            const modalElement = document.getElementById('alertPreviewModal');
+            new bootstrap.Modal(modalElement).show();
+        };
+
+        // --- 2. The Explicit Claim & Lock Action (Updates Database) ---
+        document.getElementById('btn-claim-alert')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Locking Case...';
+            btn.disabled = true;
+
+            const alertId = document.getElementById('preview-alert-id').value;
+            const alertRef = document.getElementById('preview-alert-ref').value;
+
+            try {
+                // Get the current user's secure ID
+                const { data: { user } } = await supabase.auth.getUser();
+
+                // UPDATE DB: Change status and assign to user securely
+                // The .eq('status', 'UNASSIGNED') acts as a concurrency check!
+                const { data, error } = await supabase
+                    .from('alerts')
+                    .update({ 
+                        status: 'INVESTIGATING',
+                        assigned_user_id: user.id 
+                    })
+                    .eq('id', alertId)
+                    .eq('status', 'UNASSIGNED') 
+                    .select();
+
+                if (error) throw error;
+                
+                // Concurrency catch: If data comes back empty, someone else claimed it a second before you
+                if (data.length === 0) {
+                    throw new Error("Concurrency Error: Case already claimed by another officer.");
+                }
+
+                // LOG THE EVENT: Create an immutable audit trail receipt
+                await supabase.from('system_events').insert([{
+                    event_type: 'CASE_CLAIMED',
+                    severity: 'INFO',
+                    message: `Officer securely locked alert ${alertRef} for investigation.`,
+                    metadata: { alert_id: alertId, assigned_to: user.id }
+                }]);
+
+                // Hide the preview modal
+                bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
+
+                // Automatically pop open the SAR Filing Modal so they can start working
+                window.resumeCase(alertId, alertRef);
+
+                // Refresh the queue in the background
+                loadAlertsQueue('UNASSIGNED');
+
+            } catch (err) {
+                console.error("Error claiming alert:", err);
+                alert("Failed to claim alert. Another officer may have already locked it.");
+                bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
+                loadAlertsQueue('UNASSIGNED');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- 3. Resume Existing Case ---
+        window.resumeCase = (alertId, alertRef) => {
+            document.getElementById('sar-alert-id').value = alertId;
+            document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${alertRef}`;
+            
+            const modalElement = document.getElementById('sarFilingModal');
+            new bootstrap.Modal(modalElement).show();
+        };
+
+        // 2. Submit SAR and Close Case (INVESTIGATING -> ESCALATED/CLOSED)
+        document.getElementById('sar-resolution-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('btn-submit-sar');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+            submitBtn.disabled = true;
+
+            try {
+                const alertId = document.getElementById('sar-alert-id').value;
+                const action = document.getElementById('sar-action').value;
+                
+                // Determine final status based on the officer's action
+                const finalStatus = action === 'DISMISS' ? 'CLOSED' : 'ESCALATED';
+
+                // Update the alert in the database
+                const { error } = await supabase
+                    .from('alerts')
+                    .update({ 
+                        status: finalStatus,
+                        details: document.getElementById('sar-notes').value 
+                    })
+                    .eq('id', alertId);
+
+                if (error) throw error;
+
+                // Log the resolution in the system events audit trail
+                await supabase.from('system_events').insert([{
+                    event_type: 'CASE_RESOLVED',
+                    severity: finalStatus === 'ESCALATED' ? 'CRITICAL' : 'INFO',
+                    message: `Officer filed SAR and marked Case as ${finalStatus}. Action: ${action}`,
+                    metadata: { alert_id: alertId, action: action }
+                }]);
+
+                // Hide Modal and refresh
+                bootstrap.Modal.getInstance(document.getElementById('sarFilingModal')).hide();
+                document.getElementById('sar-resolution-form').reset();
+                
+                // Show success toast
+                document.getElementById('toastMessage').innerText = `SAR filed successfully. Case ${finalStatus}.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                loadAlertsQueue();
+                
+            } catch (err) {
+                console.error("Error filing SAR:", err);
+                alert("Failed to submit report.");
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Run initialization
+        initializeDashboard();
         loadLiveTransactions();
 
         // --- Dynamic Role Dropdown Auto-Populator ---
