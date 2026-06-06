@@ -86,7 +86,31 @@ Alerts written to Supabase use this shape:
 
 ## Changelog
 
-### 2026-06-06
+### 2026-06-06 (update 2)
+
+**`aml_engine.py` — alert deduplication**
+
+`write_alerts_to_db()` now queries today's existing alerts before inserting. Any alert with the same `(customer_id, rule_triggered)` combination already raised today is skipped, so running the engine multiple times in a day no longer produces duplicate alerts in the dashboard. A comment in the function also provides the SQL for an optional DB-level unique index as a belt-and-suspenders measure:
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_customer_rule_day
+ON alerts (customer_id, rule_triggered, (created_at::date));
+```
+
+**`dashboard.html` — NFIU SAR PDF generator**
+
+Analysts can now download a pre-filled NFIU Suspicious Transaction Report (Form NFIU/STR/001) PDF directly from the SAR filing modal. A "Download SAR PDF" button sits in the modal footer alongside the existing submit button. Clicking it fetches the full alert and customer record from Supabase, and generates a formatted PDF via jsPDF covering all six NFIU STR sections:
+- Section A: Reporting Institution
+- Section B: Subject of Report (entity name, customer type, BVN/RC, address, risk tier, PEP/KYC status)
+- Section C: Suspicious Activity Details (typology, severity, system description)
+- Section D: Investigation Findings (officer's notes from the modal)
+- Section E: Recommended Action
+- Section F: Officer Declaration + signature lines
+
+The PDF downloads automatically as `SAR_<alert_ref>_<date>.pdf`. The button can be clicked before or after filling in the investigation notes — notes are included in the PDF at the time of download.
+
+---
+
+### 2026-06-06 (update 1)
 
 **`aml_engine.py` — v1.4**
 

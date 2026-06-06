@@ -219,6 +219,12 @@ def write_alerts_to_db(alerts, accounts_df, transactions_df):
 
     Engine alert fields:   transaction_reference, account_id, rule_id, rule_name, severity, description, timestamp
     DB alerts table fields: alert_ref, customer_id, transaction_id, rule_triggered, severity, status, details
+
+    Deduplication: alerts with the same (customer_id, rule_triggered) already raised today are skipped,
+    so running the engine multiple times in a day does not produce duplicate alerts.
+    For a belt-and-suspenders DB-level constraint, run this once in Supabase SQL editor:
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_customer_rule_day
+        ON alerts (customer_id, rule_triggered, (created_at::date));
     """
     if not alerts:
         return 0
@@ -257,10 +263,33 @@ def write_alerts_to_db(alerts, accounts_df, transactions_df):
         print("   ⚠️  No valid records to insert after mapping.")
         return 0
 
+    # --- DEDUPLICATION ---
+    # Fetch today's existing alerts to avoid duplicates on repeat engine runs.
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    print("🔍 Checking for existing alerts today to deduplicate...")
+    existing_resp = supabase.table('alerts').select('customer_id, rule_triggered').gte('created_at', today_start).execute()
+    existing_fingerprints = set()
+    if existing_resp.data:
+        for row in existing_resp.data:
+            existing_fingerprints.add((row['customer_id'], row['rule_triggered']))
+
+    before_count = len(db_records)
+    db_records = [
+        r for r in db_records
+        if (r['customer_id'], r['rule_triggered']) not in existing_fingerprints
+    ]
+    skipped = before_count - len(db_records)
+    if skipped > 0:
+        print(f"   ↳ Skipped {skipped} duplicate alert(s) already raised today.")
+
+    if not db_records:
+        print("   ✅ No new alerts to insert — all already exist for today.")
+        return 0
+
     # Batch insert (1,000 rows at a time)
     batch_size = 1000
     inserted   = 0
-    print(f"💾 Writing {len(db_records)} alerts to Supabase alerts table...")
+    print(f"💾 Writing {len(db_records)} new alert(s) to Supabase alerts table...")
     for i in range(0, len(db_records), batch_size):
         batch = db_records[i:i + batch_size]
         supabase.table('alerts').insert(batch).execute()
