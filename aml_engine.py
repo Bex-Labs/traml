@@ -54,6 +54,16 @@ RULE_CONFIG = {
     # CBN Tier 1 limit — transactions above this require verified BVN/KYC
     'kyc_txn_threshold': 50000.00,
 
+    # R-008: Cash concentration parameters
+    'cash_concentration_channels':  ['POS', 'ATM', 'BRANCH'],  # Channels considered "cash"
+    'cash_concentration_min_amount': 500000.00,    # Each deposit must be at least ₦500k
+    'cash_concentration_count':      3,             # Minimum number of deposits to flag
+    'cash_concentration_window':     '72h',         # Rolling time window
+
+    # R-009: Dormant account reactivation parameters
+    'dormant_inactive_days':    180,       # Account must have been quiet for this many days
+    'dormant_txn_threshold':    100000.00, # Reactivation transaction must exceed this amount
+
     # R-006: OFAC SDN watchlist parameters
     'ofac_csv_url': 'https://www.treasury.gov/ofac/downloads/sdn.csv',
     'watchlist_fuzzy_threshold': 85,    # Minimum match score (0-100) to flag
@@ -314,6 +324,68 @@ def evaluate_all_rules(df, customers_df, sdn_names=None, opensanctions_hits=None
     else:
         print("   ↳ [Rule 5] ⚠️  Skipped — kyc_status column not found on customers table.")
         print("              Run this SQL first: ALTER TABLE customers ADD COLUMN IF NOT EXISTS kyc_status TEXT NOT NULL DEFAULT 'PENDING';")
+
+    # --- R-008: Cash Concentration ---
+    # Flags accounts with repeated large cash deposits (POS/ATM/Branch) within a 72h window.
+    # Common typology: agents or mules depositing bulk cash on behalf of a principal.
+    print(f"   ↳ [Rule 8] Checking for cash concentration (≥{RULE_CONFIG['cash_concentration_count']} deposits "
+          f">= ₦{RULE_CONFIG['cash_concentration_min_amount']:,.0f} within {RULE_CONFIG['cash_concentration_window']})...")
+    cash_txns = df_rolling[
+        (df_rolling['channel'].str.upper().isin(RULE_CONFIG['cash_concentration_channels'])) &
+        (df_rolling['transaction_type'] == 'CREDIT') &
+        (df_rolling['amount'] >= RULE_CONFIG['cash_concentration_min_amount'])
+    ]
+    if not cash_txns.empty:
+        cash_counts = cash_txns.groupby('account_id').rolling(
+            RULE_CONFIG['cash_concentration_window']
+        )['id'].count().reset_index(name='deposit_count')
+        cash_flags = cash_counts[cash_counts['deposit_count'] >= RULE_CONFIG['cash_concentration_count']]
+        cash_flags = cash_flags.drop_duplicates(subset=['account_id'])
+        for _, row in cash_flags.iterrows():
+            alerts.append({
+                'transaction_reference': 'MULTIPLE_TXNS',
+                'account_id':            row['account_id'],
+                'rule_id':               'R-008',
+                'rule_name':             'Cash Concentration Detected',
+                'severity':              'HIGH',
+                'description': (
+                    f"Account made {int(row['deposit_count'])} cash deposits each >= "
+                    f"₦{RULE_CONFIG['cash_concentration_min_amount']:,.0f} within "
+                    f"{RULE_CONFIG['cash_concentration_window']} via POS/ATM/Branch channels."
+                ),
+                'timestamp': str(row['timestamp'])
+            })
+
+    # --- R-009: Dormant Account Reactivation ---
+    # Flags accounts that had no activity for 180+ days and then transact above ₦100k.
+    # Common fraud signal: dormant accounts reactivated for money mule activity.
+    print(f"   ↳ [Rule 9] Checking for dormant account reactivation "
+          f"(inactive {RULE_CONFIG['dormant_inactive_days']}+ days, then > ₦{RULE_CONFIG['dormant_txn_threshold']:,.0f})...")
+    dormant_threshold = pd.Timedelta(days=RULE_CONFIG['dormant_inactive_days'])
+    # For each account, find the gap between consecutive transactions
+    df_sorted = df.sort_values(['account_id', 'timestamp'])
+    df_sorted['prev_timestamp'] = df_sorted.groupby('account_id')['timestamp'].shift(1)
+    df_sorted['gap'] = df_sorted['timestamp'] - df_sorted['prev_timestamp']
+
+    dormant_flags = df_sorted[
+        (df_sorted['gap'] >= dormant_threshold) &
+        (df_sorted['amount'] >= RULE_CONFIG['dormant_txn_threshold'])
+    ].drop_duplicates(subset=['account_id'])
+
+    for _, row in dormant_flags.iterrows():
+        gap_days = int(row['gap'].days)
+        alerts.append({
+            'transaction_reference': row['transaction_reference'],
+            'account_id':            row['account_id'],
+            'rule_id':               'R-009',
+            'rule_name':             'Dormant Account Reactivation',
+            'severity':              'HIGH',
+            'description': (
+                f"Account was inactive for {gap_days} days then transacted "
+                f"₦{row['amount']:,.2f} via {row.get('channel', 'N/A')}."
+            ),
+            'timestamp': row['transaction_timestamp']
+        })
 
     # --- R-006: OFAC SDN Watchlist Screening ---
     # Fuzzy-matches unique counterparty names from the transaction batch against the

@@ -67,6 +67,8 @@ The engine will fetch all transactions from Supabase, evaluate them against the 
 | R-005 | KYC Gap — Unverified Customer | Customer KYC status is not VERIFIED; transacting above ₦50k | HIGH |
 | R-006 | OFAC SDN Watchlist Hit | Counterparty name fuzzy-matches the OFAC SDN list (≥85% similarity) | CRITICAL |
 | R-007 | OpenSanctions Watchlist Hit | Customer entity name matches OpenSanctions (OFAC + UN + EU + PEPs, score ≥85%) | CRITICAL |
+| R-008 | Cash Concentration | ≥3 POS/ATM/Branch cash deposits ≥₦500k within a 72h rolling window | HIGH |
+| R-009 | Dormant Account Reactivation | Account inactive 180+ days then transacts above ₦100k | HIGH |
 
 ---
 
@@ -87,6 +89,18 @@ Alerts written to Supabase use this shape:
 ---
 
 ## Changelog
+
+### 2026-06-06 (update 4)
+
+**`aml_engine.py` — R-008 Cash Concentration + R-009 Dormant Account Reactivation**
+
+**R-008: Cash Concentration**
+Flags accounts with 3 or more cash deposits (POS, ATM, or Branch channels) each at or above ₦500,000 within a rolling 72-hour window. This targets the typology where agents or mules make repeated structured cash deposits on behalf of a principal — a pattern common in Nigerian microfinance fraud. Severity: `HIGH`. All three thresholds (count, amount, window) are configurable in `RULE_CONFIG`.
+
+**R-009: Dormant Account Reactivation**
+Flags accounts that were inactive for 180+ days and then transact above ₦100,000. A long silence followed by sudden high-value activity is a strong mule account signal. The rule calculates the gap between consecutive transactions per account and fires once per account on first qualifying reactivation event. Severity: `HIGH`. Both the inactivity period and transaction threshold are configurable in `RULE_CONFIG`.
+
+---
 
 ### 2026-06-06 (update 3)
 
