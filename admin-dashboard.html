@@ -140,16 +140,18 @@
                         <form id="manual-injector-form">
                             <div class="row g-3">
                                 <div class="col-md-5">
-                                    <label class="form-label small fw-bold text-muted">Target Account UUID</label>
-                                    <input type="text" class="form-control bg-light" id="manual-account-id" placeholder="e.g. 550e8400-e29b..." required>
+                                    <label class="form-label small fw-bold text-muted">Target Customer Account</label>
+                                    <select class="form-select bg-light border-secondary" id="manual-account-id" required>
+                                        <option value="">Loading customer accounts...</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small fw-bold text-muted">Amount (NGN)</label>
-                                    <input type="number" class="form-control bg-light" id="manual-amount" placeholder="5000000" required>
+                                    <input type="number" class="form-control bg-light border-secondary" id="manual-amount" placeholder="e.g. 5500000" required>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small fw-bold text-muted">Type</label>
-                                    <select class="form-select bg-light" id="manual-type" required>
+                                    <select class="form-select bg-light border-secondary" id="manual-type" required>
                                         <option value="CREDIT">CREDIT</option>
                                         <option value="DEBIT">DEBIT</option>
                                     </select>
@@ -222,6 +224,8 @@
 
             // Initiate Realtime WebSockets
             subscribeToSystemTelemetry();
+
+            loadAccountsDropdown();
         }
 
         // --- Custom Role Compiler ---
@@ -249,6 +253,78 @@
 
             submitBtn.innerHTML = 'Deploy Custom Role';
             submitBtn.disabled = false;
+        });
+
+        // --- Fetch Accounts for the Dropdown ---
+        async function loadAccountsDropdown() {
+            const select = document.getElementById('manual-account-id');
+            const { data, error } = await supabase
+                .from('accounts')
+                // We ask for ALL name fields now
+                .select(`id, account_number, customers(entity_name, first_name, last_name)`); 
+            
+            if (error) {
+                console.error("Error loading accounts:", error);
+                select.innerHTML = '<option value="">Error loading accounts</option>';
+                return;
+            }
+            
+            select.innerHTML = data.map(acc => {
+                const c = acc.customers || {};
+                // If entity_name exists, use it. Otherwise, combine first & last name.
+                const displayName = c.entity_name || (c.first_name ? `${c.first_name} ${c.last_name}` : 'Unknown Entity');
+                return `<option value="${acc.id}">${displayName} - Acc: ${acc.account_number.slice(-4)}</option>`;
+            }).join('');
+        }
+
+        // Call this inside initializeAdminDashboard()
+        // loadAccountsDropdown();
+
+        // --- PURE MANUAL PRECISION INJECTOR ---
+        document.getElementById('manual-injector-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-manual-inject');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                btn.disabled = true;
+                
+                const accountId = document.getElementById('manual-account-id').value;
+                const amount = parseFloat(document.getElementById('manual-amount').value);
+                const type = document.getElementById('manual-type').value;
+                
+                // 1. Create and inject the transaction 
+                // (Your backend SQL triggers will catch this and create the alert!)
+                const txn = createTxnPayload(accountId, amount, type, 'Manual UAT Injection');
+                const { error: txError } = await supabase.from('transactions').insert([txn]);
+                if (txError) throw txError;
+                
+                // 2. Log the injection to telemetry
+                await supabase.from('system_events').insert([{
+                    event_type: 'MANUAL_INJECTION',
+                    severity: 'INFO',
+                    message: `Admin manually injected ₦${amount.toLocaleString()} ${type} into account. Awaiting SQL trigger evaluation.`,
+                    metadata: { amount: amount, type: type, target: accountId }
+                }]);
+                
+                // 3. Visual Success Feedback
+                btn.classList.replace('btn-dark', 'btn-success');
+                btn.innerHTML = 'Sent to DB';
+                document.getElementById('manual-amount').value = ''; 
+                
+                setTimeout(() => {
+                    btn.classList.replace('btn-success', 'btn-dark');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                console.error("Manual Injection Error:", err);
+                alert("Failed to inject transaction.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
 
         // --- TAML-76: Telemetry Engine ---

@@ -205,6 +205,7 @@
                 </div>
 
                 <!-- Row 4: Executive Escalation Queue -->
+                <div id="component-escalation-queue" class="d-none">
                     <div class="row mt-2 mb-5">
                         <div class="col-12">
                             <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
@@ -232,6 +233,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
                 <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4">
@@ -649,6 +651,57 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- COMPONENT: UNASSIGNED ALERT PREVIEW MODAL  -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="alertPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-warning">visibility</span> Alert Preview (Read-Only)
+                        </h5>
+                        <p class="mb-0 small text-white-50" id="preview-modal-ref">Alert Ref: Loading...</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    
+                    <div class="alert alert-secondary border-secondary bg-secondary bg-opacity-10 d-flex gap-3 align-items-start mb-4">
+                        <span class="material-symbols-outlined text-secondary">info</span>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Unassigned Queue</h6>
+                            <p class="small text-muted mb-0">This alert is currently in the general pool. You must claim it to lock it to your user ID before you can begin an investigation.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4 p-3 bg-white border rounded">
+                        <div class="col-12 border-bottom pb-2">
+                            <p class="text-muted small mb-0 uppercase fw-bold">Target Entity</p>
+                            <p class="fw-bold text-dark mb-0 fs-5" id="preview-entity">Loading...</p>
+                        </div>
+                        <div class="col-12 pt-2">
+                            <p class="text-muted small mb-0 uppercase fw-bold">Rule Triggered</p>
+                            <p class="fw-bold text-danger mb-0" id="preview-rule">Loading...</p>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="preview-alert-id">
+                    <input type="hidden" id="preview-alert-ref">
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Leave in Pool</button>
+                        <button type="button" class="btn btn-primary fw-bold px-4 d-flex align-items-center gap-2" id="btn-claim-alert">
+                            <span class="material-symbols-outlined fs-6">lock</span> Claim & Investigate
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="sarFilingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -835,6 +888,7 @@
                 document.getElementById('view-compliance-officer').classList.add('d-none');
                 document.getElementById('view-bank-manager').classList.add('d-none'); // Hide new view
                 renderComplianceCharts();
+                document.getElementById('component-escalation-queue')?.classList.remove('d-none');
                 
             } else if (userRole === 'compliance_officer') {
                 document.getElementById('view-compliance-officer').classList.remove('d-none');
@@ -882,27 +936,39 @@
                 activeElement.classList.add('text-primary', 'bg-light', 'border-primary');
             }
 
-            // 2. Hide ALL views
+            // 2. Hide ALL views globally
             document.getElementById('view-head-compliance').classList.add('d-none');
             document.getElementById('view-compliance-officer').classList.add('d-none');
             document.getElementById('view-bank-manager').classList.add('d-none');
             document.getElementById('view-kyc-directory').classList.add('d-none');
-            document.getElementById('view-case-management').classList.add('d-none'); // <-- Add this
+            document.getElementById('view-case-management').classList.add('d-none');
             document.getElementById('live-stream-section')?.classList.add('d-none'); 
+            document.getElementById('component-escalation-queue')?.classList.add('d-none'); // Force hide the rogue queue
 
             // 3. Show requested view
+            const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
+            const isExecutive = userRole === 'head_of_compliance' || userRole === 'system_admin';
+
             if (viewName === 'kyc') {
                 document.getElementById('view-kyc-directory').classList.remove('d-none');
                 loadKYCDirectory();
             } else if (viewName === 'case-management') {
-                document.getElementById('view-case-management').classList.remove('d-none'); // <-- Show Case View
-                loadCaseManagement(); // Fetch the closed/escalated alerts!
+                document.getElementById('view-case-management').classList.remove('d-none');
+                // Only show the SAR queue if they are an executive
+                if (isExecutive) document.getElementById('component-escalation-queue')?.classList.remove('d-none');
+                loadCaseManagement();
             } else {
+                // Default: Command Center
                 document.getElementById('live-stream-section')?.classList.remove('d-none');
-                const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
-                if (userRole === 'bank_manager') document.getElementById('view-bank-manager').classList.remove('d-none');
-                else if (userRole === 'head_of_compliance' || userRole === 'system_admin') document.getElementById('view-head-compliance').classList.remove('d-none');
-                else document.getElementById('view-compliance-officer').classList.remove('d-none');
+                
+                if (userRole === 'bank_manager') {
+                    document.getElementById('view-bank-manager').classList.remove('d-none');
+                } else if (isExecutive) {
+                    document.getElementById('view-head-compliance').classList.remove('d-none');
+                    document.getElementById('component-escalation-queue')?.classList.remove('d-none');
+                } else {
+                    document.getElementById('view-compliance-officer').classList.remove('d-none');
+                }
             }
         }
 
@@ -1161,7 +1227,7 @@
             }
         }
 
-        // --- Live Transaction Stream Engine (FIXED PATH) ---
+        // --- Live Transaction Stream Engine (UPGRADED NAMES) ---
         async function loadLiveTransactions() {
             try {
                 const tbody = document.getElementById('transaction-feed');
@@ -1169,17 +1235,12 @@
 
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted small">Syncing live stream...</td></tr>';
 
-                // Fix: Query customers nested inside accounts
                 const { data: transactions, error } = await supabase
                     .from('transactions')
                     .select(`
-                        id,
-                        amount,
-                        transaction_type,
-                        transaction_timestamp,
-                        transaction_reference,
+                        id, amount, transaction_type, transaction_timestamp, transaction_reference,
                         accounts (
-                            customers ( entity_name )
+                            customers ( entity_name, first_name, last_name )
                         )
                     `)
                     .order('transaction_timestamp', { ascending: false })
@@ -1195,20 +1256,19 @@
 
                 transactions.forEach(tx => {
                     const row = document.createElement('tr');
-                    
                     const dateObj = new Date(tx.transaction_timestamp);
                     const timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    
                     const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(tx.amount);
 
-                    // Fix: Extract entity name from the nested chain
-                    const companyName = tx.accounts?.customers?.entity_name || 'UNKNOWN ENTITY';
+                    // NEW FALLBACK LOGIC
+                    const cust = tx.accounts?.customers || {};
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
 
                     row.innerHTML = `
                         <td class="px-4 py-3 text-muted small">${timeString}</td>
                         <td class="py-3">
                             <div class="fw-bold text-dark small">${tx.transaction_reference}</div>
-                            <div class="text-muted text-uppercase" style="font-size: 0.7rem;">${companyName}</div>
+                            <div class="text-muted text-uppercase" style="font-size: 0.7rem;">${entityName}</div>
                         </td>
                         <td class="py-3 fw-semibold small">${formattedAmount}</td>
                         <td class="py-3">
@@ -1223,26 +1283,24 @@
 
             } catch (err) {
                 console.error("Error loading live transactions:", err);
-                // Fallback UI so it never stays stuck on "Syncing..." if a database issue occurs
                 document.getElementById('transaction-feed').innerHTML = 
                     '<tr><td colspan="5" class="text-center py-3 text-danger small">Stream sync failed.</td></tr>';
             }
         }
 
-        // --- Case Management Engine ---
+        // --- Case Management Engine (UPGRADED NAMES) ---
         async function loadCaseManagement() {
             try {
                 const tbody = document.getElementById('case-management-body');
                 if (!tbody) return;
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading cases...</td></tr>';
 
-                // Fetch alerts that are NOT Unassigned (i.e., Escalated or Closed)
                 const { data: cases, error } = await supabase
                     .from('alerts')
                     .select(`
                         id, alert_ref, rule_triggered, severity, status, details, created_at,
                         customer_id, 
-                        customers ( entity_name )
+                        customers ( entity_name, first_name, last_name )
                     `)
                     .neq('status', 'UNASSIGNED')
                     .order('created_at', { ascending: false });
@@ -1257,15 +1315,16 @@
 
                 cases.forEach(c => {
                     const row = document.createElement('tr');
-                    
                     let statusBadge = c.status === 'ESCALATED' ? 'bg-warning text-dark' : 'bg-dark text-white';
-                    
-                    // Truncate long notes for the table view
                     let noteSnippet = c.details ? (c.details.length > 40 ? c.details.substring(0, 40) + '...' : c.details) : 'No notes provided.';
+
+                    // NEW FALLBACK LOGIC
+                    const cust = c.customers || {};
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
 
                     row.innerHTML = `
                         <td class="px-4 py-3 fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</td>
-                        <td class="py-3 text-muted small">${c.customers?.entity_name || 'Unknown'}</td>
+                        <td class="py-3 text-muted small">${entityName}</td>
                         <td class="py-3 text-muted small">${c.rule_triggered}</td>
                         <td class="py-3"><span class="badge ${statusBadge}">${c.status}</span></td>
                         <td class="py-3 text-muted small fst-italic">"${noteSnippet}"</td>
@@ -1337,7 +1396,7 @@
             }
         }
 
-        // --- Alerts Queue Engine (UPGRADED WITH FILTERING) ---
+        // --- Alerts Queue Engine (UPGRADED WITH FILTERING & NAMES) ---
         async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
             try {
                 const tbody = document.getElementById('alerts-table-body');
@@ -1345,12 +1404,12 @@
 
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Fetching ${filterStatus.toLowerCase()} alerts...</td></tr>`;
 
-                // Fetch alerts strictly matching the requested status
+                // Fetch alerts strictly matching the requested status (NOW WITH ALL NAMES)
                 const { data: alerts, error } = await supabase
                     .from('alerts')
                     .select(`
                         id, alert_ref, rule_triggered, severity, status, created_at,
-                        customers ( entity_name )
+                        customers ( entity_name, first_name, last_name )
                     `)
                     .eq('status', filterStatus)
                     .order('created_at', { ascending: false });
@@ -1373,12 +1432,20 @@
                     if (alert.severity === 'CRITICAL') badgeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
                     if (alert.severity === 'HIGH') badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
 
-                    // If it's already assigned, change the button text to "Resume Case"
-                    const btnText = filterStatus === 'INVESTIGATING' ? 'Resume Case' : 'Review Case';
+                    const isUnassigned = filterStatus === 'UNASSIGNED';
+                    const btnText = isUnassigned ? 'Review Case' : 'Resume Case';
+                    
+                    // NEW FALLBACK LOGIC
+                    const cust = alert.customers || {};
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
+                    
+                    const clickAction = isUnassigned 
+                        ? `previewUnassignedAlert('${alert.id}', '${alert.alert_ref}', '${entityName.replace(/'/g, "\\'")}', '${alert.rule_triggered}')` 
+                        : `resumeCase('${alert.id}', '${alert.alert_ref}')`;
 
                     row.innerHTML = `
                         <td class="px-4 py-3 fw-medium text-dark small">${alert.alert_ref}</td>
-                        <td class="py-3 text-muted small">${alert.customers?.entity_name || 'Unknown Entity'}</td>
+                        <td class="py-3 text-muted small">${entityName}</td>
                         <td class="py-3 text-muted small">${alert.rule_triggered}</td>
                         <td class="py-3">
                             <span class="badge ${badgeClass} border border-opacity-25 rounded-pill px-2 py-1">
@@ -1387,7 +1454,7 @@
                         </td>
                         <td class="py-3 text-muted small text-nowrap">${formattedDate}</td>
                         <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="reviewCase('${alert.id}', '${alert.alert_ref}')" style="font-size: 0.7rem;">${btnText}</button>
+                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="${clickAction}" style="font-size: 0.7rem;">${btnText}</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -1413,7 +1480,7 @@
             loadAlertsQueue('INVESTIGATING'); // Fetch WIP cases
         });
 
-        // --- KYC Directory Engine ---
+        // --- KYC Directory Engine (UPGRADED FALLBACKS) ---
         async function loadKYCDirectory() {
             try {
                 const tbody = document.getElementById('kyc-directory-body');
@@ -1443,16 +1510,21 @@
                     if (cust.risk_score >= 75) badgeClass = 'bg-danger';
                     else if (cust.risk_score >= 40) badgeClass = 'bg-warning text-dark';
 
-                    // Determine if EDD (Enhanced) or CDD (Customer Due Diligence) based on tier
+                    // Determine if EDD or CDD
                     const btnText = cust.risk_tier === 'HIGH' ? 'View EDD' : 'View CDD';
+
+                    // PERFECT DATA FALLBACKS
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Customer');
+                    const industry = cust.industry || (cust.customer_type === 'Individual' ? 'Retail / Personal' : 'Uncategorized');
+                    const geography = cust.geography || 'NG (Domestic)';
 
                     row.innerHTML = `
                         <td class="px-4 py-3">
-                            <div class="fw-bold text-dark small">${cust.entity_name}</div>
+                            <div class="fw-bold text-dark small">${entityName}</div>
                             <div class="text-muted" style="font-size: 0.7rem;">ID: ${cust.id.split('-')[0]}</div>
                         </td>
-                        <td class="py-3 fw-semibold small text-muted">${cust.industry || '-'}</td>
-                        <td class="py-3 small text-muted">${cust.geography || '-'}</td>
+                        <td class="py-3 fw-semibold small text-muted">${industry}</td>
+                        <td class="py-3 small text-muted">${geography}</td>
                         <td class="py-3"><span class="badge ${badgeClass}">${cust.risk_score}/100</span></td>
                         <td class="py-3 text-end px-4">
                             <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase btn-view-profile" data-customer-id="${cust.id}" style="font-size: 0.7rem;">
@@ -1601,36 +1673,88 @@
 
         // --- Case Management Workflow Engine ---
 
-        // 1. Assign Case to Self (UNASSIGNED -> INVESTIGATING)
-        window.reviewCase = async (alertId, alertRef) => {
-            try {
-                // Optimistic UI update: Find the button and show a spinner
-                const btn = document.querySelector(`button[onclick="reviewCase('${alertId}', '${alertRef}')"]`);
-                if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        // --- 1. The Read-Only Preview (No Database Update) ---
+        window.previewUnassignedAlert = (alertId, alertRef, entityName, ruleTriggered) => {
+            // Populate the preview modal
+            document.getElementById('preview-alert-id').value = alertId;
+            document.getElementById('preview-alert-ref').value = alertRef;
+            document.getElementById('preview-modal-ref').innerText = `Alert Ref: ${alertRef}`;
+            document.getElementById('preview-entity').innerText = entityName;
+            document.getElementById('preview-rule').innerText = ruleTriggered;
+            
+            // Open the preview modal
+            const modalElement = document.getElementById('alertPreviewModal');
+            new bootstrap.Modal(modalElement).show();
+        };
 
-                // Update the database status
-                const { error } = await supabase
+        // --- 2. The Explicit Claim & Lock Action (Updates Database) ---
+        document.getElementById('btn-claim-alert')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Locking Case...';
+            btn.disabled = true;
+
+            const alertId = document.getElementById('preview-alert-id').value;
+            const alertRef = document.getElementById('preview-alert-ref').value;
+
+            try {
+                // Get the current user's secure ID
+                const { data: { user } } = await supabase.auth.getUser();
+
+                // UPDATE DB: Change status and assign to user securely
+                // The .eq('status', 'UNASSIGNED') acts as a concurrency check!
+                const { data, error } = await supabase
                     .from('alerts')
-                    .update({ status: 'INVESTIGATING' })
-                    .eq('id', alertId);
+                    .update({ 
+                        status: 'INVESTIGATING',
+                        assigned_user_id: user.id 
+                    })
+                    .eq('id', alertId)
+                    .eq('status', 'UNASSIGNED') 
+                    .select();
 
                 if (error) throw error;
-
-                // Open the SAR Modal for the investigation phase
-                document.getElementById('sar-alert-id').value = alertId;
-                document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${alertRef}`;
                 
-                const modalElement = document.getElementById('sarFilingModal');
-                const bsModal = new bootstrap.Modal(modalElement);
-                bsModal.show();
+                // Concurrency catch: If data comes back empty, someone else claimed it a second before you
+                if (data.length === 0) {
+                    throw new Error("Concurrency Error: Case already claimed by another officer.");
+                }
 
-                // Refresh the queue to remove it from the "Unassigned" view
-                loadAlertsQueue();
+                // LOG THE EVENT: Create an immutable audit trail receipt
+                await supabase.from('system_events').insert([{
+                    event_type: 'CASE_CLAIMED',
+                    severity: 'INFO',
+                    message: `Officer securely locked alert ${alertRef} for investigation.`,
+                    metadata: { alert_id: alertId, assigned_to: user.id }
+                }]);
+
+                // Hide the preview modal
+                bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
+
+                // Automatically pop open the SAR Filing Modal so they can start working
+                window.resumeCase(alertId, alertRef);
+
+                // Refresh the queue in the background
+                loadAlertsQueue('UNASSIGNED');
 
             } catch (err) {
-                console.error("Error assigning case:", err);
-                alert("Failed to assign case.");
+                console.error("Error claiming alert:", err);
+                alert("Failed to claim alert. Another officer may have already locked it.");
+                bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
+                loadAlertsQueue('UNASSIGNED');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
+        });
+
+        // --- 3. Resume Existing Case ---
+        window.resumeCase = (alertId, alertRef) => {
+            document.getElementById('sar-alert-id').value = alertId;
+            document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${alertRef}`;
+            
+            const modalElement = document.getElementById('sarFilingModal');
+            new bootstrap.Modal(modalElement).show();
         };
 
         // 2. Submit SAR and Close Case (INVESTIGATING -> ESCALATED/CLOSED)

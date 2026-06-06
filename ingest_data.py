@@ -7,7 +7,7 @@ print("🏗️ Booting Sentinel AML REST Ingestion Module...")
 
 # 1. Connect via HTTPS
 SUPABASE_URL = "https://mbwgglgvykjpsnvnvcsj.supabase.co"
-SUPABASE_KEY = "YOUR_SERVICE_ROLE_KEY_HERE" 
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1id2dnbGd2eWtqcHNudm52Y3NqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTE0MjQ5MCwiZXhwIjoyMDk0NzE4NDkwfQ.RTbElP3o6KlI5ebCTue8ZKU9TpKpZsNTdhhsSnuyfps" 
 
 try:
     print("🔌 Connecting to Supabase API...")
@@ -69,13 +69,20 @@ def insert_in_batches(data, table_name, batch_size=1000):
         time.sleep(0.5) # Gives the Supabase server a 0.5-second breath between chunks
 
 try:
-    # We comment these out because they are already 100% uploaded
-    # insert_in_batches(cust_records, 'customers')
-    # insert_in_batches(acc_records, 'accounts')
+    # 1. Clean the database first (Optional but recommended if you want a fresh start)
+    print("🧹 Wiping old data...")
+    supabase.table("alerts").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    supabase.table("transactions").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    supabase.table("accounts").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    supabase.table("customers").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+
+    # 2. Push the full generated dataset
+    print("🚀 Pushing full dataset...")
+    insert_in_batches(cust_records, 'customers')
+    insert_in_batches(acc_records, 'accounts')
     
-    # Resume transactions exactly where the network dropped it
-    print("⏭️ Resuming transactions from row 50,000...")
-    insert_in_batches(txn_records[50000:], 'transactions') 
+    # Push ALL transactions (starting from 0, not 50,000)
+    insert_in_batches(txn_records, 'transactions') 
     
     print("\n🎉 ALL DATA INGESTED! Sentinel Sandbox is Live. (TAML-27 Complete)")
 except Exception as e:
