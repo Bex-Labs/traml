@@ -47,7 +47,7 @@ SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 Then run:
 
 ```bash
-pip install pandas supabase python-dotenv
+pip install -r requirements.txt
 python aml_engine.py
 ```
 
@@ -65,6 +65,8 @@ The engine will fetch all transactions from Supabase, evaluate them against the 
 | R-003 | High Velocity Account (TAML-50) | ≥15 transactions within a 24h rolling window | MEDIUM |
 | R-004 | Round-Tripping (TAML-53) | Large debit returned as credit (90–105%) within 24h | CRITICAL |
 | R-005 | KYC Gap — Unverified Customer | Customer KYC status is not VERIFIED; transacting above ₦50k | HIGH |
+| R-006 | OFAC SDN Watchlist Hit | Counterparty name fuzzy-matches the OFAC SDN list (≥85% similarity) | CRITICAL |
+| R-007 | OpenSanctions Watchlist Hit | Customer entity name matches OpenSanctions (OFAC + UN + EU + PEPs, score ≥85%) | CRITICAL |
 
 ---
 
@@ -85,6 +87,24 @@ Alerts written to Supabase use this shape:
 ---
 
 ## Changelog
+
+### 2026-06-06 (update 3)
+
+**`aml_engine.py` — R-006 OFAC SDN screening + R-007 OpenSanctions screening**
+
+Two new watchlist rules added. Both fire `CRITICAL` severity alerts.
+
+**R-006: OFAC SDN Watchlist (counterparty screening)**
+At engine startup, `load_ofac_sdn()` downloads the OFAC Specially Designated Nationals CSV directly from the US Treasury (public, no API key needed). Every unique `counterparty_name` in the transaction batch is then fuzzy-matched against the ~10,000 SDN entries using `rapidfuzz` with a `token_sort_ratio` scorer. Any match at ≥85% similarity triggers an alert per affected transaction. The threshold is configurable in `RULE_CONFIG['watchlist_fuzzy_threshold']`. If the OFAC download fails (e.g. network issue), R-006 is skipped and the engine continues normally.
+
+**R-007: OpenSanctions Watchlist (customer screening)**
+`screen_via_opensanctions()` sends all customer entity names to the OpenSanctions matching API, which aggregates OFAC, UN Security Council, EU, UK HMT, and ~100 other lists including global PEP databases. Names are batched in groups of 50 to stay within API rate limits. Any match with a confidence score ≥85% fires a CRITICAL alert, with the matched entity name, score, and risk topics (e.g. `sanction`, `pep`, `crime`) included in the alert details.
+
+Requires `OPENSANCTIONS_API_KEY` in `.env` — free for non-commercial use (sign up at opensanctions.org). If the key is absent, R-007 is skipped with a warning. The `.env.example` file has been updated with the new variable.
+
+New pip dependencies: `requests`, `rapidfuzz` (add to your `pip install` command).
+
+---
 
 ### 2026-06-06 (update 2)
 

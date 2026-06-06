@@ -1,13 +1,16 @@
 import os
 import uuid
+import requests
 import pandas as pd
+from io import StringIO
 from supabase import create_client, Client
 from datetime import datetime
 from dotenv import load_dotenv
+from rapidfuzz import process, fuzz
 
 load_dotenv()
 
-print("🧠 Booting Sentinel AML Rule Evaluation Engine (v1.4 - DB Write + KYC Rule)...")
+print("🧠 Booting Sentinel AML Rule Evaluation Engine (v1.5 - Watchlist Screening)...")
 
 # --- 1. CONNECT ---
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -16,6 +19,8 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment.")
     exit()
+
+OPENSANCTIONS_API_KEY = os.environ.get("OPENSANCTIONS_API_KEY")  # Optional — R-007 skipped if absent
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -48,11 +53,113 @@ RULE_CONFIG = {
     # R-005: KYC parameters
     # CBN Tier 1 limit — transactions above this require verified BVN/KYC
     'kyc_txn_threshold': 50000.00,
+
+    # R-006: OFAC SDN watchlist parameters
+    'ofac_csv_url': 'https://www.treasury.gov/ofac/downloads/sdn.csv',
+    'watchlist_fuzzy_threshold': 85,    # Minimum match score (0-100) to flag
+
+    # R-007: OpenSanctions parameters
+    'opensanctions_match_url': 'https://api.opensanctions.org/match/default',
+    'opensanctions_score_threshold': 0.85,  # Minimum confidence score (0-1.0) to flag
+    'opensanctions_batch_size': 50,         # Names per API request
 }
 
-# --- 3. RULE DIRECTORY ---
+# --- 3. WATCHLIST LOADERS ---
 
-def evaluate_all_rules(df, customers_df):
+def load_ofac_sdn():
+    """
+    Downloads the OFAC Specially Designated Nationals (SDN) CSV at runtime.
+    Returns a list of entity name strings for fuzzy matching.
+    No API key required — public US Treasury data.
+    """
+    url = RULE_CONFIG['ofac_csv_url']
+    print(f"📥 Downloading OFAC SDN list from Treasury...")
+    try:
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        # CSV has no header row. Column 1 is the entity name; "-0-" rows are address continuations — skip them.
+        df = pd.read_csv(
+            StringIO(resp.content.decode('latin-1')),
+            header=None,
+            on_bad_lines='skip',
+            dtype=str
+        )
+        names = df[1].dropna().str.strip()
+        names = names[names != '-0-'].tolist()
+        print(f"   ✅ Loaded {len(names):,} SDN entries.")
+        return names
+    except Exception as e:
+        print(f"   ⚠️  Could not download OFAC SDN list: {e}")
+        print("       R-006 will be skipped this run.")
+        return []
+
+
+def screen_via_opensanctions(entity_names):
+    """
+    Screens a list of entity names against the OpenSanctions matching API.
+    Covers OFAC, UN Security Council, EU, UK HMT, and ~100 other lists including PEPs.
+    Requires OPENSANCTIONS_API_KEY in .env (free for non-commercial use at opensanctions.org).
+
+    Returns a dict: { entity_name: { match_name, score, topics } }
+    Topics include 'sanction', 'pep', 'crime', etc.
+    """
+    if not OPENSANCTIONS_API_KEY:
+        print("   ⚠️  [R-007] Skipped — OPENSANCTIONS_API_KEY not set in .env.")
+        print("       Sign up free at https://www.opensanctions.org/account/")
+        return {}
+
+    # Filter out synthetic/placeholder names from test data
+    names = [n for n in entity_names if n and not str(n).upper().startswith('CP-')]
+    if not names:
+        return {}
+
+    hits = {}
+    batch_size = RULE_CONFIG['opensanctions_batch_size']
+    threshold  = RULE_CONFIG['opensanctions_score_threshold']
+    headers    = {'Authorization': f'ApiKey {OPENSANCTIONS_API_KEY}', 'Content-Type': 'application/json'}
+
+    print(f"🔎 Screening {len(names):,} entity names via OpenSanctions API...")
+    for i in range(0, len(names), batch_size):
+        batch = names[i:i + batch_size]
+        queries = {
+            f"q{j}": {
+                "schema": "LegalEntity",
+                "properties": {"name": [name]}
+            }
+            for j, name in enumerate(batch)
+        }
+        try:
+            resp = requests.post(
+                RULE_CONFIG['opensanctions_match_url'],
+                headers=headers,
+                json={"queries": queries},
+                timeout=30
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            for j, name in enumerate(batch):
+                results = data.get("responses", {}).get(f"q{j}", {}).get("results", [])
+                for match in results:
+                    if match.get("score", 0) >= threshold and match.get("match"):
+                        hits[name] = {
+                            "match_name": match.get("caption", name),
+                            "score":      round(match.get("score", 0) * 100, 1),
+                            "topics":     match.get("properties", {}).get("topics", [])
+                        }
+                        break  # Use highest-scored match only
+
+            print(f"   ...screened {min(i + batch_size, len(names))}/{len(names)}", end='\r')
+        except Exception as e:
+            print(f"\n   ⚠️  OpenSanctions API error on batch {i // batch_size + 1}: {e}")
+
+    print(f"\n   ✅ OpenSanctions screening complete. {len(hits)} potential hit(s) found.")
+    return hits
+
+
+# --- 4. RULE DIRECTORY ---
+
+def evaluate_all_rules(df, customers_df, sdn_names=None, opensanctions_hits=None):
     alerts = []
 
     df['timestamp'] = pd.to_datetime(df['transaction_timestamp'])
@@ -208,6 +315,72 @@ def evaluate_all_rules(df, customers_df):
         print("   ↳ [Rule 5] ⚠️  Skipped — kyc_status column not found on customers table.")
         print("              Run this SQL first: ALTER TABLE customers ADD COLUMN IF NOT EXISTS kyc_status TEXT NOT NULL DEFAULT 'PENDING';")
 
+    # --- R-006: OFAC SDN Watchlist Screening ---
+    # Fuzzy-matches unique counterparty names from the transaction batch against the
+    # OFAC Specially Designated Nationals list. Fires one alert per flagged counterparty.
+    print(f"   ↳ [Rule 6] Screening counterparty names against OFAC SDN list...")
+    if sdn_names:
+        threshold = RULE_CONFIG['watchlist_fuzzy_threshold']
+        # Get unique, non-placeholder counterparty names
+        counterparties = df['counterparty_name'].dropna().unique().tolist()
+        counterparties = [c for c in counterparties if c and not str(c).upper().startswith('CP-')]
+
+        if counterparties:
+            for cp_name in counterparties:
+                result = process.extractOne(cp_name, sdn_names, scorer=fuzz.token_sort_ratio)
+                if result and result[1] >= threshold:
+                    matched_sdn_name, score, _ = result
+                    # Find all transactions involving this counterparty
+                    cp_txns = df[df['counterparty_name'] == cp_name]
+                    for _, row in cp_txns.iterrows():
+                        alerts.append({
+                            'transaction_reference': row['transaction_reference'],
+                            'account_id':            row['account_id'],
+                            'rule_id':               'R-006',
+                            'rule_name':             'OFAC SDN Watchlist Hit',
+                            'severity':              'CRITICAL',
+                            'description': (
+                                f"Counterparty '{cp_name}' matches OFAC SDN entry "
+                                f"'{matched_sdn_name}' (similarity: {score}%). "
+                                f"Transaction ₦{row['amount']:,.2f} via {row.get('channel', 'N/A')}."
+                            ),
+                            'timestamp': row['transaction_timestamp']
+                        })
+        else:
+            print("   ↳ [Rule 6] No non-placeholder counterparty names to screen.")
+    else:
+        print("   ↳ [Rule 6] ⚠️  Skipped — OFAC SDN list unavailable.")
+
+    # --- R-007: OpenSanctions Screening (Sanctions + PEPs) ---
+    # Checks customer entity names against OpenSanctions, which aggregates OFAC, UN,
+    # EU, UK, and ~100 other lists including global PEP databases.
+    # Fires one alert per customer with a confirmed match.
+    print(f"   ↳ [Rule 7] Checking customer names against OpenSanctions...")
+    if opensanctions_hits:
+        if customers_df is not None and not customers_df.empty:
+            for _, cust in customers_df.iterrows():
+                entity_name = cust.get('entity_name')
+                hit = opensanctions_hits.get(entity_name)
+                if hit:
+                    # Find accounts for this customer, use first as the alert anchor
+                    cust_accounts = df[df.get('customer_id', pd.Series()) == cust['id']]['account_id'].unique()
+                    account_anchor = cust_accounts[0] if len(cust_accounts) > 0 else 'UNKNOWN'
+                    topics_str = ', '.join(hit['topics']) if hit['topics'] else 'sanctions'
+                    alerts.append({
+                        'transaction_reference': 'WATCHLIST_SCREEN',
+                        'account_id':            account_anchor,
+                        'rule_id':               'R-007',
+                        'rule_name':             'OpenSanctions Watchlist Hit',
+                        'severity':              'CRITICAL',
+                        'description': (
+                            f"Customer '{entity_name}' matched OpenSanctions entry "
+                            f"'{hit['match_name']}' (score: {hit['score']}%, topics: {topics_str})."
+                        ),
+                        'timestamp': str(datetime.utcnow().date())
+                    })
+    else:
+        print("   ↳ [Rule 7] ⚠️  Skipped — no OpenSanctions results (check API key).")
+
     return alerts
 
 
@@ -346,9 +519,16 @@ def run_engine(mode='batch'):
     acct_cust_map = accounts_df[['id', 'customer_id']].rename(columns={'id': 'account_id'})
     transactions_df = transactions_df.merge(acct_cust_map, on='account_id', how='left')
 
+    # --- Load watchlists before rule evaluation ---
+    sdn_names = load_ofac_sdn()
+
+    # Screen unique customer entity names via OpenSanctions (covers PEPs + broader sanctions)
+    customer_names = customers_df['entity_name'].dropna().unique().tolist() if not customers_df.empty else []
+    opensanctions_hits = screen_via_opensanctions(customer_names)
+
     print(f"\n⚙️  Scanning {len(transactions_df):,} transactions against active rule library...\n")
 
-    alerts = evaluate_all_rules(transactions_df, customers_df)
+    alerts = evaluate_all_rules(transactions_df, customers_df, sdn_names=sdn_names, opensanctions_hits=opensanctions_hits)
 
     print(f"\n🚨 Engine Scan Complete. Generated {len(alerts)} total alerts.")
 
