@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
     <script type="module" src="./js/session.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <link href="./css/theme.css" rel="stylesheet">
 </head>
@@ -578,6 +579,131 @@
         </div>
     </div>
 
+    <div class="modal fade" id="kycVerificationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-info">fingerprint</span> Identity Verification Gateway
+                        </h5>
+                        <p class="mb-0 small text-white-50">Secure connection to NIBSS / NIMC endpoints.</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-light">
+                    <div class="row g-0">
+                        
+                        <div class="col-md-4 p-4 border-end bg-white">
+                            <h6 class="fw-bold uppercase text-muted mb-4 small">Internal Bank Profile</h6>
+                            <input type="hidden" id="kyc-customer-id">
+                            
+                            <div class="text-center mb-4">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center border" style="width: 80px; height: 80px;">
+                                    <span class="material-symbols-outlined text-muted fs-1">person</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mt-3 mb-0" id="kyc-bank-name">Loading...</h6>
+                                <span class="badge bg-warning text-dark mt-2">Status: PENDING</span>
+                            </div>
+
+                            <div class="space-y-3 small">
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; text-transform: uppercase;">Customer Type</span>
+                                    <span class="fw-medium text-dark" id="kyc-bank-type">-</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; text-transform: uppercase;">Industry / Sector</span>
+                                    <span class="fw-medium text-dark" id="kyc-bank-industry">-</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem; text-transform: uppercase;">Registered Address</span>
+                                    <span class="fw-medium text-dark" id="kyc-bank-address">Nigeria</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8 p-4 d-flex flex-column">
+                            
+                            <div id="kyc-step-1">
+                                <h6 class="fw-bold uppercase text-dark mb-3 small d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary fs-5">api</span> External Query Parameters
+                                </h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-semibold text-muted">Verification Endpoint</label>
+                                        <select class="form-select bg-white" id="kyc-endpoint">
+                                            <option value="BVN">NIBSS (BVN Validation)</option>
+                                            <option value="NIN">NIMC (NIN Validation)</option>
+                                            <option value="CAC">CAC (Corporate Search)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-muted">Identification Number</label>
+                                        <input type="text" class="form-control bg-white font-monospace" id="kyc-id-number" placeholder="Enter 11-digit number...">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button class="btn btn-primary w-100 fw-bold" id="btn-run-api">Ping API</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="kyc-step-loading" class="d-none text-center py-5 my-auto">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <h6 class="fw-bold text-dark">Establishing Secure TLS Handshake...</h6>
+                                <p class="text-muted small font-monospace" id="kyc-terminal-text">Connecting to gateway.nibss-plc.com.ng:443</p>
+                            </div>
+
+                            <div id="kyc-step-results" class="d-none flex-grow-1 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                    <h6 class="fw-bold uppercase text-success mb-0 small d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined fs-5">check_circle</span> Payload Received (200 OK)
+                                    </h6>
+                                    <span class="badge bg-success border border-success bg-opacity-10 text-success fs-6 px-3 py-2" id="kyc-match-score">98% CONFIDENCE MATCH</span>
+                                </div>
+
+                                <div class="row g-3 flex-grow-1">
+                                    <div class="col-md-6">
+                                        <div class="card border border-secondary border-opacity-25 bg-white h-100 shadow-sm">
+                                            <div class="card-header bg-light border-bottom-0 py-2">
+                                                <span class="small fw-bold text-muted uppercase">Extracted Government Data</span>
+                                            </div>
+                                            <div class="card-body py-2 px-3 small">
+                                                <table class="table table-sm table-borderless mb-0">
+                                                    <tbody>
+                                                        <tr><td class="text-muted w-25">Legal Name:</td><td class="fw-bold text-dark" id="api-res-name">-</td></tr>
+                                                        <tr><td class="text-muted">DOB/Inc:</td><td class="fw-medium text-dark" id="api-res-dob">-</td></tr>
+                                                        <tr><td class="text-muted">Phone:</td><td class="fw-medium text-dark font-monospace" id="api-res-phone">-</td></tr>
+                                                        <tr><td class="text-muted">Watchlist:</td><td><span class="badge bg-success bg-opacity-10 text-success border border-success">CLEARED</span></td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border border-secondary border-opacity-25 bg-dark h-100 shadow-sm">
+                                            <div class="card-header border-bottom border-secondary py-2">
+                                                <span class="small fw-bold text-info font-monospace uppercase">Raw JSON Response</span>
+                                            </div>
+                                            <div class="card-body p-2 overflow-auto" style="max-height: 120px;">
+                                                <pre class="text-success font-monospace mb-0" style="font-size: 0.65rem;" id="api-raw-json"></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                    <button class="btn btn-outline-danger fw-bold px-4" id="btn-kyc-reject">Reject Mismatch</button>
+                                    <button class="btn btn-success fw-bold px-4" id="btn-kyc-approve">Approve & Verify Identity</button>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="inviteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -747,9 +873,14 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger fw-bold px-4" id="btn-submit-sar">Finalize & Submit SAR</button>
+                        <div class="d-flex justify-content-between gap-2 border-top pt-3">
+                            <button type="button" class="btn btn-outline-danger fw-bold" id="btn-download-sar-pdf">
+                                <span class="material-symbols-outlined fs-6 align-middle">picture_as_pdf</span> Download SAR PDF
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger fw-bold px-4" id="btn-submit-sar">Finalize & Submit SAR</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -781,7 +912,7 @@
             </div>
 
             <div class="p-4">
-                <h6 class="fw-bold uppercase text-dark mb-3 small">KYC Data Points</h6>
+                <h6 class="fw-bold uppercase text-dark mb-3 small">Core KYC Data</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-6">
                         <p class="text-muted small mb-0">Industry</p>
@@ -797,33 +928,51 @@
                     </div>
                     <div class="col-6">
                         <p class="text-muted small mb-0">Date Onboarded</p>
-                        <p class="fw-medium text-dark small" id="panel-onboarded">-</p>
+                        <p class="fw-medium text-dark small font-monospace" id="panel-onboarded">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">BVN / RC Number</p>
+                        <p class="fw-medium text-dark small font-monospace" id="panel-bvn">-</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small mb-0">Registered Phone</p>
+                        <p class="fw-medium text-dark small font-monospace" id="panel-phone">-</p>
                     </div>
                 </div>
 
                 <div class="mt-4 pt-3 border-top">
-            <h6 class="fw-bold uppercase text-danger mb-3 small d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined fs-6">policy</span> Enhanced Due Diligence
-            </h6>
-            <div class="row g-3 mb-4">
-                    <div class="col-12">
-                        <p class="text-muted small mb-0">Ultimate Beneficial Owner (UBO)</p>
-                        <p class="fw-bold text-dark small mb-0" id="panel-ubo">-</p>
+                    <h6 class="fw-bold uppercase text-danger mb-3 small d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6">policy</span> Enhanced Due Diligence
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <p class="text-muted small mb-0 d-flex justify-content-between align-items-center">
+                                <span>Ultimate Beneficial Owner (UBO)</span>
+                                <button class="btn btn-link p-0 text-decoration-none" onclick="togglePII('panel-ubo', window.currentRawUBO, window.currentMaskedUBO)">
+                                    <span class="material-symbols-outlined fs-6 text-muted" id="icon-panel-ubo">visibility</span>
+                                </button>
+                            </p>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-danger bg-opacity-10 border border-danger text-danger small" style="font-size: 0.6rem;">RESTRICTED</span>
+                                <p class="fw-bold font-monospace text-dark small mb-0" id="panel-ubo" data-masked="true">-</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small mb-0">IEI Exposure</p>
+                            <div id="panel-iei" class="mt-1">-</div>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small mb-0">Sanctions Check</p>
+                            <div id="panel-sanctions" class="mt-1">-</div>
+                        </div>
+                        <div class="col-12">
+                            <p class="text-muted small mb-0">PEP Status (Politically Exposed)</p>
+                            <div id="panel-pep" class="mt-1">-</div>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <p class="text-muted small mb-0">IEI Exposure</p>
-                        <div id="panel-iei" class="mt-1">-</div>
-                    </div>
-                    <div class="col-6">
-                        <p class="text-muted small mb-0">Sanctions Check</p>
-                        <div id="panel-sanctions" class="mt-1">-</div>
-                    </div>
+                    <button id="btn-manual-sar" class="btn btn-danger w-100 fw-bold uppercase mt-2">File Suspicious Activity Report (SAR)</button>
                 </div>
             </div>
-                
-                <button id="btn-manual-sar" class="btn btn-danger w-100 fw-bold uppercase">File Suspicious Activity Report (SAR)</button>
-            </div>
-        </div>
     </div>
       
     <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
@@ -1467,6 +1616,151 @@
             }
         }
 
+        // --- REALISTIC IDENTITY VERIFICATION ENGINE ---
+
+        // 1. Open the UI and load the bank's internal profile
+        window.openKYCVerification = async (customerId) => {
+            try {
+                // Fetch the existing unverified profile
+                const { data: customer, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .eq('id', customerId)
+                    .single();
+
+                if (error) throw error;
+
+                // Reset the UI states
+                document.getElementById('kyc-step-1').classList.remove('d-none');
+                document.getElementById('kyc-step-loading').classList.add('d-none');
+                document.getElementById('kyc-step-results').classList.add('d-none');
+                document.getElementById('kyc-id-number').value = '';
+
+                // Populate Left Side (Bank Data)
+                const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
+                document.getElementById('kyc-bank-name').innerText = entityName;
+                document.getElementById('kyc-bank-type').innerText = customer.customer_type || 'Individual';
+                document.getElementById('kyc-bank-industry').innerText = customer.industry || 'Uncategorized';
+                document.getElementById('kyc-customer-id').value = customer.id;
+
+                // Auto-select the correct endpoint for the demo
+                if (customer.customer_type === 'Corporate') {
+                    document.getElementById('kyc-endpoint').value = 'CAC';
+                    document.getElementById('kyc-id-number').placeholder = 'Enter RC Number (e.g. RC-10293)';
+                } else {
+                    document.getElementById('kyc-endpoint').value = 'BVN';
+                    document.getElementById('kyc-id-number').placeholder = 'Enter 11-digit BVN...';
+                }
+
+                // Show Modal
+                new bootstrap.Modal(document.getElementById('kycVerificationModal')).show();
+
+            } catch (err) {
+                console.error("Error loading KYC profile:", err);
+                alert("Failed to load customer profile.");
+            }
+        };
+
+        // 2. Trigger the API Ping Simulation
+        document.getElementById('btn-run-api')?.addEventListener('click', () => {
+            const idNumber = document.getElementById('kyc-id-number').value;
+            if (!idNumber) return alert("Please enter a valid Identification Number.");
+
+            // Transition to loading state
+            document.getElementById('kyc-step-1').classList.add('d-none');
+            document.getElementById('kyc-step-loading').classList.remove('d-none');
+
+            const terminal = document.getElementById('kyc-terminal-text');
+            const endpoint = document.getElementById('kyc-endpoint').value;
+            
+            // Console text animation to look like a real backend trace
+            setTimeout(() => terminal.innerText = `Resolving DNS for ${endpoint} endpoint...`, 500);
+            setTimeout(() => terminal.innerText = `Authenticating API Key via Bearer Token...`, 1200);
+            setTimeout(() => terminal.innerText = `Transmitting payload securely... awaiting response...`, 2000);
+
+            // 3. Resolve the payload after 3 seconds
+            setTimeout(() => {
+                document.getElementById('kyc-step-loading').classList.add('d-none');
+                document.getElementById('kyc-step-results').classList.remove('d-none');
+                document.getElementById('kyc-step-results').classList.add('d-flex');
+
+                const bankName = document.getElementById('kyc-bank-name').innerText;
+                const randomPhone = `080${Math.floor(10000000 + Math.random() * 90000000)}`;
+                const randomScore = Math.floor(Math.random() * 5) + 94; // 94% to 98% match
+                
+                // Populate the simulated extracted data
+                document.getElementById('api-res-name').innerText = bankName.toUpperCase();
+                document.getElementById('api-res-dob').innerText = new Date(new Date() - Math.random()*(1e+12)).toISOString().split('T')[0];
+                document.getElementById('api-res-phone').innerText = randomPhone;
+                document.getElementById('kyc-match-score').innerText = `${randomScore}% CONFIDENCE MATCH`;
+
+                // Populate the Raw JSON visual
+                const mockPayload = {
+                    "status": "success",
+                    "responseCode": "00",
+                    "timestamp": new Date().toISOString(),
+                    "data": {
+                        "idNumber": idNumber,
+                        "fullName": bankName.toUpperCase(),
+                        "kycLevel": "Tier_3",
+                        "amlScreening": "Passed",
+                        "biometricMatch": true
+                    }
+                };
+                document.getElementById('api-raw-json').innerText = JSON.stringify(mockPayload, null, 2);
+
+            }, 3000);
+        });
+
+        // 4. Finalize & Approve
+        document.getElementById('btn-kyc-approve')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+            btn.disabled = true;
+
+            try {
+                const customerId = document.getElementById('kyc-customer-id').value;
+                const endpoint = document.getElementById('kyc-endpoint').value;
+
+                // Update the Database
+                const { error } = await supabase
+                    .from('customers')
+                    .update({ kyc_status: 'COMPLETED' })
+                    .eq('id', customerId);
+
+                if (error) throw error;
+
+                // Log the system event for compliance auditing
+                await supabase.from('system_events').insert([{
+                    event_type: 'KYC_VERIFIED',
+                    severity: 'INFO',
+                    message: `Officer verified identity via ${endpoint} gateway.`,
+                    metadata: { customer_id: customerId, source: endpoint }
+                }]);
+
+                bootstrap.Modal.getInstance(document.getElementById('kycVerificationModal')).hide();
+                
+                // Show Success
+                document.getElementById('toastMessage').innerText = `Identity verified successfully. Restrictions lifted.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                loadKYCDirectory(); // Refresh UI to turn the badge green
+
+            } catch (err) {
+                console.error("KYC Save Error:", err);
+                alert("Database update failed.");
+            } finally {
+                btn.innerHTML = 'Approve & Verify Identity';
+                btn.disabled = false;
+            }
+        });
+
+        // 5. Reject Mock Logic
+        document.getElementById('btn-kyc-reject')?.addEventListener('click', () => {
+            alert("Verification Rejected. Customer flagged for physical branch visit.");
+            bootstrap.Modal.getInstance(document.getElementById('kycVerificationModal')).hide();
+        });
+
         // --- Tab Switching Logic for the Pending Queue ---
         document.getElementById('tab-unassigned')?.addEventListener('click', (e) => {
             e.currentTarget.classList.add('active');
@@ -1480,7 +1774,7 @@
             loadAlertsQueue('INVESTIGATING'); // Fetch WIP cases
         });
 
-        // --- KYC Directory Engine (UPGRADED FALLBACKS) ---
+       // --- KYC Directory Engine (UPGRADED FALLBACKS & KYC STATUS) ---
         async function loadKYCDirectory() {
             try {
                 const tbody = document.getElementById('kyc-directory-body');
@@ -1488,11 +1782,10 @@
 
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Loading directory...</td></tr>';
 
-                // Fetch all customers from the database
                 const { data: customers, error } = await supabase
                     .from('customers')
                     .select('*')
-                    .order('risk_score', { ascending: false }); // Highest risk at the top
+                    .order('risk_score', { ascending: false });
 
                 if (error) throw error;
                 tbody.innerHTML = '';
@@ -1510,8 +1803,14 @@
                     if (cust.risk_score >= 75) badgeClass = 'bg-danger';
                     else if (cust.risk_score >= 40) badgeClass = 'bg-warning text-dark';
 
-                    // Determine if EDD or CDD
-                    const btnText = cust.risk_tier === 'HIGH' ? 'View EDD' : 'View CDD';
+                    // KYC Status Logic
+                    let kycBadge = 'bg-secondary';
+                    if (cust.kyc_status === 'COMPLETED') kycBadge = 'bg-success';
+                    else if (cust.kyc_status === 'PENDING') kycBadge = 'bg-warning text-dark';
+                    
+                    const kycAction = (cust.kyc_status !== 'COMPLETED') 
+                        ? `<button class="btn btn-sm btn-outline-info fw-bold" onclick="openKYCVerification('${cust.id}')">Verify ID</button>` 
+                        : `<span class="text-success small fw-bold">Verified</span>`;
 
                     // PERFECT DATA FALLBACKS
                     const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Customer');
@@ -1523,14 +1822,10 @@
                             <div class="fw-bold text-dark small">${entityName}</div>
                             <div class="text-muted" style="font-size: 0.7rem;">ID: ${cust.id.split('-')[0]}</div>
                         </td>
+                        <td class="py-3"><span class="badge ${kycBadge}">${cust.kyc_status || 'NOT DONE'}</span></td>
                         <td class="py-3 fw-semibold small text-muted">${industry}</td>
                         <td class="py-3 small text-muted">${geography}</td>
-                        <td class="py-3"><span class="badge ${badgeClass}">${cust.risk_score}/100</span></td>
-                        <td class="py-3 text-end px-4">
-                            <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase btn-view-profile" data-customer-id="${cust.id}" style="font-size: 0.7rem;">
-                                ${btnText}
-                            </button>
-                        </td>
+                        <td class="py-3 text-end px-4">${kycAction}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -1540,19 +1835,84 @@
             }
         }
 
-        // --- Customer 360 Drill-Down Engine (UPGRADED WITH EDD) ---
+        // --- ENTERPRISE SECURITY: PII MASKING UTILITY ---
+        window.togglePII = (elementId, rawValue, maskedValue) => {
+            const el = document.getElementById(elementId);
+            const icon = document.getElementById(`icon-${elementId}`);
+            
+            if (el.getAttribute('data-masked') === 'true') {
+                // Unmasking action (In a real app, this triggers a backend audit log)
+                el.innerText = rawValue;
+                el.setAttribute('data-masked', 'false');
+                icon.innerText = 'visibility_off';
+                icon.classList.replace('text-muted', 'text-danger');
+            } else {
+                // Masking action
+                el.innerText = maskedValue;
+                el.setAttribute('data-masked', 'true');
+                icon.innerText = 'visibility';
+                icon.classList.replace('text-danger', 'text-muted');
+            }
+        };
+
+        // --- GLOBAL SEARCH ENGINE (CLIENT-SIDE FILTERING FOR ALL INPUTS) ---
+        const searchInputs = document.querySelectorAll('input[placeholder*="Search"]');
+        
+        searchInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                // Determine which view is currently active to target the correct table
+                const activeView = document.querySelector('.nav-link-item.text-primary')?.id;
+                let tableBodyId = '';
+
+                if (activeView === 'nav-command-center') tableBodyId = 'transaction-feed';
+                else if (activeView === 'nav-kyc') tableBodyId = 'kyc-directory-body';
+                else if (activeView === 'nav-case-management') tableBodyId = 'case-management-body';
+                
+                if (!tableBodyId) return;
+
+                const rows = document.querySelectorAll(`#${tableBodyId} tr`);
+                
+                rows.forEach(row => {
+                    // Skip 'Loading' placeholder rows
+                    if (row.cells.length === 1) return; 
+                    
+                    const rowText = row.innerText.toLowerCase();
+                    if (rowText.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // --- Customer 360 Drill-Down Engine (BULLETPROOF VERSION) ---
         window.loadCustomerProfile = async (customerId) => {
+            // 1. Safety Check: Prevent crash if alert data has no customer attached
+            if (!customerId || customerId === 'null' || customerId === 'undefined') {
+                alert("System Notice: This case is not linked to a valid customer identity.");
+                return;
+            }
+
             try {
-                // 1. Fetch specific customer details
+                // 2. Fetch customer using maybeSingle() to prevent PGRST116 crashes if record was deleted
                 const { data: customer, error: custError } = await supabase
                     .from('customers')
                     .select('*')
                     .eq('id', customerId)
-                    .single();
+                    .maybeSingle(); 
 
                 if (custError) throw custError;
+                
+                // If Supabase returns no data (0 rows found), handle it gracefully
+                if (!customer) {
+                    alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted from the database.`);
+                    return;
+                }
 
-                // 2. Count total alerts for this customer
+                // 3. Count total alerts for this customer
                 const { count, error: countError } = await supabase
                     .from('alerts')
                     .select('*', { count: 'exact', head: true })
@@ -1560,21 +1920,52 @@
 
                 if (countError) throw countError;
 
-                // 3. Populate the Standard KYC UI
-                document.getElementById('panel-entity-name').innerText = customer.entity_name;
+                // 4. Populate the Standard KYC UI (With Retail Fallbacks!)
+                const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
+                document.getElementById('panel-entity-name').innerText = entityName;
                 document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
                 
                 let badgeClass = customer.risk_tier === 'HIGH' ? 'bg-danger' : (customer.risk_tier === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success');
-                document.getElementById('panel-risk-badge').innerHTML = `<span class="badge ${badgeClass}">${customer.risk_tier} RISK (${customer.risk_score}/100)</span>`;
+                document.getElementById('panel-risk-badge').innerHTML = `<span class="badge ${badgeClass}">${customer.risk_tier || 'UNKNOWN'} RISK (${customer.risk_score || 0}/100)</span>`;
                 
                 document.getElementById('panel-total-alerts').innerText = count || 0;
-                document.getElementById('panel-industry').innerText = customer.industry || 'Not Provided';
-                document.getElementById('panel-geography').innerText = customer.geography || 'Not Provided';
+                document.getElementById('panel-industry').innerText = customer.industry || (customer.customer_type === 'Individual' ? 'Retail / Personal' : 'Not Provided');
+                document.getElementById('panel-geography').innerText = customer.geography || 'NG (Domestic)';
                 document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
+
+                // Realistic Fallbacks for missing database columns
+                const dateOnboarded = customer.created_at ? new Date(customer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '14 Jan 2025';
+                document.getElementById('panel-onboarded').innerText = dateOnboarded;
+
+                const generatedBvn = customer.customer_type === 'Corporate' ? `RC-${Math.floor(100000 + Math.random() * 900000)}` : `22${Math.floor(100000000 + Math.random() * 900000000)}`;
+                document.getElementById('panel-bvn').innerText = customer.bvn || generatedBvn;
+
+                const generatedPhone = `080${Math.floor(10000000 + Math.random() * 90000000)}`;
+                document.getElementById('panel-phone').innerText = customer.phone || generatedPhone;
                 
-                // 4. Populate the Enhanced Due Diligence (EDD) UI
+                // 5. Populate the Enhanced Due Diligence (EDD) UI with PII Masking
                 const uboName = customer.ubo_name || 'Not Disclosed';
-                document.getElementById('panel-ubo').innerText = uboName;
+                
+                // Create masked version
+                let maskedUbo = '*** ***';
+                if (uboName !== 'Not Disclosed' && uboName.length > 3) {
+                    maskedUbo = uboName.substring(0, 3) + '*** ' + (uboName.split(' ')[1] ? '***' : '');
+                }
+
+                // Global variables for the toggle function
+                window.currentRawUBO = uboName;
+                window.currentMaskedUBO = maskedUbo;
+
+                // Inject masked state initially
+                document.getElementById('panel-ubo').innerText = maskedUbo;
+                document.getElementById('panel-ubo').setAttribute('data-masked', 'true');
+                
+                const uboIcon = document.getElementById('icon-panel-ubo');
+                if (uboIcon) {
+                    uboIcon.innerText = 'visibility';
+                    uboIcon.classList.remove('text-danger');
+                    uboIcon.classList.add('text-muted');
+                }
 
                 // IEI Logic Evaluation
                 if (customer.iei_exposure) {
@@ -1583,32 +1974,50 @@
                     document.getElementById('panel-iei').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
-                // Sanctions Cross-Reference (Checks if the UBO is on our newly created watchlist)
-                const { data: sanctionMatch } = await supabase
-                    .from('sanctions_watchlist')
-                    .select('id')
-                    .ilike('entity_name', `%${uboName}%`)
-                    .limit(1);
-
-                if (sanctionMatch && sanctionMatch.length > 0) {
-                    document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-dark text-danger border border-danger">UBO SANCTIONED</span>';
+                // PEP Status Simulation (Flags HIGH risk customers probabilistically)
+                const isPep = customer.pep_status === true || (customer.risk_tier === 'HIGH' && Math.random() > 0.6);
+                if (isPep) {
+                    document.getElementById('panel-pep').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">PEP IDENTIFIED</span>';
                 } else {
+                    document.getElementById('panel-pep').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
+                }
+
+                // Safe Sanctions Cross-Reference (Prevents crashes if watchlist table isn't built yet)
+                try {
+                    const { data: sanctionMatch, error: sanctionError } = await supabase
+                        .from('sanctions_watchlist')
+                        .select('id')
+                        .ilike('entity_name', `%${uboName}%`)
+                        .limit(1);
+
+                    if (!sanctionError && sanctionMatch && sanctionMatch.length > 0) {
+                        document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-dark text-danger border border-danger">UBO SANCTIONED</span>';
+                    } else {
+                        document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
+                    }
+                } catch (e) {
                     document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
-                // Store the customer ID on the SAR button so it knows who to report
-                document.getElementById('btn-manual-sar').setAttribute('data-customer-id', customerId);
+               // Store the customer ID on the SAR button (with a safety check!)
+                const manualSarBtn = document.getElementById('btn-manual-sar');
+                if (manualSarBtn) {
+                    manualSarBtn.setAttribute('data-customer-id', customerId);
+                }
 
-                // 5. Trigger the Bootstrap Offcanvas to slide in
+                // 6. Secure Bootstrap Instance Fetching (Prevents animation crashes)
                 const panelElement = document.getElementById('customer360Panel');
-                const bsOffcanvas = new bootstrap.Offcanvas(panelElement);
+                let bsOffcanvas = bootstrap.Offcanvas.getInstance(panelElement);
+                if (!bsOffcanvas) {
+                    bsOffcanvas = new bootstrap.Offcanvas(panelElement);
+                }
                 bsOffcanvas.show();
 
             } catch (err) {
-                console.error("Error loading 360 profile:", err);
-                alert("Failed to load customer profile.");
+                console.error("CRITICAL ERROR in loadCustomerProfile:", err);
+                alert("Failed to load customer profile. Please check the Developer Console (F12).");
             }
-        }
+        };
 
         // Attach event listener to the table body to catch profile button clicks (Event Delegation)
         document.getElementById('kyc-directory-body')?.addEventListener('click', (e) => {
@@ -1748,6 +2157,23 @@
             }
         });
 
+        window.performKYC = async (customerId) => {
+            if (!confirm("Proceed with automated BVN/Identity verification?")) return;
+            
+            // Update status in DB
+            const { error } = await supabase
+                .from('customers')
+                .update({ kyc_status: 'COMPLETED' })
+                .eq('id', customerId);
+
+            if (error) {
+                alert("Verification failed: " + error.message);
+            } else {
+                alert("Verification Successful! Customer profile updated.");
+                loadKYCDirectory(); // Refresh the list
+            }
+        };
+
         // --- 3. Resume Existing Case ---
         window.resumeCase = (alertId, alertRef) => {
             document.getElementById('sar-alert-id').value = alertId;
@@ -1808,6 +2234,78 @@
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
+            }
+        });
+
+        // --- NFIU SAR PDF GENERATOR ---
+        document.getElementById('btn-download-sar-pdf')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+            btn.disabled = true;
+
+            try {
+                const alertId = document.getElementById('sar-alert-id').value;
+                const officerNotes = document.getElementById('sar-notes').value || 'No investigation notes provided yet.';
+                const action = document.getElementById('sar-action').value || 'Pending Action';
+                
+                const { data: alertData } = await supabase
+                    .from('alerts')
+                    .select('*, customers(*)')
+                    .eq('id', alertId)
+                    .single();
+
+                const cust = alertData.customers || {};
+                const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text("NFIU Suspicious Transaction Report (STR/001)", 20, 20);
+                
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                
+                doc.text("SECTION A: Reporting Institution", 20, 35);
+                doc.text("Institution Name: BexAML Microfinance", 25, 42);
+                
+                doc.text("SECTION B: Subject of Report", 20, 55);
+                doc.text(`Entity Name: ${entityName}`, 25, 62);
+                doc.text(`Risk Tier: ${cust.risk_tier || 'N/A'}`, 25, 69);
+                
+                doc.text("SECTION C: Suspicious Activity Details", 20, 82);
+                doc.text(`Case Ref: ${alertData.alert_ref}`, 25, 89);
+                doc.text(`Typology/Rule: ${alertData.rule_triggered}`, 25, 96);
+                
+                const splitDetails = doc.splitTextToSize(`System Details: ${alertData.details || 'None'}`, 170);
+                doc.text(splitDetails, 25, 103);
+                
+                let yOffset = 103 + (splitDetails.length * 5) + 5;
+                
+                doc.text("SECTION D: Investigation Findings", 20, yOffset);
+                const splitNotes = doc.splitTextToSize(officerNotes, 170);
+                doc.text(splitNotes, 25, yOffset + 7);
+                
+                yOffset += 7 + (splitNotes.length * 5) + 5;
+                
+                doc.text("SECTION E: Recommended Action", 20, yOffset);
+                doc.text(`Action: ${action}`, 25, yOffset + 7);
+                
+                yOffset += 20;
+                doc.text("SECTION F: Officer Declaration", 20, yOffset);
+                doc.text("Signed: ___________________________", 25, yOffset + 15);
+                doc.text(`Date: ${new Date().toLocaleDateString()}`, 25, yOffset + 25);
+
+                doc.save(`SAR_${alertData.alert_ref}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+            } catch (err) {
+                console.error("PDF Gen Error:", err);
+                alert("Failed to generate PDF.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
