@@ -94,25 +94,6 @@
                 }
             }
         });
-
-        // Add this to your login page's javascript
-        async function requestPasswordReset() {
-            const email = document.getElementById('login-email').value; // Get the email from your input
-            if (!email) return alert('Please enter your email address first.');
-
-            // Important: Change this URL to your live URL when you deploy!
-            const redirectUrl = window.location.origin + '/update-password.html';
-
-            const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: redirectUrl,
-            });
-
-            if (error) {
-                alert("Error: " + error.message);
-            } else {
-                alert("Password reset email sent! Please check your inbox.");
-            }
-        }
     </script>
     <script type="module" src="./js/auth.js"></script>
 </body>
