@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BexAML | Tenant Management</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <link href="./css/theme.css" rel="stylesheet">
+
+    <script type="module" src="./js/session.js"></script>
+</head>
+<body class="bg-light font-inter" style="display: none;" id="secure-admin-body">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <span class="material-symbols-outlined text-danger fs-4">terminal</span>
+                <span class="fs-6 fw-bold tracking-wide text-white uppercase">BexAML<span class="text-danger">Admin</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center gap-2 border-start border-secondary ps-3">
+                <div class="text-end text-white">
+                    <div class="fw-semibold" style="font-size: 0.85rem;" id="ui-admin-name">Loading...</div>
+                    <div class="text-danger fw-bold uppercase" style="font-size: 0.65rem;">System Administrator</div>
+                </div>
+                <span class="material-symbols-outlined text-muted fs-2">shield_person</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row" style="height: calc(100vh - 57px);">
+            
+            <div class="col-md-2 bg-dark p-0 d-flex flex-column justify-content-between border-end border-secondary">
+               <div class="list-group list-group-flush mt-3 bg-dark">
+                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">dns</span>
+                        <span class="small fw-semibold">Platform Health</span>
+                    </a>
+                    
+                    <a href="tenant-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span class="small fw-semibold">Tenant Management</span>
+                    </a>
+                    
+                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <span class="small fw-semibold">User Management</span>
+                    </a>
+                    
+                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="small fw-semibold">Global Audit Logs</span>
+                    </a>
+
+                    <a href="role-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span class="small fw-semibold">Role Management</span>
+                    </a>
+                </div>
+
+                <div class="p-3 border-top border-secondary">
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Global Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4 overflow-auto">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">Platform Administration</h4>
+                        <p class="text-muted small mb-0">B2B multi-tenant onboarding, environment provisioning, and deployment tracking.</p>
+                    </div>
+                </div>
+
+                <div class="row g-4 flex-grow-1">
+                    <div class="col-md-5">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-dark text-white border-bottom-0 py-3">
+                                <h6 class="mb-0 fw-bold uppercase d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined fs-5">domain_add</span> Onboard New Institution
+                                </h6>
+                            </div>
+                            <div class="card-body p-4 bg-light">
+                                <form id="form-onboard-tenant">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Institution Name</label>
+                                        <input type="text" class="form-control border-secondary border-opacity-25" id="tenant-name" required placeholder="e.g., Omega Trust Bank">
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-muted text-uppercase">Primary Brand Color</label>
+                                            <input type="color" class="form-control form-control-color w-100 border-secondary border-opacity-25" id="tenant-color-primary" value="#0A2540" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-muted text-uppercase">Secondary Color</label>
+                                            <input type="color" class="form-control form-control-color w-100 border-secondary border-opacity-25" id="tenant-color-secondary" value="#635BFF" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Simulation Data Allocation</label>
+                                        <select class="form-select border-secondary border-opacity-25" id="tenant-allocation" required>
+                                            <option value="500">Allocate 500 Synthetic Customers</option>
+                                            <option value="1000">Allocate 1,000 Synthetic Customers</option>
+                                            <option value="0">Start Empty (Live API Mode)</option>
+                                        </select>
+                                        <div class="form-text mt-2 text-muted" style="font-size: 0.75rem;">Select how many unassigned simulation records to securely inject into this tenant's isolated environment.</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" id="btn-submit-tenant">
+                                        Provision Environment & Data
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="card border-0 shadow-sm h-100 flex-grow-1 d-flex flex-column">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2 text-uppercase tracking-wide">
+                                    <span class="material-symbols-outlined text-primary fs-5">dns</span> Active Deployed Tenants
+                                </h6>
+                            </div>
+                            <div class="table-responsive flex-grow-1">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase sticky-top">
+                                        <tr>
+                                            <th class="py-3 px-4 fw-semibold">Tenant ID</th>
+                                            <th class="py-3 fw-semibold">Institution Name</th>
+                                            <th class="py-3 fw-semibold">Branding</th>
+                                            <th class="py-3 text-end px-4 fw-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="active-tenants-body" class="bg-white">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium font-inter">
+                    <span class="material-symbols-outlined align-middle fs-5 me-2">check_circle</span>
+                    <span id="toastMessage">Success!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        async function initializePage() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return window.location.replace('index.html');
+
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            if (jwtPayload.app_metadata?.role !== 'it_admin') {
+                return window.location.replace('dashboard.html');
+            }
+
+            document.getElementById('secure-admin-body').style.display = 'block';
+            document.getElementById('ui-admin-name').innerText = session.user.email;
+            
+            loadPlatformTenants();
+        }
+
+        // --- B2B MULTI-TENANT PROVISIONING LOGIC ---
+        async function loadPlatformTenants() {
+            try {
+                const tbody = document.getElementById('active-tenants-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Loading active deployments...</td></tr>';
+
+                const { data: banks, error } = await supabase.from('banks').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                
+                tbody.innerHTML = '';
+                if (banks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No institutions deployed yet.</td></tr>';
+                    return;
+                }
+
+                banks.forEach(bank => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-bold text-muted font-monospace small">${bank.id}</td>
+                        <td class="py-3 fw-bold text-dark small">${bank.name}</td>
+                        <td class="py-3">
+                            <div class="d-flex gap-1">
+                                <div style="width: 16px; height: 16px; border-radius: 4px; background-color: ${bank.primary_color}; border: 1px solid #ddd;"></div>
+                                <div style="width: 16px; height: 16px; border-radius: 4px; background-color: ${bank.secondary_color}; border: 1px solid #ddd;"></div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-end"><span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded">LIVE</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Failed to read platform tenants:", err);
+            }
+        }
+
+        document.getElementById('form-onboard-tenant')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-tenant');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Provisioning...';
+            btn.disabled = true;
+
+            try {
+                const name = document.getElementById('tenant-name').value;
+                const primaryColor = document.getElementById('tenant-color-primary').value;
+                const secondaryColor = document.getElementById('tenant-color-secondary').value;
+                const allocationLimit = parseInt(document.getElementById('tenant-allocation').value);
+
+                // Clean slug generation (e.g. "Alpha Bank" -> "bank-alpha")
+                const tenantId = 'bank-' + name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                // 1. Create the new tenant profile
+                const { error: bankError } = await supabase.from('banks').insert([{
+                    id: tenantId, name: name, primary_color: primaryColor, secondary_color: secondaryColor
+                }]);
+                
+                if (bankError) {
+                    if (bankError.code === '23505') throw new Error("An institution with this name/ID is already provisioned.");
+                    throw bankError;
+                }
+
+                // 2. Extract and assign an isolated subset of the unallocated dataset
+                if (allocationLimit > 0) {
+                    const { data: unassigned } = await supabase.from('customers').select('id').is('tenant_id', null).limit(allocationLimit);
+                    
+                    if (unassigned && unassigned.length > 0) {
+                        const targets = unassigned.map(c => c.id);
+                        await supabase.from('customers').update({ tenant_id: tenantId }).in('id', targets);
+                    } else {
+                        alert("Tenant provisioned successfully, but no unassigned synthetic customer profiles remain in the global pool.");
+                    }
+                }
+
+                // 3. Document the structural change in the global audit history
+                await supabase.from('system_events').insert([{
+                    event_type: 'TENANT_PROVISIONED',
+                    severity: 'WARNING',
+                    message: `Global Platform Admin deployed an isolated production partition for ${name}.`,
+                    metadata: { tenant_id: tenantId, customer_count: allocationLimit }
+                }]);
+
+                // Clean up UI and reload
+                document.getElementById('toastMessage').innerText = `${name} environment successfully provisioned!`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                document.getElementById('form-onboard-tenant').reset();
+                await loadPlatformTenants();
+
+            } catch (err) {
+                console.error("Tenant provisioning failure:", err);
+                alert(`Failed to onboard institution: ${err.message}`);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Initialize Page
+        initializePage();
+
+        // Logout Handler
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            await supabase.rpc('log_user_logout');
+            await supabase.auth.signOut();
+            window.location.replace('index.html');
+        });
+    </script>
+</body>
+</html>

@@ -322,7 +322,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         My Open Cases <span class="material-symbols-outlined text-primary fs-5">folder_shared</span>
                                     </div>
-                                    <h3 class="fw-bold mb-0">12</h3>
+                                    <h3 class="fw-bold mb-0" id="kpi-my-cases">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -332,7 +332,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         Critical Alerts (Pool) <span class="material-symbols-outlined text-danger fs-5">warning</span>
                                     </div>
-                                    <h3 class="fw-bold text-danger mb-0">277</h3>
+                                    <h3 class="fw-bold text-danger mb-0" id="kpi-critical-pool">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -342,7 +342,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         SLA Breach Warning <span class="material-symbols-outlined text-warning fs-5">timer</span>
                                     </div>
-                                    <h3 class="fw-bold text-warning mb-0">04</h3>
+                                    <h3 class="fw-bold text-warning mb-0" id="kpi-sla-breach">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -352,7 +352,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         My Conversion Rate <span class="material-symbols-outlined text-success fs-5">moving</span>
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-0">18.5%</h3>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-my-conversion">0.0%</h3>
                                 </div>
                             </div>
                         </div>
@@ -458,7 +458,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         Compliance Health <span class="material-symbols-outlined text-success fs-5">health_and_safety</span>
                                     </div>
-                                    <h3 class="fw-bold text-success mb-0">94%</h3>
+                                    <h3 class="fw-bold text-success mb-0" id="kpi-comp-health">100%</h3>
                                 </div>
                             </div>
                         </div>
@@ -468,7 +468,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         High-Risk Entities <span class="material-symbols-outlined text-danger fs-5">report</span>
                                     </div>
-                                    <h3 class="fw-bold mb-0">412</h3>
+                                    <h3 class="fw-bold mb-0" id="kpi-high-risk">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -478,7 +478,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         Open Cases (Branch) <span class="material-symbols-outlined text-warning fs-5">folder_open</span>
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-0">47</h3>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-open-cases">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -488,7 +488,7 @@
                                     <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
                                         SARs Filed (YTD) <span class="material-symbols-outlined text-primary fs-5">gavel</span>
                                     </div>
-                                    <h3 class="fw-bold text-dark mb-0">18</h3>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-sars-filed">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -1055,8 +1055,10 @@
                 
                 document.getElementById('view-head-compliance').classList.remove('d-none');
                 document.getElementById('view-compliance-officer').classList.add('d-none');
-                document.getElementById('view-bank-manager').classList.add('d-none'); // Hide new view
+                document.getElementById('view-bank-manager').classList.add('d-none'); 
+                
                 renderComplianceCharts();
+                renderActivityFeed(); 
                 document.getElementById('component-escalation-queue')?.classList.remove('d-none');
                 
             } else if (userRole === 'compliance_officer') {
@@ -1065,13 +1067,17 @@
                 document.getElementById('view-bank-manager').classList.add('d-none'); 
 
                 loadAlertsQueue(); 
+                renderOfficerKPIs(session.user.id); 
+                renderActivityFeed(); 
                 
             } else if (userRole === 'bank_manager') {
                 // Show Bank Manager View
                 document.getElementById('view-bank-manager').classList.remove('d-none');
                 document.getElementById('view-head-compliance').classList.add('d-none');
                 document.getElementById('view-compliance-officer').classList.add('d-none');
-                renderManagerCharts(); // Draw the risk charts
+                
+                renderManagerCharts(); 
+                renderActivityFeed(); 
             }
 
             // 6. Populate the invite dropdown with custom roles
@@ -1281,119 +1287,122 @@
             }
         }
 
-        // --- Head of Compliance Chart Initialization (UPGRADED ENGINE) ---
+        // --- 1. HEAD OF COMPLIANCE ENGINE (Fully Dynamic) ---
         async function renderComplianceCharts() {
             try {
-                // Fetch all alerts for global analytics
-                const { data: alerts, error } = await supabase
-                    .from('alerts')
-                    .select('status, severity, rule_triggered, created_at')
-                    .order('created_at', { ascending: true });
-
+                const { data: alerts, error } = await supabase.from('alerts').select('status, severity, rule_triggered, created_at, assigned_user_id').order('created_at', { ascending: true });
                 if (error) throw error;
 
-                // 1. Update Top-Line KPI: Total Alerts
                 const totalAlertsElement = document.getElementById('kpi-total-alerts');
                 if (totalAlertsElement) totalAlertsElement.innerText = alerts.length.toLocaleString();
 
-                // --- AGGREGATION LOGIC ---
                 let statusCounts = { unassigned: 0, investigation: 0, escalated: 0 };
                 let rulesMap = {};
                 let dateMap = {};
+                let workloadMap = {}; // New dynamic workload tracker
 
                 alerts.forEach(alert => {
-                    // Tally Statuses
                     if (alert.status === 'UNASSIGNED') statusCounts.unassigned++;
                     else if (alert.status === 'INVESTIGATING') statusCounts.investigation++;
-                    else if (alert.status === 'ESCALATED') statusCounts.escalated++;
+                    else if (alert.status === 'ESCALATED' || alert.status === 'CLOSED') statusCounts.escalated++;
 
-                    // Tally Rules
                     const rule = alert.rule_triggered || 'Unknown Rule';
                     if (!rulesMap[rule]) rulesMap[rule] = { triggers: 0, escalations: 0 };
                     rulesMap[rule].triggers++;
                     if (alert.status === 'ESCALATED') rulesMap[rule].escalations++;
 
-                    // Tally Dates (for Trend Chart)
                     const dateStr = new Date(alert.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                     if (!dateMap[dateStr]) dateMap[dateStr] = 0;
                     dateMap[dateStr]++;
+
+                    // Track Workload
+                    if (alert.status === 'INVESTIGATING') {
+                        let assignee = alert.assigned_user_id ? `Officer ${alert.assigned_user_id.substring(0,4)}` : 'Unassigned';
+                        if (!workloadMap[assignee]) workloadMap[assignee] = 0;
+                        workloadMap[assignee]++;
+                    }
                 });
 
-                // 2. Open Cases by Status (Doughnut Chart)
-                const statusCtx = document.getElementById('caseStatusChart');
-                if (Chart.getChart(statusCtx)) Chart.getChart(statusCtx).destroy(); // Destroy old chart if exists
+                // Inject Math into KPI Cards
+                const totalAlerts = alerts.length;
+                const totalCases = statusCounts.investigation + statusCounts.escalated;
+                const conversionRate = totalAlerts > 0 ? ((totalCases / totalAlerts) * 100).toFixed(1) : 0;
+                const sarRate = totalCases > 0 ? ((statusCounts.escalated / totalCases) * 100).toFixed(1) : 0;
+
+                const conversionEl = document.getElementById('kpi-conversion');
+                if (conversionEl) conversionEl.innerText = `${conversionRate}%`;
                 
+                const sarEl = document.getElementById('kpi-sar-rate');
+                if (sarEl) sarEl.innerText = `${sarRate}%`;
+
+                // Case Status Chart
+                const statusCtx = document.getElementById('caseStatusChart');
+                if (Chart.getChart(statusCtx)) Chart.getChart(statusCtx).destroy(); 
                 new Chart(statusCtx.getContext('2d'), {
                     type: 'doughnut',
                     data: {
-                        labels: ['Unassigned', 'Under Investigation', 'Escalated'],
+                        labels: ['Unassigned', 'Under Investigation', 'Resolved/Escalated'],
                         datasets: [{
                             data: [statusCounts.unassigned, statusCounts.investigation, statusCounts.escalated],
-                            backgroundColor: ['#64748b', '#f59e0b', '#ef4444'],
-                            borderWidth: 0
+                            backgroundColor: ['#64748b', '#f59e0b', '#ef4444'], borderWidth: 0
                         }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
                 });
 
-                // 3. Alert Volume Trend (Line Chart)
+                // Alert Trend Chart
                 const trendCtx = document.getElementById('alertTrendChart');
                 if (Chart.getChart(trendCtx)) Chart.getChart(trendCtx).destroy();
-                
                 new Chart(trendCtx.getContext('2d'), {
                     type: 'line',
                     data: {
                         labels: Object.keys(dateMap),
                         datasets: [{
-                            label: 'Daily Alerts',
-                            data: Object.values(dateMap),
-                            borderColor: '#0ea5e9',
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.3
+                            label: 'Daily Alerts', data: Object.values(dateMap),
+                            borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)', borderWidth: 2, fill: true, tension: 0.3
                         }]
                     },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 4. Rule Performance Table Injection
+                // Dynamic Workload Chart
+                const workloadCtx = document.getElementById('workloadChart');
+                if (workloadCtx) {
+                    if (Chart.getChart(workloadCtx)) Chart.getChart(workloadCtx).destroy();
+                    new Chart(workloadCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(workloadMap).length > 0 ? Object.keys(workloadMap) : ['No Active Cases'],
+                            datasets: [{
+                                label: 'Active Cases',
+                                data: Object.values(workloadMap).length > 0 ? Object.values(workloadMap) : [0],
+                                backgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // Rule Performance Table
                 const tbody = document.getElementById('rule-performance-body');
                 if (tbody) {
                     tbody.innerHTML = '';
-                    
-                    // Convert map to array and sort by highest triggers
                     const sortedRules = Object.entries(rulesMap).sort((a, b) => b[1].triggers - a[1].triggers);
-                    
                     sortedRules.forEach(([ruleName, metrics]) => {
                         const row = document.createElement('tr');
-                        
-                        // Mock calculation for false positives/conversion since we haven't built the closure workflow yet
-                        const conversionRate = metrics.triggers > 0 ? Math.round((metrics.escalations / metrics.triggers) * 100) : 0;
-                        const fpRate = 100 - conversionRate;
-                        
-                        let fpColor = fpRate > 60 ? 'text-danger' : 'text-success';
-
+                        const rate = metrics.triggers > 0 ? Math.round((metrics.escalations / metrics.triggers) * 100) : 0;
+                        const fpRate = 100 - rate;
                         row.innerHTML = `
                             <td class="px-4 fw-semibold small text-dark">${ruleName}</td>
                             <td class="small fw-medium">${metrics.triggers}</td>
-                            <td class="small fw-bold ${fpColor}">${fpRate}%</td>
-                            <td class="small fw-bold">${conversionRate}%</td>
+                            <td class="small fw-bold ${fpRate > 60 ? 'text-danger' : 'text-success'}">${fpRate}%</td>
+                            <td class="small fw-bold">${rate}%</td>
                         `;
                         tbody.appendChild(row);
                     });
                 }
-
-                // --- NEW: Load the Executive Escalation Queue ---
                 loadEscalationQueue();
-
-            } catch (err) {
-                console.error("Error loading Compliance charts:", err);
-            }
+            } catch (err) { console.error("Error loading Compliance charts:", err); }
         }
 
         // --- Live Transaction Stream Engine (UPGRADED NAMES) ---
@@ -1508,61 +1517,69 @@
             }
         }
 
-        // --- Bank Manager Chart Initialization (LIVE DATA) ---
+        // --- 2. BANK MANAGER ENGINE (Fully Dynamic) ---
         async function renderManagerCharts() {
             try {
-                // Fetch live customer risk data
-                const { data: customers, error } = await supabase
-                    .from('customers')
-                    .select('risk_tier, industry');
-
+                const { data: customers, error } = await supabase.from('customers').select('risk_tier, industry');
                 if (error) throw error;
 
-                // Aggregate the data for the Doughnut Chart
                 let tierCounts = { low: 0, medium: 0, high: 0 };
+                let indMap = {};
                 
-                customers.forEach(customer => {
-                    if (customer.risk_tier === 'HIGH') tierCounts.high++;
-                    else if (customer.risk_tier === 'MEDIUM') tierCounts.medium++;
+                customers.forEach(c => {
+                    if (c.risk_tier === 'HIGH') tierCounts.high++;
+                    else if (c.risk_tier === 'MEDIUM') tierCounts.medium++;
                     else tierCounts.low++;
+
+                    const ind = c.industry || 'Other';
+                    if (!indMap[ind]) indMap[ind] = { high: 0, low: 0 };
+                    if (c.risk_tier === 'HIGH') indMap[ind].high++;
+                    else indMap[ind].low++;
                 });
 
-                // 1. Risk Tier Doughnut Chart
+                // Calculate Compliance Health Score
+                const health = customers.length > 0 ? Math.max(0, 100 - Math.round((tierCounts.high / customers.length) * 100)) : 100;
+                document.getElementById('kpi-comp-health').innerText = `${health}%`;
+                document.getElementById('kpi-high-risk').innerText = tierCounts.high;
+
+                // Fetch Alert data to populate Branch Cases & SARs
+                const { data: alerts } = await supabase.from('alerts').select('status');
+                if (alerts) {
+                    document.getElementById('kpi-open-cases').innerText = alerts.filter(a => a.status === 'INVESTIGATING').length;
+                    document.getElementById('kpi-sars-filed').innerText = alerts.filter(a => a.status === 'ESCALATED' || a.status === 'CLOSED').length;
+                }
+
+                // Risk Tier Chart
                 const tierCtx = document.getElementById('riskTierChart').getContext('2d');
+                if (Chart.getChart(tierCtx)) Chart.getChart(tierCtx).destroy();
                 new Chart(tierCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Low Risk', 'Medium Risk', 'High Risk'],
                         datasets: [{
-                            // Injecting the live counts here
                             data: [tierCounts.low, tierCounts.medium, tierCounts.high],
-                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Emerald, Amber, Rose
-                            borderWidth: 0
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0
                         }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
                 });
 
-                // 2. Exposure by Industry Stacked Bar Chart (Using standard placeholder for now until more data is seeded)
+                // Dynamic Industry Stacked Chart
                 const indCtx = document.getElementById('industryRiskChart').getContext('2d');
+                if (Chart.getChart(indCtx)) Chart.getChart(indCtx).destroy();
+                const indLabels = Object.keys(indMap);
                 new Chart(indCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['Import/Export', 'Precious Metals', 'Transportation', 'Software'],
+                        labels: indLabels,
                         datasets: [
-                            { label: 'High Risk', data: [1, 1, 0, 0], backgroundColor: '#ef4444' },
-                            { label: 'Medium/Low Risk', data: [0, 0, 1, 1], backgroundColor: '#cbd5e1' }
+                            { label: 'High Risk', data: indLabels.map(l => indMap[l].high), backgroundColor: '#ef4444' },
+                            { label: 'Medium/Low Risk', data: indLabels.map(l => indMap[l].low), backgroundColor: '#cbd5e1' }
                         ]
                     },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        scales: { x: { stacked: true }, y: { stacked: true } }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
                 });
-            } catch (err) {
-                console.error("Error loading Bank Manager charts:", err);
-            }
+            } catch (err) { console.error("Error loading Manager charts:", err); }
         }
 
         // --- Alerts Queue Engine (UPGRADED WITH FILTERING & NAMES) ---
@@ -1635,6 +1652,63 @@
                 document.getElementById('alerts-table-body').innerHTML = 
                     '<tr><td colspan="6" class="text-center py-4 text-danger small">Failed to load alerts from database.</td></tr>';
             }
+        }
+
+        // --- 3. COMPLIANCE OFFICER KPI ENGINE ---
+        async function renderOfficerKPIs(userId) {
+            try {
+                const { data: alerts } = await supabase.from('alerts').select('status, severity, assigned_user_id, created_at');
+                if (!alerts) return;
+
+                let myCases = 0, criticalPool = 0, slaBreaches = 0, myResolved = 0;
+                const now = new Date();
+
+                alerts.forEach(a => {
+                    if (a.status === 'UNASSIGNED' && a.severity === 'CRITICAL') criticalPool++;
+                    if (a.assigned_user_id === userId) {
+                        if (a.status === 'INVESTIGATING') {
+                            myCases++;
+                            if ((now - new Date(a.created_at)) / 36e5 > 48) slaBreaches++;
+                        } else if (a.status === 'ESCALATED' || a.status === 'CLOSED') {
+                            myResolved++;
+                        }
+                    }
+                });
+
+                const total = myCases + myResolved;
+                document.getElementById('kpi-my-cases').innerText = myCases;
+                document.getElementById('kpi-critical-pool').innerText = criticalPool;
+                document.getElementById('kpi-sla-breach').innerText = slaBreaches;
+                document.getElementById('kpi-my-conversion').innerText = total > 0 ? `${((myResolved / total) * 100).toFixed(1)}%` : '0.0%';
+            } catch (err) { console.error("Error loading Officer KPIs:", err); }
+        }
+
+        // --- 4. DYNAMIC RECENT ACTIVITY FEED ---
+        async function renderActivityFeed() {
+            try {
+                // Target all hardcoded feeds in the DOM
+                const feedContainers = document.querySelectorAll('.position-relative.border-start.ms-3');
+                if (feedContainers.length === 0) return;
+
+                // Pull the 3 most recent system audit logs
+                const { data: events } = await supabase.from('system_events').select('*').order('created_at', { ascending: false }).limit(3);
+                if (!events || events.length === 0) return;
+
+                let html = '';
+                events.forEach((ev, i) => {
+                    const color = ev.severity === 'CRITICAL' ? 'bg-danger' : (ev.severity === 'WARNING' ? 'bg-warning' : 'bg-primary');
+                    const time = new Date(ev.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    html += `
+                    <div class="position-relative mb-${i === 2 ? '0' : '4'}">
+                        <div class="position-absolute top-0 translate-middle-y p-1 ${color} rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
+                        <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">${ev.event_type.replace(/_/g, ' ')}</p>
+                        <p class="text-muted small mb-0" style="font-size: 0.75rem;">${ev.message}</p>
+                        <span class="text-muted" style="font-size: 0.7rem;">${time}</span>
+                    </div>`;
+                });
+
+                feedContainers.forEach(container => container.innerHTML = html);
+            } catch (err) { console.error("Error loading Activity Feed:", err); }
         }
 
         // --- REALISTIC IDENTITY VERIFICATION ENGINE ---
