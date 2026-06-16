@@ -139,9 +139,11 @@
                             </select>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label small fw-semibold text-muted">Target Tenant ID (Bank UUID)</label>
-                            <input type="text" class="form-control bg-light font-monospace" id="admin-invite-tenant" required placeholder="e10dad0b-...">
-                            <div class="form-text" style="font-size: 0.7rem;">Leave blank for Global IT Admins.</div>
+                            <label class="form-label small fw-semibold text-muted">Target Institution</label>
+                            <select class="form-select bg-light font-monospace border-primary border-opacity-25" id="admin-invite-tenant" required>
+                                <option value="" disabled selected>Loading active institutions...</option>
+                            </select>
+                            <div class="form-text" style="font-size: 0.7rem;">Assign this user to a specific deployed bank environment.</div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 fw-semibold" id="admin-invite-submit-btn">
                             Dispatch Secure Invite

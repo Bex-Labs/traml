@@ -37,6 +37,9 @@ async function initializeAdminPortal() {
         // 5. Populate the invite dropdown with custom roles
         loadDynamicRoles();
 
+        // 6. Fetch deployed banks for the invite modal
+        populateTenantDropdown();
+
     } catch (error) {
         window.location.replace('index.html');
     }
@@ -253,6 +256,22 @@ async function loadDynamicRoles() {
         
         roleSelect.appendChild(optGroup);
     }
+}
+
+// --- Populate the Tenant Dropdown ---
+async function populateTenantDropdown() {
+    const select = document.getElementById('admin-invite-tenant');
+    if (!select) return;
+
+    const { data: banks, error } = await supabase.from('banks').select('id, name').order('name');
+    
+    if (error || !banks || banks.length === 0) {
+        select.innerHTML = '<option value="">No institutions deployed yet</option>';
+        return;
+    }
+
+    select.innerHTML = '<option value="" disabled selected>Select an institution...</option>' + 
+        banks.map(b => `<option value="${b.id}">${b.name} (${b.id})</option>`).join('');
 }
 
 // Start the sequence

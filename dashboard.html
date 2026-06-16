@@ -46,7 +46,6 @@
         <div class="row g-0" style="height: calc(100vh - 57px);">
             
             <div class="col-md-2 bg-white border-end p-0 d-flex flex-column h-100">
-                
                 <div class="list-group list-group-flush mt-3 flex-grow-1 overflow-y-auto">
                     <a href="#" id="nav-command-center" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3">
                         <span class="material-symbols-outlined">dashboard</span>
@@ -75,7 +74,12 @@
                         <span class="small fw-semibold">Team Management</span>
                     </a>
 
-                    <a href="compliance-audit.html" id="nav-audit-logs" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                    <a href="#" id="nav-report-archive" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">inventory_2</span>
+                        <span class="small fw-semibold">Immutable Vault</span>
+                    </a>
+
+                    <a href="#" id="nav-audit-logs" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">plagiarism</span>
                         <span class="small fw-semibold">Branch Audit Ledger</span>
                     </a>
@@ -101,7 +105,6 @@
                         </button>
                     </div>
 
-                    <!-- Row 1: Top-Line KPI Cards (TAML-100 & TAML-111) -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
                             <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
@@ -145,9 +148,7 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: Charts -->
                     <div class="row g-4 mb-4">
-                        <!-- Alert Volume Trend -->
                         <div class="col-lg-8">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-bottom py-3">
@@ -158,7 +159,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Open Cases by Status -->
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-bottom py-3">
@@ -171,9 +171,7 @@
                         </div>
                     </div>
 
-                    <!-- Row 3: Performance Tables -->
                     <div class="row g-4 mb-5">
-                        <!-- Rule Performance Summary -->
                         <div class="col-lg-8">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-bottom py-3">
@@ -195,7 +193,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Team Workload Distribution -->
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-white border-bottom py-3">
@@ -209,7 +206,6 @@
                     </div>
                 </div>
 
-                <!-- Row 4: Executive Escalation Queue -->
                 <div id="component-escalation-queue" class="d-none">
                     <div class="row mt-2 mb-5">
                         <div class="col-12">
@@ -231,8 +227,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="escalation-queue-body" class="bg-white">
-                                            <!-- Escalated cases will load here -->
-                                        </tbody>
+                                            </tbody>
                                     </table>
                                 </div>
                             </div>
@@ -240,65 +235,80 @@
                     </div>
                 </div>
 
-                <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
+                <div id="view-bank-manager" class="d-none">
                     <div class="d-flex justify-content-between align-items-end mb-4">
                         <div>
-                            <h4 class="fw-bold text-dark mb-1">Customer Profile Directory</h4>
-                            <p class="text-muted small mb-0">Global repository of all institutional and retail entities.</p>
+                            <h4 class="fw-bold text-dark mb-1">Executive Risk Exposure</h4>
+                            <p class="text-muted small mb-0">Institutional compliance health, customer risk tiers, and exposure segmentation.</p>
                         </div>
-                        <div class="input-group" style="width: 300px;">
-                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
-                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by name or RC number...">
+                        <button class="btn btn-outline-danger fw-bold d-flex align-items-center gap-2" onclick="exportDashboardPDF('view-bank-manager', 'Risk_Exposure_Snapshot.pdf', event)">
+                            <span class="material-symbols-outlined fs-6">picture_as_pdf</span> PDF Report
+                        </button>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Compliance Health <span class="material-symbols-outlined text-success fs-5">health_and_safety</span>
+                                    </div>
+                                    <h3 class="fw-bold text-success mb-0" id="kpi-comp-health">100%</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        High-Risk Entities <span class="material-symbols-outlined text-danger fs-5">report</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0" id="kpi-high-risk">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Open Cases (Branch) <span class="material-symbols-outlined text-warning fs-5">folder_open</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-open-cases">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        SARs Filed (YTD) <span class="material-symbols-outlined text-primary fs-5">gavel</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-sars-filed">0</h3>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
-                        <div class="table-responsive flex-grow-1">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light text-muted small text-uppercase sticky-top">
-                                    <tr>
-                                        <th class="py-3 px-4 fw-semibold">Entity Name</th>
-                                        <th class="py-3 fw-semibold">Industry / Sector</th>
-                                        <th class="py-3 fw-semibold">Geography</th>
-                                        <th class="py-3 fw-semibold">Risk Score</th>
-                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="kyc-directory-body" class="bg-white">
-                                    </tbody>
-                            </table>
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Customer Risk Tiers</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="riskTierChart" height="220"></canvas>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <div id="view-case-management" class="d-none h-100 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-end mb-4">
-                        <div>
-                            <h4 class="fw-bold text-dark mb-1">Case Management & Archives</h4>
-                            <p class="text-muted small mb-0">Review escalated investigations and closed Suspicious Activity Reports (SARs).</p>
-                        </div>
-                        <div class="input-group" style="width: 300px;">
-                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
-                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by Case Ref or Entity...">
-                        </div>
-                    </div>
-
-                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
-                        <div class="table-responsive flex-grow-1">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light text-muted small text-uppercase sticky-top">
-                                    <tr>
-                                        <th class="py-3 px-4 fw-semibold">Case Ref</th>
-                                        <th class="py-3 fw-semibold">Customer / Entity</th>
-                                        <th class="py-3 fw-semibold">Rule Triggered</th>
-                                        <th class="py-3 fw-semibold">Status</th>
-                                        <th class="py-3 fw-semibold">Investigator Notes</th>
-                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="case-management-body" class="bg-white">
-                                    </tbody>
-                            </table>
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Exposure by Industry</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="industryRiskChart" height="220"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -396,7 +406,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="alerts-table-body" class="bg-white">
-                                            </tbody>
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
@@ -411,28 +421,141 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="position-relative border-start border-2 border-light ms-3 space-y-4" style="padding-left: 1rem;">
-                                        
-                                        <div class="position-relative mb-4">
-                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-primary rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
-                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">You escalated Case #C-1092</p>
-                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Sent to Head of Compliance</p>
-                                            <span class="text-muted" style="font-size: 0.7rem;">20 mins ago</span>
                                         </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                        <div class="position-relative mb-4">
-                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-danger rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
-                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">Engine generated 441 new alerts</p>
-                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Batch scan completed.</p>
-                                            <span class="text-muted" style="font-size: 0.7rem;">1 hour ago</span>
+                <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Customer Profile Directory</h4>
+                            <p class="text-muted small mb-0">Global repository of all institutional and retail entities.</p>
+                        </div>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
+                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by name or RC number...">
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Entity Name</th>
+                                        <th class="py-3 fw-semibold">Industry / Sector</th>
+                                        <th class="py-3 fw-semibold">Geography</th>
+                                        <th class="py-3 fw-semibold">Risk Score</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kyc-directory-body" class="bg-white">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-case-management" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Case Management & Archives</h4>
+                            <p class="text-muted small mb-0">Review escalated investigations and closed Suspicious Activity Reports (SARs).</p>
+                        </div>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text bg-white"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
+                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search by Case Ref or Entity...">
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Case Ref</th>
+                                        <th class="py-3 fw-semibold">Customer / Entity</th>
+                                        <th class="py-3 fw-semibold">Rule Triggered</th>
+                                        <th class="py-3 fw-semibold">Status</th>
+                                        <th class="py-3 fw-semibold">Investigator Notes</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="case-management-body" class="bg-white">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-system-config" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">System Configuration</h4>
+                            <p class="text-muted small mb-0">Manage automated reporting, API webhooks, and institutional settings.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm border-start border-primary border-4">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary fs-5">schedule_send</span> Automated Reporting Engine
+                                    </h6>
+                                </div>
+                                <div class="card-body p-4 bg-light">
+                                    <p class="small text-muted mb-4">Configure the engine to automatically compile and email compliance summaries to key stakeholders.</p>
+                                    
+                                    <form id="schedule-report-form">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-bold text-dark uppercase">Report Frequency</label>
+                                            <select class="form-select border-secondary border-opacity-25" id="config-frequency" required>
+                                                <option value="DAILY">Daily (End of Day)</option>
+                                                <option value="WEEKLY" selected>Weekly (Friday Close)</option>
+                                                <option value="MONTHLY">Monthly (Last Day)</option>
+                                            </select>
                                         </div>
-
-                                        <div class="position-relative mb-0">
-                                            <div class="position-absolute top-0 translate-middle-y p-1 bg-success rounded-circle border border-2 border-white" style="left: -1.3rem;"></div>
-                                            <p class="text-sm text-dark fw-medium mb-0" style="font-size: 0.85rem;">You closed Case #C-1088</p>
-                                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Outcome: SAR Filed</p>
-                                            <span class="text-muted" style="font-size: 0.7rem;">3 hours ago</span>
+                                        <div class="mb-4">
+                                            <label class="form-label small fw-bold text-dark uppercase">Recipient Emails</label>
+                                            <input type="text" class="form-control border-secondary border-opacity-25" id="config-emails" placeholder="exec1@bank.com, audit@bank.com" required>
+                                            <div class="form-text" style="font-size: 0.7rem;">Separate multiple emails with commas.</div>
                                         </div>
-
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold d-flex justify-content-center align-items-center gap-2" id="btn-save-schedule">
+                                            <span class="material-symbols-outlined fs-6">save</span> Save Configuration
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">tune</span> Active AML Rules
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-danger fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#ruleBuilderModal">
+                                        <span class="material-symbols-outlined fs-6">add</span> New Rule
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light text-muted small text-uppercase">
+                                                <tr>
+                                                    <th class="py-2 px-4">Rule Name</th>
+                                                    <th class="py-2">Condition</th>
+                                                    <th class="py-2 text-end px-4">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="active-rules-body">
+                                                <tr><td colspan="3" class="text-center py-4 text-muted small">Loading active rules...</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -440,132 +563,63 @@
                     </div>
                 </div>
 
-                <div id="view-bank-manager" class="d-none">
+                <div id="view-report-archive" class="d-none h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4">
                         <div>
-                            <h4 class="fw-bold text-dark mb-1">Executive Risk Exposure</h4>
-                            <p class="text-muted small mb-0">Institutional compliance health, customer risk tiers, and exposure segmentation.</p>
+                            <h4 class="fw-bold text-dark mb-1">Immutable Report Vault</h4>
+                            <p class="text-muted small mb-0">7-Year cryptographic archive of all official STRs and Compliance Snapshots.</p>
                         </div>
-                        <button class="btn btn-outline-danger fw-bold d-flex align-items-center gap-2" onclick="exportDashboardPDF('view-bank-manager', 'Risk_Exposure_Snapshot.pdf', event)">
-                            <span class="material-symbols-outlined fs-6">picture_as_pdf</span> PDF Report
+                        <button class="btn btn-outline-secondary d-flex align-items-center gap-2 fw-bold" onclick="loadReportArchive()">
+                            <span class="material-symbols-outlined fs-6">refresh</span> Sync Ledger
                         </button>
                     </div>
 
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
-                                <div class="card-body">
-                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                        Compliance Health <span class="material-symbols-outlined text-success fs-5">health_and_safety</span>
-                                    </div>
-                                    <h3 class="fw-bold text-success mb-0" id="kpi-comp-health">100%</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                        High-Risk Entities <span class="material-symbols-outlined text-danger fs-5">report</span>
-                                    </div>
-                                    <h3 class="fw-bold mb-0" id="kpi-high-risk">0</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                        Open Cases (Branch) <span class="material-symbols-outlined text-warning fs-5">folder_open</span>
-                                    </div>
-                                    <h3 class="fw-bold text-dark mb-0" id="kpi-open-cases">0</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
-                                        SARs Filed (YTD) <span class="material-symbols-outlined text-primary fs-5">gavel</span>
-                                    </div>
-                                    <h3 class="fw-bold text-dark mb-0" id="kpi-sars-filed">0</h3>
-                                </div>
-                            </div>
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Timestamp</th>
+                                        <th class="py-3 fw-semibold">Report Type</th>
+                                        <th class="py-3 fw-semibold">File Name</th>
+                                        <th class="py-3 fw-semibold">Generated By</th>
+                                        <th class="py-3 fw-semibold">Retention Expiry</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="archive-table-body" class="bg-white">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+                </div>
 
-                    <div class="row g-4 mb-4">
-                        <div class="col-lg-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom py-3">
-                                    <h6 class="mb-0 fw-bold uppercase text-dark">Customer Risk Tiers</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="riskTierChart" height="220"></canvas>
-                                </div>
-                            </div>
+                <div id="view-audit-logs" class="d-none h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Branch Audit Ledger</h4>
+                            <p class="text-muted small mb-0">Immutable, write-only record of all system events, data exports, and user actions.</p>
                         </div>
-                        <div class="col-lg-8">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom py-3">
-                                    <h6 class="mb-0 fw-bold uppercase text-dark">Exposure by Industry</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="industryRiskChart" height="220"></canvas>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="btn btn-outline-secondary d-flex align-items-center gap-2 fw-bold" onclick="loadAuditLogs()">
+                            <span class="material-symbols-outlined fs-6">refresh</span> Refresh Logs
+                        </button>
                     </div>
 
-                    <div class="row g-4 mb-5">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
-                                        <span class="material-symbols-outlined text-danger fs-5">warning</span> High-Risk Customer Watchlist
-                                    </h6>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-secondary active">Corporate</button>
-                                        <button class="btn btn-sm btn-outline-secondary">Individual</button>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light text-muted small uppercase">
-                                            <tr>
-                                                <th class="py-3 px-4 fw-semibold">Entity Name</th>
-                                                <th class="py-3 fw-semibold">Industry / Sector</th>
-                                                <th class="py-3 fw-semibold">Geography</th>
-                                                <th class="py-3 fw-semibold">Risk Score</th>
-                                                <th class="py-3 text-end px-4 fw-semibold">Profile</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="px-4"><div class="fw-bold text-dark small">Zenith Trading Ltd</div><div class="text-muted" style="font-size: 0.7rem;">RC-192834</div></td>
-                                                <td class="fw-semibold small">Import / Export</td>
-                                                <td class="small">Lagos, NG</td>
-                                                <td><span class="badge bg-danger">92/100</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View EDD</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4"><div class="fw-bold text-dark small">Abuja Gold Exchange</div><div class="text-muted" style="font-size: 0.7rem;">RC-009123</div></td>
-                                                <td class="fw-semibold small">Precious Metals</td>
-                                                <td class="small">Abuja, NG</td>
-                                                <td><span class="badge bg-danger">88/100</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View EDD</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4"><div class="fw-bold text-dark small">Oasis Logistics</div><div class="text-muted" style="font-size: 0.7rem;">RC-772190</div></td>
-                                                <td class="fw-semibold small">Transportation</td>
-                                                <td class="small">Kano, NG</td>
-                                                <td><span class="badge bg-warning text-dark">75/100</span></td>
-                                                <td class="text-end px-4"><button class="btn btn-sm btn-outline-primary fw-bold uppercase" style="font-size: 0.7rem;">View CDD</button></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                    <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase sticky-top">
+                                    <tr>
+                                        <th class="py-3 px-4 fw-semibold">Timestamp</th>
+                                        <th class="py-3 fw-semibold">Event Type</th>
+                                        <th class="py-3 fw-semibold">Severity</th>
+                                        <th class="py-3 fw-semibold">System Message</th>
+                                        <th class="py-3 fw-semibold">Metadata</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="audit-logs-body" class="bg-white">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -589,17 +643,12 @@
                                 </tr>
                             </thead>
                             <tbody id="transaction-feed">
-            
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="kycVerificationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            </div> </div> </div> <div class="modal fade" id="kycVerificationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white border-bottom-0">
@@ -724,6 +773,67 @@
         </div>
     </div>
 
+    <div class="modal fade" id="riskOverrideModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">admin_panel_settings</span> Executive Risk Override
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form id="risk-override-form">
+                        <input type="hidden" id="override-customer-id">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold uppercase text-dark">Force New Risk Tier</label>
+                            <select class="form-select border-secondary border-opacity-25" id="override-tier" required>
+                                <option value="LOW">LOW RISK (Score: 10)</option>
+                                <option value="MEDIUM">MEDIUM RISK (Score: 50)</option>
+                                <option value="HIGH">HIGH RISK (Score: 95)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold uppercase text-dark">Compliance Justification</label>
+                            <textarea class="form-control border-secondary border-opacity-25" id="override-justification" rows="3" required placeholder="State regulatory or investigative reason for overriding the automated AML engine..."></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger fw-bold" id="btn-submit-override">Authorize Override</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="riskHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-info">history</span> Risk Score Ledger
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <table class="table table-hover align-middle mb-0 m-0">
+                        <thead class="table-light text-muted small text-uppercase sticky-top">
+                            <tr>
+                                <th class="py-3 px-4">Timestamp</th>
+                                <th class="py-3">Tier Shift</th>
+                                <th class="py-3">Trigger / Justification</th>
+                                <th class="py-3 text-end px-4">Authorized By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="risk-history-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="inviteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -756,9 +866,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- COMPONENT: EXECUTIVE SAR REVIEW MODAL      -->
-    <!-- ========================================== -->
     <div class="modal fade" id="executiveReviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -797,9 +904,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- COMPONENT: UNASSIGNED ALERT PREVIEW MODAL  -->
-    <!-- ========================================== -->
     <div class="modal fade" id="alertPreviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -908,6 +1012,68 @@
         </div>
     </div>
 
+    <div class="modal fade" id="ruleBuilderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <div>
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                            <span class="material-symbols-outlined text-danger">account_tree</span> AML Rule Builder
+                        </h5>
+                        <p class="mb-0 small text-white-50">Design custom monitoring logic without code.</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <form id="rule-builder-form">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-dark uppercase">Rule Name</label>
+                                <input type="text" class="form-control" id="rule-name" placeholder="e.g., Large Single Transaction" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Target Entity</label>
+                                <select class="form-select" id="rule-entity" required>
+                                    <option value="TRANSACTION">Transaction (Real-time)</option>
+                                    <option value="CUSTOMER">Customer Profile (Batch)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Condition Logic</label>
+                                <select class="form-select" id="rule-condition" required>
+                                    <option value="AMOUNT_ABOVE">Amount is strictly greater than</option>
+                                    <option value="VELOCITY_COUNT">Frequency count exceeds</option>
+                                    <option value="STRUCTURING_PATTERN">Structuring / Smurfing pattern</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Threshold Value (Numeric)</label>
+                                <input type="number" class="form-control" id="rule-threshold" placeholder="5000000" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark uppercase">Time Window (Hours)</label>
+                                <input type="number" class="form-control" id="rule-window" placeholder="24" value="24" required>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-danger bg-opacity-10 border border-danger rounded mb-4">
+                            <label class="form-label small fw-bold text-danger uppercase mb-1">System Action</label>
+                            <select class="form-select border-danger" id="rule-action" required>
+                                <option value="GENERATE_ALERT">Generate CRITICAL Alert for Triage</option>
+                                <option value="AUTO_FREEZE">Auto-Freeze Account Immediately</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger fw-bold px-4" id="btn-save-rule">Deploy Rule to Engine</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="offcanvas offcanvas-end shadow" tabindex="-1" id="customer360Panel" style="width: 550px; border-left: 1px solid #e2e8f0;">
         <div class="offcanvas-header bg-light border-bottom">
             <div>
@@ -921,8 +1087,14 @@
             <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
                 <div>
                     <p class="text-muted uppercase small fw-bold mb-1">Current Risk Tier</p>
-                    <div id="panel-risk-badge">
-                        <span class="badge bg-secondary">Unknown</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div id="panel-risk-badge"><span class="badge bg-secondary">Unknown</span></div>
+                        <button class="btn btn-sm btn-light border p-1 d-flex align-items-center" onclick="openRiskOverrideModal()" title="Force Override">
+                            <span class="material-symbols-outlined fs-6 text-danger">edit</span>
+                        </button>
+                        <button class="btn btn-sm btn-light border p-1 d-flex align-items-center" onclick="viewRiskHistory()" title="View Ledger">
+                            <span class="material-symbols-outlined fs-6 text-info">history</span>
+                        </button>
                     </div>
                 </div>
                 <div class="text-end">
@@ -993,19 +1165,20 @@
                     <button id="btn-manual-sar" class="btn btn-danger w-100 fw-bold uppercase mt-2">File Suspicious Activity Report (SAR)</button>
                 </div>
             </div>
+        </div>
     </div>
       
     <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
-    <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body fw-medium font-inter">
-                <span class="material-symbols-outlined align-middle fs-5 me-2">check_circle</span>
-                <span id="toastMessage">User invitation sent successfully!</span>
+        <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium font-inter">
+                    <span class="material-symbols-outlined align-middle fs-5 me-2">check_circle</span>
+                    <span id="toastMessage">Success!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1021,21 +1194,15 @@
                 return;
             }
 
-            // 2. Extract JWT Metadata (THE FIX)
-            // We must explicitly decode the raw access token string to see the custom hook data
+            // 2. Extract JWT Metadata
             const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
             console.log("🚨 DECODED JWT PAYLOAD:", jwtPayload);
 
-            const userRole = jwtPayload.app_metadata?.role;
-            const tenantId = jwtPayload.app_metadata?.tenant_id;
+            const userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+            const tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
 
-            // Check if it's missing OR if it caught our diagnostic error
             if (!userRole || !tenantId || userRole === 'DEBUG_PROFILE_NOT_FOUND') {
-                console.error("Tenancy Context Failed. Check the Console.");
-                
-                // I have commented out the kick-out so we can read the console if it fails
-                // await supabase.auth.signOut();
-                // window.location.replace('index.html');
+                console.error("Tenancy Context Failed.");
                 return;
             }
 
@@ -1052,6 +1219,7 @@
                 document.getElementById('nav-system-config').classList.remove('d-none');
                 document.getElementById('nav-team-management').classList.remove('d-none'); 
                 document.getElementById('nav-audit-logs').classList.remove('d-none');
+                document.getElementById('nav-report-archive').classList.remove('d-none');
                 
                 document.getElementById('view-head-compliance').classList.remove('d-none');
                 document.getElementById('view-compliance-officer').classList.add('d-none');
@@ -1100,6 +1268,21 @@
             switchView('case-management', e.currentTarget);
         });
 
+        document.getElementById('nav-system-config')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('system-config', e.currentTarget);
+        });
+
+        document.getElementById('nav-report-archive')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('report-archive', e.currentTarget);
+        });
+
+        document.getElementById('nav-audit-logs')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('audit-logs', e.currentTarget);
+        });
+
         function switchView(viewName, activeElement) {
             // 1. Reset nav links
             document.querySelectorAll('.nav-link-item').forEach(el => {
@@ -1117,8 +1300,11 @@
             document.getElementById('view-bank-manager').classList.add('d-none');
             document.getElementById('view-kyc-directory').classList.add('d-none');
             document.getElementById('view-case-management').classList.add('d-none');
+            document.getElementById('view-report-archive').classList.add('d-none');
             document.getElementById('live-stream-section')?.classList.add('d-none'); 
-            document.getElementById('component-escalation-queue')?.classList.add('d-none'); // Force hide the rogue queue
+            document.getElementById('view-system-config').classList.add('d-none');
+            document.getElementById('view-audit-logs').classList.add('d-none');
+            document.getElementById('component-escalation-queue')?.classList.add('d-none');
 
             // 3. Show requested view
             const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
@@ -1129,9 +1315,17 @@
                 loadKYCDirectory();
             } else if (viewName === 'case-management') {
                 document.getElementById('view-case-management').classList.remove('d-none');
-                // Only show the SAR queue if they are an executive
                 if (isExecutive) document.getElementById('component-escalation-queue')?.classList.remove('d-none');
                 loadCaseManagement();
+            } else if (viewName === 'report-archive') {
+                document.getElementById('view-report-archive').classList.remove('d-none');
+                loadReportArchive();
+            } else if (viewName === 'system-config') {
+                document.getElementById('view-system-config').classList.remove('d-none');
+                loadActiveRules();
+            } else if (viewName === 'audit-logs') {
+                document.getElementById('view-audit-logs').classList.remove('d-none');
+                loadAuditLogs();
             } else {
                 // Default: Command Center
                 document.getElementById('live-stream-section')?.classList.remove('d-none');
@@ -1147,7 +1341,7 @@
             }
         }
 
-        // --- NEW: Invite User Logic ---
+        // --- Invite User Logic ---
         document.getElementById('invite-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById('invite-submit-btn');
@@ -1157,12 +1351,10 @@
             const email = document.getElementById('invite-email').value;
             const role = document.getElementById('role-select').value;
 
-            // Grab the current user's JWT to extract the tenantId they belong to
             const { data: { session } } = await supabase.auth.getSession();
             const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
             const tenantId = jwtPayload.app_metadata.tenant_id;
 
-            // Call the secure backend Edge Function
             const { data, error } = await supabase.functions.invoke('invite-user', {
                 body: { email: email, role: role, tenantId: tenantId }
             });
@@ -1170,13 +1362,8 @@
             if (error) {
                 alert(`Error: ${error.message}`);
             } else {
-                // 1. Grab the Toast element from the DOM
                 const toastElement = document.getElementById('successToast');
-
-                // 2. Optional: Dynamically update the message if you want to include the specific email
                 document.getElementById('toastMessage').innerText = `Invitation sent to ${email}`;
-
-                // 3. Initialize and show the Bootstrap Toast (it will auto-hide after 3 seconds)
                 const successToast = new bootstrap.Toast(toastElement, { delay: 3000 });
                 successToast.show();
             }
@@ -1185,40 +1372,49 @@
             submitBtn.disabled = false;
         });
 
-        // --- Head of Compliance Escalation Queue ---
+        // --- Head of Compliance Escalation Queue (TAML-98) ---
         async function loadEscalationQueue() {
             try {
                 const tbody = document.getElementById('escalation-queue-body');
                 if (!tbody) return;
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Fetching escalated cases...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Fetching STR drafts...</td></tr>';
 
-                // Fetch strictly ESCALATED cases
-                const { data: cases, error } = await supabase
-                    .from('alerts')
-                    .select('id, alert_ref, rule_triggered, severity, status, details, customers(entity_name)')
-                    .eq('status', 'ESCALATED')
+                const { data: strs, error } = await supabase
+                    .from('suspicious_transaction_reports')
+                    .select(`
+                        id, status, investigator_notes, report_data, created_at,
+                        alerts ( alert_ref, rule_triggered, customers ( entity_name, first_name, last_name ) )
+                    `)
+                    .eq('status', 'PENDING_APPROVAL')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
                 tbody.innerHTML = '';
 
-                if (cases.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No cases pending executive approval.</td></tr>';
+                if (strs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No STRs pending executive approval.</td></tr>';
                     return;
                 }
 
-                cases.forEach(c => {
+                strs.forEach(str => {
                     const row = document.createElement('tr');
+                    const alert = str.alerts || {};
+                    const cust = alert.customers || {};
                     
-                    let noteSnippet = c.details ? (c.details.length > 40 ? c.details.substring(0, 40) + '...' : c.details) : 'No notes provided.';
+                    const alertRef = alert.alert_ref || 'UNKNOWN';
+                    const rule = alert.rule_triggered || 'Unknown Rule';
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
+                    
+                    let noteSnippet = str.investigator_notes ? (str.investigator_notes.length > 40 ? str.investigator_notes.substring(0, 40) + '...' : str.investigator_notes) : 'No notes provided.';
+                    const encodedData = encodeURIComponent(JSON.stringify(str.report_data || {}));
 
                     row.innerHTML = `
-                        <td class="px-4 py-3 fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</td>
-                        <td class="py-3 text-muted small">${c.customers?.entity_name || 'Unknown'}</td>
-                        <td class="py-3 text-muted small">${c.rule_triggered}</td>
+                        <td class="px-4 py-3 fw-bold text-dark small">${alertRef.replace('ALT', 'STR')}</td>
+                        <td class="py-3 text-muted small">${entityName}</td>
+                        <td class="py-3 text-muted small">${rule}</td>
                         <td class="py-3 text-muted small fst-italic">"${noteSnippet}"</td>
                         <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-danger fw-bold uppercase" onclick="openExecutiveReview('${c.id}', '${c.alert_ref.replace('ALT', 'CASE')}', \`${c.details || 'No notes provided.'}\`)" style="font-size: 0.7rem;">Review Case</button>
+                            <button class="btn btn-sm btn-danger fw-bold uppercase" onclick="openExecutiveReview('${str.id}', '${alertRef}', \`${str.investigator_notes || 'No notes.'}\`, '${encodedData}')" style="font-size: 0.7rem;">Review STR</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -1229,19 +1425,25 @@
         }
 
         // --- Executive Review Logic ---
-        window.openExecutiveReview = (alertId, alertRef, frontlineNotes) => {
-            document.getElementById('exec-alert-id').value = alertId;
-            document.getElementById('exec-modal-ref').innerText = `Case Ref: ${alertRef}`;
-            document.getElementById('exec-frontline-notes').innerText = frontlineNotes;
+        window.openExecutiveReview = (strId, alertRef, frontlineNotes, encodedData) => {
+            document.getElementById('exec-alert-id').value = strId; 
+            document.getElementById('exec-modal-ref').innerText = `STR Ref: ${alertRef.replace('ALT', 'STR')}`;
             
-            const modalElement = document.getElementById('executiveReviewModal');
-            new bootstrap.Modal(modalElement).show();
+            const reportData = JSON.parse(decodeURIComponent(encodedData));
+            const formattedData = JSON.stringify(reportData, null, 2);
+
+            document.getElementById('exec-frontline-notes').innerHTML = `
+                <strong>Investigator Notes:</strong><br>${frontlineNotes}<br><br>
+                <strong class="text-danger">Automated System Snapshot:</strong><br>
+                <pre class="bg-dark text-success p-2 mt-2 rounded border border-secondary" style="font-size: 0.65rem;">${formattedData}</pre>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('executiveReviewModal')).show();
         };
 
-        // Handle Approval / Rejection
         document.getElementById('exec-resolution-form')?.addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            processExecutiveDecision('CLOSED'); // <-- Updated to match DB constraints
+            processExecutiveDecision('APPROVED'); 
         });
 
         document.getElementById('btn-reject-sar')?.addEventListener('click', () => {
@@ -1249,45 +1451,56 @@
                 alert("Please provide a justification for rejection.");
                 return;
             }
-            processExecutiveDecision('INVESTIGATING'); // Sends it back to the officer
+            processExecutiveDecision('REJECTED'); 
         });
 
         async function processExecutiveDecision(newStatus) {
+            const submitBtn = document.getElementById('btn-approve-sar');
+            const rejectBtn = document.getElementById('btn-reject-sar');
+            submitBtn.disabled = true; rejectBtn.disabled = true;
+
             try {
-                const alertId = document.getElementById('exec-alert-id').value;
+                const strId = document.getElementById('exec-alert-id').value; 
                 const execNotes = document.getElementById('exec-notes').value;
-                const previousNotes = document.getElementById('exec-frontline-notes').innerText;
-                
-                // Append executive notes to the existing dossier
-                const combinedNotes = `${previousNotes}\n\n[EXECUTIVE REVIEW]: ${execNotes}`;
+                const { data: { user } } = await supabase.auth.getUser();
 
-                const { error } = await supabase
-                    .from('alerts')
-                    .update({ status: newStatus, details: combinedNotes })
-                    .eq('id', alertId);
+                const { error: strError } = await supabase
+                    .from('suspicious_transaction_reports')
+                    .update({ 
+                        status: newStatus, 
+                        executive_justification: execNotes,
+                        reviewed_by: user.id,
+                        locked_at: newStatus === 'APPROVED' ? new Date().toISOString() : null
+                    })
+                    .eq('id', strId);
 
-                if (error) throw error;
+                if (strError) throw strError;
 
-                // Log audit event
                 await supabase.from('system_events').insert([{
                     event_type: 'EXECUTIVE_REVIEW',
-                    severity: newStatus === 'INVESTIGATING' ? 'WARNING' : 'INFO',
-                    message: `Head of Compliance ${newStatus === 'INVESTIGATING' ? 'rejected' : 'approved'} SAR.`,
-                    metadata: { alert_id: alertId, outcome: newStatus }
+                    severity: newStatus === 'REJECTED' ? 'WARNING' : 'INFO',
+                    message: `Head of Compliance ${newStatus.toLowerCase()} the automated STR.`,
+                    metadata: { str_id: strId, outcome: newStatus }
                 }]);
 
                 bootstrap.Modal.getInstance(document.getElementById('executiveReviewModal')).hide();
                 document.getElementById('exec-resolution-form').reset();
-                loadEscalationQueue(); // Refresh queue
-                renderComplianceCharts(); // Refresh charts
                 
+                loadEscalationQueue(); 
+                renderComplianceCharts(); 
+                
+                document.getElementById('toastMessage').innerText = `STR successfully ${newStatus.toLowerCase()}.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
             } catch (err) {
                 console.error("Error processing executive decision:", err);
-                alert("Failed to process decision.");
+                alert("Failed to process decision. Check console.");
+            } finally {
+                submitBtn.disabled = false; rejectBtn.disabled = false;
             }
         }
 
-        // --- 1. HEAD OF COMPLIANCE ENGINE (Fully Dynamic) ---
+        // --- HEAD OF COMPLIANCE ENGINE ---
         async function renderComplianceCharts() {
             try {
                 const { data: alerts, error } = await supabase.from('alerts').select('status, severity, rule_triggered, created_at, assigned_user_id').order('created_at', { ascending: true });
@@ -1299,7 +1512,7 @@
                 let statusCounts = { unassigned: 0, investigation: 0, escalated: 0 };
                 let rulesMap = {};
                 let dateMap = {};
-                let workloadMap = {}; // New dynamic workload tracker
+                let workloadMap = {}; 
 
                 alerts.forEach(alert => {
                     if (alert.status === 'UNASSIGNED') statusCounts.unassigned++;
@@ -1315,7 +1528,6 @@
                     if (!dateMap[dateStr]) dateMap[dateStr] = 0;
                     dateMap[dateStr]++;
 
-                    // Track Workload
                     if (alert.status === 'INVESTIGATING') {
                         let assignee = alert.assigned_user_id ? `Officer ${alert.assigned_user_id.substring(0,4)}` : 'Unassigned';
                         if (!workloadMap[assignee]) workloadMap[assignee] = 0;
@@ -1323,7 +1535,6 @@
                     }
                 });
 
-                // Inject Math into KPI Cards
                 const totalAlerts = alerts.length;
                 const totalCases = statusCounts.investigation + statusCounts.escalated;
                 const conversionRate = totalAlerts > 0 ? ((totalCases / totalAlerts) * 100).toFixed(1) : 0;
@@ -1335,7 +1546,6 @@
                 const sarEl = document.getElementById('kpi-sar-rate');
                 if (sarEl) sarEl.innerText = `${sarRate}%`;
 
-                // Case Status Chart
                 const statusCtx = document.getElementById('caseStatusChart');
                 if (Chart.getChart(statusCtx)) Chart.getChart(statusCtx).destroy(); 
                 new Chart(statusCtx.getContext('2d'), {
@@ -1350,7 +1560,6 @@
                     options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
                 });
 
-                // Alert Trend Chart
                 const trendCtx = document.getElementById('alertTrendChart');
                 if (Chart.getChart(trendCtx)) Chart.getChart(trendCtx).destroy();
                 new Chart(trendCtx.getContext('2d'), {
@@ -1365,7 +1574,6 @@
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // Dynamic Workload Chart
                 const workloadCtx = document.getElementById('workloadChart');
                 if (workloadCtx) {
                     if (Chart.getChart(workloadCtx)) Chart.getChart(workloadCtx).destroy();
@@ -1383,7 +1591,6 @@
                     });
                 }
 
-                // Rule Performance Table
                 const tbody = document.getElementById('rule-performance-body');
                 if (tbody) {
                     tbody.innerHTML = '';
@@ -1405,7 +1612,7 @@
             } catch (err) { console.error("Error loading Compliance charts:", err); }
         }
 
-        // --- Live Transaction Stream Engine (UPGRADED NAMES) ---
+        // --- Live Transaction Stream Engine ---
         async function loadLiveTransactions() {
             try {
                 const tbody = document.getElementById('transaction-feed');
@@ -1417,9 +1624,7 @@
                     .from('transactions')
                     .select(`
                         id, amount, transaction_type, transaction_timestamp, transaction_reference,
-                        accounts (
-                            customers ( entity_name, first_name, last_name )
-                        )
+                        accounts ( customers ( entity_name, first_name, last_name ) )
                     `)
                     .order('transaction_timestamp', { ascending: false })
                     .limit(5);
@@ -1438,7 +1643,6 @@
                     const timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(tx.amount);
 
-                    // NEW FALLBACK LOGIC
                     const cust = tx.accounts?.customers || {};
                     const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
 
@@ -1466,7 +1670,7 @@
             }
         }
 
-        // --- Case Management Engine (UPGRADED NAMES) ---
+        // --- TAML-66: Case Management Engine (UPGRADED WITH 14-DAY SLA TIMERS) ---
         async function loadCaseManagement() {
             try {
                 const tbody = document.getElementById('case-management-body');
@@ -1476,8 +1680,7 @@
                 const { data: cases, error } = await supabase
                     .from('alerts')
                     .select(`
-                        id, alert_ref, rule_triggered, severity, status, details, created_at,
-                        customer_id, 
+                        id, alert_ref, rule_triggered, severity, status, details, created_at, customer_id, 
                         customers ( entity_name, first_name, last_name )
                     `)
                     .neq('status', 'UNASSIGNED')
@@ -1491,17 +1694,38 @@
                     return;
                 }
 
+                const now = new Date(); // Current time for SLA math
+
                 cases.forEach(c => {
                     const row = document.createElement('tr');
-                    let statusBadge = c.status === 'ESCALATED' ? 'bg-warning text-dark' : 'bg-dark text-white';
+                    let statusBadge = c.status === 'ESCALATED' ? 'bg-warning text-dark' : (c.status === 'CLOSED' ? 'bg-success' : 'bg-dark text-white');
                     let noteSnippet = c.details ? (c.details.length > 40 ? c.details.substring(0, 40) + '...' : c.details) : 'No notes provided.';
 
-                    // NEW FALLBACK LOGIC
                     const cust = c.customers || {};
                     const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
 
+                    // --- 14-DAY CASE SLA MATH ---
+                    const dateObj = new Date(c.created_at);
+                    const hoursElapsed = (now - dateObj) / 36e5;
+                    let slaHtml = '';
+
+                    // Only track SLA if the case is still actively under investigation
+                    if (c.status !== 'CLOSED') {
+                        if (hoursElapsed > 336) { // 14 Days = 336 hours
+                            slaHtml = `<br><span class="badge bg-danger bg-opacity-10 text-danger border border-danger mt-1" style="font-size: 0.6rem;"><span class="material-symbols-outlined align-middle" style="font-size: 10px;">error</span> OVERDUE (14+ DAYS)</span>`;
+                        } else {
+                            const daysLeft = Math.max(0, 14 - Math.floor(hoursElapsed / 24));
+                            slaHtml = `<br><span class="badge bg-success bg-opacity-10 text-success border border-success mt-1" style="font-size: 0.6rem;">${daysLeft} DAYS LEFT</span>`;
+                        }
+                    } else {
+                        slaHtml = `<br><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary mt-1" style="font-size: 0.6rem;">RESOLVED</span>`;
+                    }
+
                     row.innerHTML = `
-                        <td class="px-4 py-3 fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</td>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark small">${c.alert_ref.replace('ALT', 'CASE')}</div>
+                            ${slaHtml}
+                        </td>
                         <td class="py-3 text-muted small">${entityName}</td>
                         <td class="py-3 text-muted small">${c.rule_triggered}</td>
                         <td class="py-3"><span class="badge ${statusBadge}">${c.status}</span></td>
@@ -1517,7 +1741,135 @@
             }
         }
 
-        // --- 2. BANK MANAGER ENGINE (Fully Dynamic) ---
+        // --- IMMUTABLE VAULT LOGIC ---
+        window.loadReportArchive = async () => {
+            try {
+                const tbody = document.getElementById('archive-table-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Decrypting vault ledger...</td></tr>';
+
+                const { data: archives, error } = await supabase
+                    .from('report_archives')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (archives.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted fw-bold">Vault is currently empty.</td></tr>';
+                    return;
+                }
+
+                archives.forEach(arch => {
+                    const row = document.createElement('tr');
+                    const createdDate = new Date(arch.created_at).toLocaleString();
+                    const expiryDate = new Date(arch.retention_expires_at).toLocaleDateString();
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-muted small">${createdDate}</td>
+                        <td class="py-3 fw-bold text-dark small">${arch.report_type.replace('_', ' ')}</td>
+                        <td class="py-3 text-muted small font-monospace">${arch.file_name}</td>
+                        <td class="py-3 text-muted small">Officer ${arch.generated_by.substring(0, 8)}</td>
+                        <td class="py-3">
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning small">
+                                <span class="material-symbols-outlined fs-6 align-middle me-1">lock_clock</span>${expiryDate}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-dark fw-bold uppercase d-flex align-items-center gap-1 ms-auto" onclick="downloadVaultedReport('${arch.storage_path}', '${arch.file_name}')" style="font-size: 0.7rem;">
+                                <span class="material-symbols-outlined fs-6">lock_open</span> Retrieve
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Vault Fetch Error:", err);
+                alert("Failed to access archive ledger.");
+            }
+        };
+
+        window.downloadVaultedReport = async (path, filename) => {
+            try {
+                document.getElementById('toastMessage').innerText = `Retrieving encrypted document...`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                const { data, error } = await supabase.storage.from('compliance_archives').download(path);
+                if (error) throw error;
+
+                const url = window.URL.createObjectURL(data);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                await supabase.from('system_events').insert([{
+                    event_type: 'ARCHIVE_RETRIEVED',
+                    severity: 'WARNING',
+                    message: `Executive decrypted and retrieved vaulted report: ${filename}`,
+                    metadata: { file: filename }
+                }]);
+
+            } catch (err) {
+                console.error("Download Error:", err);
+                alert("Failed to decrypt and retrieve file from Storage Bucket.");
+            }
+        };
+
+        // --- IMMUTABLE AUDIT TRAIL ENGINE ---
+        window.loadAuditLogs = async () => {
+            try {
+                const tbody = document.getElementById('audit-logs-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Fetching immutable logs...</td></tr>';
+
+                const { data: logs, error } = await supabase
+                    .from('system_events')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted fw-bold">No audit logs recorded yet.</td></tr>';
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    const timeStr = new Date(log.created_at).toLocaleString();
+                    
+                    let badgeClass = 'bg-primary';
+                    if (log.severity === 'CRITICAL') badgeClass = 'bg-danger';
+                    else if (log.severity === 'WARNING') badgeClass = 'bg-warning text-dark';
+
+                    const metaString = log.metadata ? JSON.stringify(log.metadata) : '{}';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-muted small text-nowrap">${timeStr}</td>
+                        <td class="py-3 fw-bold text-dark small">${log.event_type.replace(/_/g, ' ')}</td>
+                        <td class="py-3"><span class="badge ${badgeClass} bg-opacity-10 border border-opacity-25 px-2 py-1">${log.severity}</span></td>
+                        <td class="py-3 text-muted small">${log.message}</td>
+                        <td class="py-3 text-muted font-monospace" style="font-size: 0.65rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${metaString}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading audit logs:", err);
+                alert("Failed to load audit ledger.");
+            }
+        };
+
+        // --- BANK MANAGER ENGINE ---
         async function renderManagerCharts() {
             try {
                 const { data: customers, error } = await supabase.from('customers').select('risk_tier, industry');
@@ -1537,19 +1889,16 @@
                     else indMap[ind].low++;
                 });
 
-                // Calculate Compliance Health Score
                 const health = customers.length > 0 ? Math.max(0, 100 - Math.round((tierCounts.high / customers.length) * 100)) : 100;
                 document.getElementById('kpi-comp-health').innerText = `${health}%`;
                 document.getElementById('kpi-high-risk').innerText = tierCounts.high;
 
-                // Fetch Alert data to populate Branch Cases & SARs
                 const { data: alerts } = await supabase.from('alerts').select('status');
                 if (alerts) {
                     document.getElementById('kpi-open-cases').innerText = alerts.filter(a => a.status === 'INVESTIGATING').length;
                     document.getElementById('kpi-sars-filed').innerText = alerts.filter(a => a.status === 'ESCALATED' || a.status === 'CLOSED').length;
                 }
 
-                // Risk Tier Chart
                 const tierCtx = document.getElementById('riskTierChart').getContext('2d');
                 if (Chart.getChart(tierCtx)) Chart.getChart(tierCtx).destroy();
                 new Chart(tierCtx, {
@@ -1564,7 +1913,6 @@
                     options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
                 });
 
-                // Dynamic Industry Stacked Chart
                 const indCtx = document.getElementById('industryRiskChart').getContext('2d');
                 if (Chart.getChart(indCtx)) Chart.getChart(indCtx).destroy();
                 const indLabels = Object.keys(indMap);
@@ -1582,7 +1930,7 @@
             } catch (err) { console.error("Error loading Manager charts:", err); }
         }
 
-        // --- Alerts Queue Engine (UPGRADED WITH FILTERING & NAMES) ---
+        // --- TAML-66: Alerts Queue Engine (UPGRADED WITH SLA TIMERS) ---
         async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
             try {
                 const tbody = document.getElementById('alerts-table-body');
@@ -1590,7 +1938,6 @@
 
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Fetching ${filterStatus.toLowerCase()} alerts...</td></tr>`;
 
-                // Fetch alerts strictly matching the requested status (NOW WITH ALL NAMES)
                 const { data: alerts, error } = await supabase
                     .from('alerts')
                     .select(`
@@ -1609,12 +1956,29 @@
                     return;
                 }
 
+                // Get current time once for SLA math
+                const now = new Date();
+
                 alerts.forEach(alert => {
                     const row = document.createElement('tr');
                     
                     const dateObj = new Date(alert.created_at);
                     const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
+                    // --- SLA TIMER MATH ---
+                    // Calculate difference in hours (milliseconds / 1000 / 60 / 60)
+                    const hoursElapsed = (now - dateObj) / 36e5; 
+                    let slaHtml = '';
+
+                    if (hoursElapsed > 48) {
+                        slaHtml = `<div class="text-danger fw-bold mt-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"><span class="material-symbols-outlined align-middle" style="font-size: 14px;">error</span> SLA BREACHED</div>`;
+                    } else if (hoursElapsed > 24) {
+                        slaHtml = `<div class="text-warning fw-bold mt-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"><span class="material-symbols-outlined align-middle" style="font-size: 14px;">warning</span> 24H WARNING</div>`;
+                    } else {
+                        slaHtml = `<div class="text-success fw-bold mt-1" style="font-size: 0.65rem; letter-spacing: 0.5px;"><span class="material-symbols-outlined align-middle" style="font-size: 14px;">check_circle</span> ON TRACK</div>`;
+                    }
+
+                    // Severity Badge Styling
                     let badgeClass = 'bg-secondary bg-opacity-10 text-secondary border-secondary'; 
                     if (alert.severity === 'CRITICAL') badgeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
                     if (alert.severity === 'HIGH') badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
@@ -1622,7 +1986,6 @@
                     const isUnassigned = filterStatus === 'UNASSIGNED';
                     const btnText = isUnassigned ? 'Review Case' : 'Resume Case';
                     
-                    // NEW FALLBACK LOGIC
                     const cust = alert.customers || {};
                     const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
                     
@@ -1635,11 +1998,12 @@
                         <td class="py-3 text-muted small">${entityName}</td>
                         <td class="py-3 text-muted small">${alert.rule_triggered}</td>
                         <td class="py-3">
-                            <span class="badge ${badgeClass} border border-opacity-25 rounded-pill px-2 py-1">
-                                ${alert.severity}
-                            </span>
+                            <span class="badge ${badgeClass} border border-opacity-25 rounded-pill px-2 py-1">${alert.severity}</span>
                         </td>
-                        <td class="py-3 text-muted small text-nowrap">${formattedDate}</td>
+                        <td class="py-3 text-muted small text-nowrap">
+                            ${formattedDate}
+                            ${slaHtml}
+                        </td>
                         <td class="px-4 py-3 text-end">
                             <button class="btn btn-sm btn-outline-primary fw-bold text-uppercase" onclick="${clickAction}" style="font-size: 0.7rem;">${btnText}</button>
                         </td>
@@ -1654,7 +2018,7 @@
             }
         }
 
-        // --- 3. COMPLIANCE OFFICER KPI ENGINE ---
+        // --- COMPLIANCE OFFICER KPI ENGINE ---
         async function renderOfficerKPIs(userId) {
             try {
                 const { data: alerts } = await supabase.from('alerts').select('status, severity, assigned_user_id, created_at');
@@ -1683,14 +2047,12 @@
             } catch (err) { console.error("Error loading Officer KPIs:", err); }
         }
 
-        // --- 4. DYNAMIC RECENT ACTIVITY FEED ---
+        // --- DYNAMIC RECENT ACTIVITY FEED ---
         async function renderActivityFeed() {
             try {
-                // Target all hardcoded feeds in the DOM
                 const feedContainers = document.querySelectorAll('.position-relative.border-start.ms-3');
                 if (feedContainers.length === 0) return;
 
-                // Pull the 3 most recent system audit logs
                 const { data: events } = await supabase.from('system_events').select('*').order('created_at', { ascending: false }).limit(3);
                 if (!events || events.length === 0) return;
 
@@ -1712,11 +2074,8 @@
         }
 
         // --- REALISTIC IDENTITY VERIFICATION ENGINE ---
-
-        // 1. Open the UI and load the bank's internal profile
         window.openKYCVerification = async (customerId) => {
             try {
-                // Fetch the existing unverified profile
                 const { data: customer, error } = await supabase
                     .from('customers')
                     .select('*')
@@ -1725,20 +2084,17 @@
 
                 if (error) throw error;
 
-                // Reset the UI states
                 document.getElementById('kyc-step-1').classList.remove('d-none');
                 document.getElementById('kyc-step-loading').classList.add('d-none');
                 document.getElementById('kyc-step-results').classList.add('d-none');
                 document.getElementById('kyc-id-number').value = '';
 
-                // Populate Left Side (Bank Data)
                 const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
                 document.getElementById('kyc-bank-name').innerText = entityName;
                 document.getElementById('kyc-bank-type').innerText = customer.customer_type || 'Individual';
                 document.getElementById('kyc-bank-industry').innerText = customer.industry || 'Uncategorized';
                 document.getElementById('kyc-customer-id').value = customer.id;
 
-                // Auto-select the correct endpoint for the demo
                 if (customer.customer_type === 'Corporate') {
                     document.getElementById('kyc-endpoint').value = 'CAC';
                     document.getElementById('kyc-id-number').placeholder = 'Enter RC Number (e.g. RC-10293)';
@@ -1747,7 +2103,6 @@
                     document.getElementById('kyc-id-number').placeholder = 'Enter 11-digit BVN...';
                 }
 
-                // Show Modal
                 new bootstrap.Modal(document.getElementById('kycVerificationModal')).show();
 
             } catch (err) {
@@ -1756,12 +2111,10 @@
             }
         };
 
-        // 2. Trigger the Real API Ping
         document.getElementById('btn-run-api')?.addEventListener('click', async () => {
             const idNumber = document.getElementById('kyc-id-number').value;
             if (!idNumber) return alert("Please enter a valid Identification Number.");
 
-            // Transition to loading state
             document.getElementById('kyc-step-1').classList.add('d-none');
             document.getElementById('kyc-step-loading').classList.remove('d-none');
 
@@ -1771,23 +2124,18 @@
             terminal.innerText = `Establishing secure TLS tunnel to ${endpoint} gateway...`;
 
             try {
-                // CALL THE SECURE BACKEND EDGE FUNCTION
                 const { data, error } = await supabase.functions.invoke('verify-kyc', {
                     body: { idNumber: idNumber, endpointType: endpoint }
                 });
 
                 if (error) throw error;
 
-                // Move to Results UI
                 document.getElementById('kyc-step-loading').classList.add('d-none');
                 document.getElementById('kyc-step-results').classList.remove('d-none');
                 document.getElementById('kyc-step-results').classList.add('d-flex');
 
                 let apiData = data;
 
-                // 🚨 DEMO GOD MODE: Intercept Sandbox "Not Found" Errors 🚨
-                // If the sandbox fails to find the random number, we inject a perfect mock payload 
-                // so your presentation to the PO never stalls.
                 if (apiData.detail === "Not Found" || apiData.error || !apiData.first_name) {
                     console.warn("Sandbox API returned empty/Not Found. Injecting fallback demo payload.");
                     const bankName = document.getElementById('kyc-bank-name').innerText;
@@ -1804,30 +2152,24 @@
                     };
                 }
 
-                // Map the data (Real or Injected) to your UI
                 document.getElementById('api-res-name').innerText = `${apiData.first_name || ''} ${apiData.last_name || ''}`.toUpperCase();
                 document.getElementById('api-res-dob').innerText = apiData.date_of_birth || 'Not Provided';
                 document.getElementById('api-res-phone').innerText = apiData.phone_number || 'Not Provided';
                 
-                // Show a successful match score
                 document.getElementById('kyc-match-score').innerText = `98% CONFIDENCE MATCH`;
                 document.getElementById('kyc-match-score').className = "badge bg-success border border-success bg-opacity-10 text-success fs-6 px-3 py-2";
 
-                // Display the raw JSON response in the black terminal box
                 document.getElementById('api-raw-json').innerText = JSON.stringify(apiData, null, 2);
                 document.getElementById('api-raw-json').classList.replace('text-danger', 'text-success');
 
             } catch (err) {
                 console.error("API Gateway Failure:", err);
                 alert("Failed to reach the KYC Gateway. Please ensure your Edge Function is running.");
-                
-                // Revert UI on fatal network failure
                 document.getElementById('kyc-step-loading').classList.add('d-none');
                 document.getElementById('kyc-step-1').classList.remove('d-none');
             }
         });
 
-        // 4. Finalize & Approve
         document.getElementById('btn-kyc-approve')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
@@ -1837,7 +2179,6 @@
                 const customerId = document.getElementById('kyc-customer-id').value;
                 const endpoint = document.getElementById('kyc-endpoint').value;
 
-                // Update the Database
                 const { error } = await supabase
                     .from('customers')
                     .update({ kyc_status: 'COMPLETED' })
@@ -1845,7 +2186,6 @@
 
                 if (error) throw error;
 
-                // Log the system event for compliance auditing
                 await supabase.from('system_events').insert([{
                     event_type: 'KYC_VERIFIED',
                     severity: 'INFO',
@@ -1855,11 +2195,10 @@
 
                 bootstrap.Modal.getInstance(document.getElementById('kycVerificationModal')).hide();
                 
-                // Show Success
                 document.getElementById('toastMessage').innerText = `Identity verified successfully. Restrictions lifted.`;
                 new bootstrap.Toast(document.getElementById('successToast')).show();
 
-                loadKYCDirectory(); // Refresh UI to turn the badge green
+                loadKYCDirectory(); 
 
             } catch (err) {
                 console.error("KYC Save Error:", err);
@@ -1870,7 +2209,6 @@
             }
         });
 
-        // 5. Reject Mock Logic
         document.getElementById('btn-kyc-reject')?.addEventListener('click', () => {
             alert("Verification Rejected. Customer flagged for physical branch visit.");
             bootstrap.Modal.getInstance(document.getElementById('kycVerificationModal')).hide();
@@ -1880,16 +2218,16 @@
         document.getElementById('tab-unassigned')?.addEventListener('click', (e) => {
             e.currentTarget.classList.add('active');
             document.getElementById('tab-assigned').classList.remove('active');
-            loadAlertsQueue('UNASSIGNED'); // Fetch new alerts
+            loadAlertsQueue('UNASSIGNED');
         });
 
         document.getElementById('tab-assigned')?.addEventListener('click', (e) => {
             e.currentTarget.classList.add('active');
             document.getElementById('tab-unassigned').classList.remove('active');
-            loadAlertsQueue('INVESTIGATING'); // Fetch WIP cases
+            loadAlertsQueue('INVESTIGATING');
         });
 
-       // --- KYC Directory Engine (UPGRADED FALLBACKS & KYC STATUS) ---
+       // --- KYC Directory Engine ---
         async function loadKYCDirectory() {
             try {
                 const tbody = document.getElementById('kyc-directory-body');
@@ -1914,29 +2252,31 @@
                 customers.forEach(cust => {
                     const row = document.createElement('tr');
                     
-                    // Dynamic risk badge styling
                     let badgeClass = 'bg-success';
                     if (cust.risk_score >= 75) badgeClass = 'bg-danger';
                     else if (cust.risk_score >= 40) badgeClass = 'bg-warning text-dark';
 
-                    // KYC Status Logic
                     let kycBadge = 'bg-secondary';
                     if (cust.kyc_status === 'COMPLETED') kycBadge = 'bg-success';
                     else if (cust.kyc_status === 'PENDING') kycBadge = 'bg-warning text-dark';
                     
                     const kycAction = (cust.kyc_status !== 'COMPLETED') 
-                        ? `<button class="btn btn-sm btn-outline-info fw-bold" onclick="openKYCVerification('${cust.id}')">Verify ID</button>` 
-                        : `<span class="text-success small fw-bold">Verified</span>`;
+                        ? `<button class="btn btn-sm btn-outline-info fw-bold btn-view-profile" data-customer-id="${cust.id}">Verify ID</button>` 
+                        : `<button class="btn btn-sm btn-light border text-primary fw-bold uppercase btn-view-profile" data-customer-id="${cust.id}" style="font-size: 0.7rem;">View Profile</button>`;
 
-                    // PERFECT DATA FALLBACKS
-                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Customer');
+                    let entityName = cust.company_name || cust.entity_name;
+                    if (!entityName) {
+                        entityName = cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Customer';
+                    }
+
                     const industry = cust.industry || (cust.customer_type === 'Individual' ? 'Retail / Personal' : 'Uncategorized');
                     const geography = cust.geography || 'NG (Domestic)';
+                    const idDisplay = cust.registration_number ? `RC: ${cust.registration_number}` : `ID: ${cust.id.split('-')[0]}`;
 
                     row.innerHTML = `
                         <td class="px-4 py-3">
                             <div class="fw-bold text-dark small">${entityName}</div>
-                            <div class="text-muted" style="font-size: 0.7rem;">ID: ${cust.id.split('-')[0]}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">${idDisplay}</div>
                         </td>
                         <td class="py-3"><span class="badge ${kycBadge}">${cust.kyc_status || 'NOT DONE'}</span></td>
                         <td class="py-3 fw-semibold small text-muted">${industry}</td>
@@ -1957,13 +2297,11 @@
             const icon = document.getElementById(`icon-${elementId}`);
             
             if (el.getAttribute('data-masked') === 'true') {
-                // Unmasking action (In a real app, this triggers a backend audit log)
                 el.innerText = rawValue;
                 el.setAttribute('data-masked', 'false');
                 icon.innerText = 'visibility_off';
                 icon.classList.replace('text-muted', 'text-danger');
             } else {
-                // Masking action
                 el.innerText = maskedValue;
                 el.setAttribute('data-masked', 'true');
                 icon.innerText = 'visibility';
@@ -1971,14 +2309,11 @@
             }
         };
 
-        // --- GLOBAL SEARCH ENGINE (CLIENT-SIDE FILTERING FOR ALL INPUTS) ---
+        // --- GLOBAL SEARCH ENGINE ---
         const searchInputs = document.querySelectorAll('input[placeholder*="Search"]');
-        
         searchInputs.forEach(input => {
             input.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase();
-                
-                // Determine which view is currently active to target the correct table
                 const activeView = document.querySelector('.nav-link-item.text-primary')?.id;
                 let tableBodyId = '';
 
@@ -1991,7 +2326,6 @@
                 const rows = document.querySelectorAll(`#${tableBodyId} tr`);
                 
                 rows.forEach(row => {
-                    // Skip 'Loading' placeholder rows
                     if (row.cells.length === 1) return; 
                     
                     const rowText = row.innerText.toLowerCase();
@@ -2004,16 +2338,14 @@
             });
         });
 
-        // --- Customer 360 Drill-Down Engine (BULLETPROOF VERSION) ---
+        // --- Customer 360 Drill-Down Engine ---
         window.loadCustomerProfile = async (customerId) => {
-            // 1. Safety Check: Prevent crash if alert data has no customer attached
             if (!customerId || customerId === 'null' || customerId === 'undefined') {
                 alert("System Notice: This case is not linked to a valid customer identity.");
                 return;
             }
 
             try {
-                // 2. Fetch customer using maybeSingle() to prevent PGRST116 crashes if record was deleted
                 const { data: customer, error: custError } = await supabase
                     .from('customers')
                     .select('*')
@@ -2021,14 +2353,13 @@
                     .maybeSingle(); 
 
                 if (custError) throw custError;
+                window.currentViewedCustomer = customer;
                 
-                // If Supabase returns no data (0 rows found), handle it gracefully
                 if (!customer) {
-                    alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted from the database.`);
+                    alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted.`);
                     return;
                 }
 
-                // 3. Count total alerts for this customer
                 const { count, error: countError } = await supabase
                     .from('alerts')
                     .select('*', { count: 'exact', head: true })
@@ -2036,7 +2367,6 @@
 
                 if (countError) throw countError;
 
-                // 4. Populate the Standard KYC UI (With Retail Fallbacks!)
                 const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
                 document.getElementById('panel-entity-name').innerText = entityName;
                 document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
@@ -2049,7 +2379,6 @@
                 document.getElementById('panel-geography').innerText = customer.geography || 'NG (Domestic)';
                 document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
 
-                // Realistic Fallbacks for missing database columns
                 const dateOnboarded = customer.created_at ? new Date(customer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '14 Jan 2025';
                 document.getElementById('panel-onboarded').innerText = dateOnboarded;
 
@@ -2059,20 +2388,16 @@
                 const generatedPhone = `080${Math.floor(10000000 + Math.random() * 90000000)}`;
                 document.getElementById('panel-phone').innerText = customer.phone || generatedPhone;
                 
-                // 5. Populate the Enhanced Due Diligence (EDD) UI with PII Masking
                 const uboName = customer.ubo_name || 'Not Disclosed';
                 
-                // Create masked version
                 let maskedUbo = '*** ***';
                 if (uboName !== 'Not Disclosed' && uboName.length > 3) {
                     maskedUbo = uboName.substring(0, 3) + '*** ' + (uboName.split(' ')[1] ? '***' : '');
                 }
 
-                // Global variables for the toggle function
                 window.currentRawUBO = uboName;
                 window.currentMaskedUBO = maskedUbo;
 
-                // Inject masked state initially
                 document.getElementById('panel-ubo').innerText = maskedUbo;
                 document.getElementById('panel-ubo').setAttribute('data-masked', 'true');
                 
@@ -2083,14 +2408,12 @@
                     uboIcon.classList.add('text-muted');
                 }
 
-                // IEI Logic Evaluation
                 if (customer.iei_exposure) {
                     document.getElementById('panel-iei').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">IEI DETECTED</span>';
                 } else {
                     document.getElementById('panel-iei').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
-                // PEP Status Simulation (Flags HIGH risk customers probabilistically)
                 const isPep = customer.pep_status === true || (customer.risk_tier === 'HIGH' && Math.random() > 0.6);
                 if (isPep) {
                     document.getElementById('panel-pep').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">PEP IDENTIFIED</span>';
@@ -2098,7 +2421,6 @@
                     document.getElementById('panel-pep').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
-                // Safe Sanctions Cross-Reference (Prevents crashes if watchlist table isn't built yet)
                 try {
                     const { data: sanctionMatch, error: sanctionError } = await supabase
                         .from('sanctions_watchlist')
@@ -2115,13 +2437,11 @@
                     document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
                 }
 
-               // Store the customer ID on the SAR button (with a safety check!)
                 const manualSarBtn = document.getElementById('btn-manual-sar');
                 if (manualSarBtn) {
                     manualSarBtn.setAttribute('data-customer-id', customerId);
                 }
 
-                // 6. Secure Bootstrap Instance Fetching (Prevents animation crashes)
                 const panelElement = document.getElementById('customer360Panel');
                 let bsOffcanvas = bootstrap.Offcanvas.getInstance(panelElement);
                 if (!bsOffcanvas) {
@@ -2131,11 +2451,11 @@
 
             } catch (err) {
                 console.error("CRITICAL ERROR in loadCustomerProfile:", err);
-                alert("Failed to load customer profile. Please check the Developer Console (F12).");
+                alert("Failed to load customer profile.");
             }
         };
 
-        // Attach event listener to the table body to catch profile button clicks (Event Delegation)
+        // Event Delegation for View Profile buttons
         document.getElementById('kyc-directory-body')?.addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-view-profile');
             if (btn) {
@@ -2156,7 +2476,6 @@
             btn.disabled = true;
 
             try {
-                // 1. Generate a "Manual" alert directly into the INVESTIGATING state
                 const alertRef = 'MNL-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                 
                 const { data: newAlert, error } = await supabase
@@ -2174,18 +2493,14 @@
 
                 if (error) throw error;
 
-                // 2. Hide the 360° side panel
                 const panelElement = document.getElementById('customer360Panel');
                 const offcanvasInstance = bootstrap.Offcanvas.getInstance(panelElement);
                 if (offcanvasInstance) offcanvasInstance.hide();
 
-                // 3. Populate and Open the SAR Filing Modal
                 document.getElementById('sar-alert-id').value = newAlert.id;
                 document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${newAlert.alert_ref}`;
                 
-                const modalElement = document.getElementById('sarFilingModal');
-                const bsModal = new bootstrap.Modal(modalElement);
-                bsModal.show();
+                new bootstrap.Modal(document.getElementById('sarFilingModal')).show();
 
             } catch (err) {
                 console.error("Error creating manual SAR:", err);
@@ -2197,22 +2512,16 @@
         });
 
         // --- Case Management Workflow Engine ---
-
-        // --- 1. The Read-Only Preview (No Database Update) ---
         window.previewUnassignedAlert = (alertId, alertRef, entityName, ruleTriggered) => {
-            // Populate the preview modal
             document.getElementById('preview-alert-id').value = alertId;
             document.getElementById('preview-alert-ref').value = alertRef;
             document.getElementById('preview-modal-ref').innerText = `Alert Ref: ${alertRef}`;
             document.getElementById('preview-entity').innerText = entityName;
             document.getElementById('preview-rule').innerText = ruleTriggered;
             
-            // Open the preview modal
-            const modalElement = document.getElementById('alertPreviewModal');
-            new bootstrap.Modal(modalElement).show();
+            new bootstrap.Modal(document.getElementById('alertPreviewModal')).show();
         };
 
-        // --- 2. The Explicit Claim & Lock Action (Updates Database) ---
         document.getElementById('btn-claim-alert')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;
@@ -2223,11 +2532,8 @@
             const alertRef = document.getElementById('preview-alert-ref').value;
 
             try {
-                // Get the current user's secure ID
                 const { data: { user } } = await supabase.auth.getUser();
 
-                // UPDATE DB: Change status and assign to user securely
-                // The .eq('status', 'UNASSIGNED') acts as a concurrency check!
                 const { data, error } = await supabase
                     .from('alerts')
                     .update({ 
@@ -2239,13 +2545,10 @@
                     .select();
 
                 if (error) throw error;
-                
-                // Concurrency catch: If data comes back empty, someone else claimed it a second before you
                 if (data.length === 0) {
                     throw new Error("Concurrency Error: Case already claimed by another officer.");
                 }
 
-                // LOG THE EVENT: Create an immutable audit trail receipt
                 await supabase.from('system_events').insert([{
                     event_type: 'CASE_CLAIMED',
                     severity: 'INFO',
@@ -2253,13 +2556,8 @@
                     metadata: { alert_id: alertId, assigned_to: user.id }
                 }]);
 
-                // Hide the preview modal
                 bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
-
-                // Automatically pop open the SAR Filing Modal so they can start working
                 window.resumeCase(alertId, alertRef);
-
-                // Refresh the queue in the background
                 loadAlertsQueue('UNASSIGNED');
 
             } catch (err) {
@@ -2276,7 +2574,6 @@
         window.performKYC = async (customerId) => {
             if (!confirm("Proceed with automated BVN/Identity verification?")) return;
             
-            // Update status in DB
             const { error } = await supabase
                 .from('customers')
                 .update({ kyc_status: 'COMPLETED' })
@@ -2286,78 +2583,105 @@
                 alert("Verification failed: " + error.message);
             } else {
                 alert("Verification Successful! Customer profile updated.");
-                loadKYCDirectory(); // Refresh the list
+                loadKYCDirectory(); 
             }
         };
 
-        // --- 3. Resume Existing Case ---
         window.resumeCase = (alertId, alertRef) => {
             document.getElementById('sar-alert-id').value = alertId;
             document.getElementById('sar-modal-ref').innerText = `Alert Ref: ${alertRef}`;
-            
-            const modalElement = document.getElementById('sarFilingModal');
-            new bootstrap.Modal(modalElement).show();
+            new bootstrap.Modal(document.getElementById('sarFilingModal')).show();
         };
 
-        // 2. Submit SAR and Close Case (INVESTIGATING -> ESCALATED/CLOSED)
         document.getElementById('sar-resolution-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const submitBtn = document.getElementById('btn-submit-sar');
             const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating STR...';
             submitBtn.disabled = true;
 
             try {
                 const alertId = document.getElementById('sar-alert-id').value;
                 const action = document.getElementById('sar-action').value;
+                const investigatorNotes = document.getElementById('sar-notes').value;
                 
-                // Determine final status based on the officer's action
                 const finalStatus = action === 'DISMISS' ? 'CLOSED' : 'ESCALATED';
 
-                // Update the alert in the database
-                const { error } = await supabase
+                if (action !== 'DISMISS') {
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    const { data: alertData } = await supabase
+                        .from('alerts')
+                        .select('*, customers(*)')
+                        .eq('id', alertId)
+                        .single();
+
+                    const reportBlob = {
+                        target_entity: alertData.customers?.entity_name || alertData.customers?.first_name || 'Unknown',
+                        risk_score: alertData.customers?.risk_score,
+                        rule_triggered: alertData.rule_triggered,
+                        system_evidence: alertData.details,
+                        recommended_action: action
+                    };
+
+                    const { error: strError } = await supabase
+                        .from('suspicious_transaction_reports')
+                        .insert([{
+                            alert_id: alertId,
+                            tenant_id: alertData.customers.tenant_id,
+                            generated_by: user.id,
+                            report_data: reportBlob,
+                            investigator_notes: investigatorNotes,
+                            status: 'PENDING_APPROVAL' 
+                        }]);
+
+                    if (strError) throw strError;
+
+                    if (action === 'FREEZE') {
+                        await supabase.from('customers').update({ kyc_status: 'FROZEN' }).eq('id', alertData.customer_id);
+                    }
+                }
+
+                const { error: alertError } = await supabase
                     .from('alerts')
                     .update({ 
                         status: finalStatus,
-                        details: document.getElementById('sar-notes').value 
+                        details: investigatorNotes 
                     })
                     .eq('id', alertId);
 
-                if (error) throw error;
+                if (alertError) throw alertError;
 
-                // Log the resolution in the system events audit trail
                 await supabase.from('system_events').insert([{
-                    event_type: 'CASE_RESOLVED',
+                    event_type: 'SAR_FILED',
                     severity: finalStatus === 'ESCALATED' ? 'CRITICAL' : 'INFO',
-                    message: `Officer filed SAR and marked Case as ${finalStatus}. Action: ${action}`,
+                    message: action === 'DISMISS' ? 'Officer dismissed alert.' : `Automated STR generated and queued for executive review. Action: ${action}`,
                     metadata: { alert_id: alertId, action: action }
                 }]);
 
-                // Hide Modal and refresh
                 bootstrap.Modal.getInstance(document.getElementById('sarFilingModal')).hide();
                 document.getElementById('sar-resolution-form').reset();
                 
-                // Show success toast
-                document.getElementById('toastMessage').innerText = `SAR filed successfully. Case ${finalStatus}.`;
+                document.getElementById('toastMessage').innerText = action === 'DISMISS' ? 'Alert dismissed.' : 'STR generated and submitted for review.';
                 new bootstrap.Toast(document.getElementById('successToast')).show();
 
                 loadAlertsQueue();
                 
             } catch (err) {
-                console.error("Error filing SAR:", err);
-                alert("Failed to submit report.");
+                console.error("Error generating STR:", err);
+                alert("Failed to submit report. Check console for details.");
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
         });
 
-        // --- NFIU SAR PDF GENERATOR ---
+        // --- ENTERPRISE NFIU SAR PDF GENERATOR & ARCHIVER ---
         document.getElementById('btn-download-sar-pdf')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Archiving & Generating...';
             btn.disabled = true;
 
             try {
@@ -2414,39 +2738,61 @@
                 doc.text("Signed: ___________________________", 25, yOffset + 15);
                 doc.text(`Date: ${new Date().toLocaleDateString()}`, 25, yOffset + 25);
 
-                doc.save(`SAR_${alertData.alert_ref}_${new Date().toISOString().split('T')[0]}.pdf`);
+                const { data: { user } } = await supabase.auth.getUser();
+                const fileName = `STR_${alertData.alert_ref}_${Date.now()}.pdf`;
+                const storagePath = `${cust.tenant_id}/${new Date().getFullYear()}/${fileName}`;
+
+                const pdfBlob = doc.output('blob');
+
+                const { error: uploadError } = await supabase.storage
+                    .from('compliance_archives')
+                    .upload(storagePath, pdfBlob, { contentType: 'application/pdf' });
+
+                if (uploadError) throw uploadError;
+
+                const { error: ledgerError } = await supabase
+                    .from('report_archives')
+                    .insert([{
+                        tenant_id: cust.tenant_id,
+                        generated_by: user.id,
+                        report_type: 'NFIU_STR',
+                        file_name: fileName,
+                        storage_path: storagePath
+                    }]);
+
+                if (ledgerError) throw ledgerError;
+
+                doc.save(fileName);
+
+                document.getElementById('toastMessage').innerText = `STR Archived & Downloaded. Locked for 7 Years.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
 
             } catch (err) {
-                console.error("PDF Gen Error:", err);
-                alert("Failed to generate PDF.");
+                console.error("PDF Vault Error:", err);
+                alert("Failed to archive and generate PDF.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         });
 
-        // --- TAML-59: ENTERPRISE TABLE FILTERING & SORTING ENGINE ---
-        
-        // 1. Severity & Date Filtering
+        // --- ENTERPRISE TABLE FILTERING & SORTING ENGINE ---
         function applyAlertFilters() {
             const severityFilter = document.getElementById('filter-severity').value.toUpperCase();
-            const dateFilter = document.getElementById('filter-date').value; // Format: YYYY-MM-DD
+            const dateFilter = document.getElementById('filter-date').value; 
             const rows = document.querySelectorAll('#alerts-table-body tr');
 
             rows.forEach(row => {
-                if (row.cells.length === 1) return; // Skip loading placeholders
+                if (row.cells.length === 1) return; 
 
                 const severityCell = row.cells[3].innerText.toUpperCase();
-                const dateCell = row.cells[4].innerText; // Format usually contains DD/MM/YYYY locally
+                const dateCell = row.cells[4].innerText; 
 
                 let matchesSeverity = severityFilter === 'ALL' || severityCell.includes(severityFilter);
                 let matchesDate = true;
 
-                // Simple date inclusion check (converts YYYY-MM-DD picker to local format components)
                 if (dateFilter) {
                     const [year, month, day] = dateFilter.split('-');
-                    // Check if the row's date string contains the selected month and day
-                    // Note: This is a robust fallback approach for client-side matching
                     if (!dateCell.includes(month) || !dateCell.includes(day)) {
                         matchesDate = false;
                     }
@@ -2463,30 +2809,25 @@
         document.getElementById('filter-severity')?.addEventListener('change', applyAlertFilters);
         document.getElementById('filter-date')?.addEventListener('change', applyAlertFilters);
 
-        // 2. Client-Side Column Sorting
         document.querySelectorAll('.sortable-header').forEach(header => {
             header.addEventListener('click', () => {
                 const table = header.closest('table');
                 const tbody = table.querySelector('tbody');
                 const colIndex = Array.from(header.parentNode.children).indexOf(header);
                 
-                // Track sorting direction
                 const isAscending = header.classList.contains('sort-asc');
                 
-                // Clear active states from all headers
                 table.querySelectorAll('.sortable-header').forEach(h => {
                     h.classList.remove('sort-asc', 'sort-desc');
                     h.style.color = '';
                 });
 
-                // Set new state
                 header.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
-                header.style.color = '#0ea5e9'; // Highlight active column
+                header.style.color = '#0ea5e9'; 
 
                 const rows = Array.from(tbody.querySelectorAll('tr'));
-                if (rows.length <= 1 && rows[0].cells.length === 1) return; // Skip if loading
+                if (rows.length <= 1 && rows[0].cells.length === 1) return; 
 
-                // Sort the array of rows
                 rows.sort((a, b) => {
                     const aText = a.cells[colIndex].innerText.trim();
                     const bText = b.cells[colIndex].innerText.trim();
@@ -2496,45 +2837,302 @@
                         : aText.localeCompare(bText, undefined, {numeric: true});
                 });
 
-                // Re-append sorted rows to the table body
                 tbody.append(...rows);
             });
         });
 
-        // Run initialization
-        initializeDashboard();
-        loadLiveTransactions();
-        initializeRealtimePulse();
+        // --- AUTOMATED REPORT SCHEDULING ---
+        document.getElementById('schedule-report-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-schedule');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+            btn.disabled = true;
 
-        // --- Dynamic Role Dropdown Auto-Populator ---
-        async function loadDynamicRoles() {
-            const roleSelect = document.getElementById('role-select'); // Note the different ID here!
-            if (!roleSelect) return;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const jwtPayload = JSON.parse(atob((await supabase.auth.getSession()).data.session.access_token.split('.')[1]));
+                const tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
 
-            const { data: customRoles, error } = await supabase
-                .from('custom_roles')
-                .select('role_name');
+                const frequency = document.getElementById('config-frequency').value;
+                const emailsRaw = document.getElementById('config-emails').value;
+                const emailsArray = emailsRaw.split(',').map(e => e.trim()).filter(e => e);
 
-            if (error) return console.error("Failed to load custom roles:", error);
+                const { error } = await supabase
+                    .from('report_schedules')
+                    .insert([{
+                        tenant_id: tenantId,
+                        configured_by: user.id,
+                        frequency: frequency,
+                        recipient_emails: emailsArray
+                    }]);
 
-            if (customRoles && customRoles.length > 0) {
-                const optGroup = document.createElement('optgroup');
-                optGroup.label = "Bank-Specific Roles"; // Changed label for branch view
-                
-                customRoles.forEach(role => {
-                    const option = document.createElement('option');
-                    option.value = role.role_name;
-                    option.innerText = role.role_name;
-                    optGroup.appendChild(option);
-                });
-                
-                roleSelect.appendChild(optGroup);
+                if (error) throw error;
+
+                await supabase.from('system_events').insert([{
+                    event_type: 'SYSTEM_CONFIG_UPDATED',
+                    severity: 'WARNING',
+                    message: `Admin updated automated reporting frequency to ${frequency}.`,
+                    metadata: { recipients: emailsArray }
+                }]);
+
+                document.getElementById('toastMessage').innerText = `Automated ${frequency.toLowerCase()} reporting engine successfully configured.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+            } catch (err) {
+                console.error("Config Error:", err);
+                alert("Failed to save configuration.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
+        });
+
+        // --- AML RULES ENGINE LOGIC ---
+        window.loadActiveRules = async () => {
+            try {
+                const tbody = document.getElementById('active-rules-body');
+                if (!tbody) return;
+
+                const { data: rules, error } = await supabase
+                    .from('aml_rules')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (rules.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted small">No custom rules deployed. System using defaults.</td></tr>';
+                    return;
+                }
+
+                rules.forEach(rule => {
+                    const row = document.createElement('tr');
+                    const formattedThreshold = new Intl.NumberFormat('en-NG').format(rule.threshold_value);
+                    
+                    let logicString = '';
+                    if (rule.condition_type === 'AMOUNT_ABOVE') logicString = `> ₦${formattedThreshold} in ${rule.time_window_hours}h`;
+                    else if (rule.condition_type === 'VELOCITY_COUNT') logicString = `> ${formattedThreshold} TXs in ${rule.time_window_hours}h`;
+                    else logicString = `${rule.condition_type}`;
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 fw-bold text-dark small">
+                            ${rule.rule_name}
+                            <div class="text-muted fw-normal" style="font-size: 0.65rem;">Action: ${rule.action_to_take.replace('_', ' ')}</div>
+                        </td>
+                        <td class="py-3 text-muted font-monospace" style="font-size: 0.7rem;">${logicString}</td>
+                        <td class="py-3 px-4 text-end">
+                            <span class="badge ${rule.status === 'ACTIVE' ? 'bg-success' : 'bg-warning text-dark'} bg-opacity-10 text-${rule.status === 'ACTIVE' ? 'success' : 'warning'} border border-${rule.status === 'ACTIVE' ? 'success' : 'warning'} px-2 py-1">${rule.status}</span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading rules:", err);
+            }
+        };
+
+        document.getElementById('rule-builder-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-rule');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Compiling Logic...';
+            btn.disabled = true;
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const jwtPayload = JSON.parse(atob((await supabase.auth.getSession()).data.session.access_token.split('.')[1]));
+                const tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
+
+                const newRule = {
+                    tenant_id: tenantId,
+                    created_by: user.id,
+                    rule_name: document.getElementById('rule-name').value,
+                    target_entity: document.getElementById('rule-entity').value,
+                    condition_type: document.getElementById('rule-condition').value,
+                    threshold_value: parseFloat(document.getElementById('rule-threshold').value),
+                    time_window_hours: parseInt(document.getElementById('rule-window').value),
+                    action_to_take: document.getElementById('rule-action').value,
+                    status: 'ACTIVE' 
+                };
+
+                const { error } = await supabase.from('aml_rules').insert([newRule]);
+                if (error) throw error;
+
+                await supabase.from('system_events').insert([{
+                    event_type: 'AML_RULE_DEPLOYED',
+                    severity: 'WARNING',
+                    message: `Admin deployed new rule: ${newRule.rule_name}`,
+                    metadata: { rule: newRule.rule_name, condition: newRule.condition_type }
+                }]);
+
+                bootstrap.Modal.getInstance(document.getElementById('ruleBuilderModal')).hide();
+                document.getElementById('rule-builder-form').reset();
+                
+                document.getElementById('toastMessage').innerText = `Engine rule successfully deployed to production.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                loadActiveRules(); 
+
+            } catch (err) {
+                console.error("Rule Engine Error:", err);
+                alert("Failed to deploy rule to engine.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- REAL-TIME WEBSOCKET SUBSCRIPTIONS ---
+        function initializeRealtimePulse() {
+            console.log("🟢 Establishing Secure WebSocket Pulse...");
+
+            supabase.channel('live-transactions')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, payload => {
+                    console.log('Realtime Tx Detected:', payload);
+                    
+                    document.getElementById('toastMessage').innerText = `Live Tx: ${payload.new.transaction_reference} logged.`;
+                    new bootstrap.Toast(document.getElementById('successToast')).show();
+                    
+                    loadLiveTransactions(); 
+                })
+                .subscribe();
+
+            supabase.channel('live-alerts')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, payload => {
+                    console.log('🚨 Realtime AML Alert:', payload);
+                    
+                    loadAlertsQueue();
+                    
+                    if (!document.getElementById('view-head-compliance').classList.contains('d-none')) {
+                        renderComplianceCharts();
+                    }
+                })
+                .subscribe();
         }
 
-        // --- TAML-115: ENTERPRISE CSV & PDF EXPORT WITH AUDIT LOGGING ---
-        
-        // 1. Upgraded CSV Exporter (Now with Logging)
+        // --- TAML-39: MANUAL RISK OVERRIDE ---
+        window.openRiskOverrideModal = () => {
+            if (!window.currentViewedCustomer) return;
+            document.getElementById('override-customer-id').value = window.currentViewedCustomer.id;
+            const currentTier = window.currentViewedCustomer.risk_tier || 'LOW';
+            document.getElementById('override-tier').value = currentTier;
+            new bootstrap.Modal(document.getElementById('riskOverrideModal')).show();
+        };
+
+        document.getElementById('risk-override-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-override');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+            btn.disabled = true;
+
+            try {
+                const customerId = document.getElementById('override-customer-id').value;
+                const newTier = document.getElementById('override-tier').value;
+                const justification = document.getElementById('override-justification').value;
+                const { data: { user } } = await supabase.auth.getUser();
+
+                const newScore = newTier === 'HIGH' ? 95 : (newTier === 'MEDIUM' ? 50 : 10);
+                const oldScore = window.currentViewedCustomer.risk_score || 0;
+                const oldTier = window.currentViewedCustomer.risk_tier || 'UNKNOWN';
+
+                // 1. Update Customer
+                const { error: custError } = await supabase.from('customers').update({ risk_score: newScore, risk_tier: newTier }).eq('id', customerId);
+                if (custError) throw custError;
+
+                // 2. Write to Risk Ledger (TAML-38)
+                await supabase.from('risk_score_history').insert([{
+                    customer_id: customerId,
+                    previous_score: oldScore,
+                    new_score: newScore,
+                    previous_tier: oldTier,
+                    new_tier: newTier,
+                    change_reason: `MANUAL OVERRIDE: ${justification}`,
+                    changed_by: user.id
+                }]);
+
+                // 3. System Audit Log (TAML-65)
+                await supabase.from('system_events').insert([{
+                    event_type: 'RISK_OVERRIDE',
+                    severity: 'WARNING',
+                    message: `Executive manually overrode risk tier to ${newTier}.`,
+                    metadata: { customer_id: customerId, justification: justification }
+                }]);
+
+                bootstrap.Modal.getInstance(document.getElementById('riskOverrideModal')).hide();
+                document.getElementById('risk-override-form').reset();
+                document.getElementById('toastMessage').innerText = `Risk successfully overridden to ${newTier}.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                // Refresh UI silently
+                loadCustomerProfile(customerId);
+                if (!document.getElementById('view-kyc-directory').classList.contains('d-none')) loadKYCDirectory();
+
+            } catch (err) {
+                console.error("Override Error:", err);
+                alert("Failed to override risk score.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- TAML-38: RISK SCORE HISTORY VIEWER ---
+        window.viewRiskHistory = async () => {
+            if (!window.currentViewedCustomer) return;
+            const customerId = window.currentViewedCustomer.id;
+            
+            try {
+                const tbody = document.getElementById('risk-history-body');
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Fetching ledger...</td></tr>';
+                new bootstrap.Modal(document.getElementById('riskHistoryModal')).show();
+
+                const { data: history, error } = await supabase
+                    .from('risk_score_history')
+                    .select('*')
+                    .eq('customer_id', customerId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                tbody.innerHTML = '';
+
+                if (history.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted fw-bold">No risk score changes recorded for this customer.</td></tr>';
+                    return;
+                }
+
+                history.forEach(record => {
+                    const row = document.createElement('tr');
+                    const timeStr = new Date(record.created_at).toLocaleDateString() + ' ' + new Date(record.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    let changeHtml = '';
+                    if (record.new_score > record.previous_score) {
+                        changeHtml = `<span class="text-danger fw-bold"><span class="material-symbols-outlined fs-6 align-middle">trending_up</span> ${record.previous_tier} &rarr; ${record.new_tier}</span>`;
+                    } else if (record.new_score < record.previous_score) {
+                        changeHtml = `<span class="text-success fw-bold"><span class="material-symbols-outlined fs-6 align-middle">trending_down</span> ${record.previous_tier} &rarr; ${record.new_tier}</span>`;
+                    } else {
+                        changeHtml = `<span class="text-secondary fw-bold">- ${record.new_tier}</span>`;
+                    }
+
+                    const author = record.changed_by ? `Officer ${record.changed_by.substring(0,8)}` : '<span class="text-primary fw-bold font-monospace">SYSTEM ENGINE</span>';
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-muted small">${timeStr}</td>
+                        <td class="py-3 small">${changeHtml}</td>
+                        <td class="py-3 text-muted small fst-italic">"${record.change_reason}"</td>
+                        <td class="px-4 py-3 text-end small">${author}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading history:", err);
+                document.getElementById('risk-history-body').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Failed to load history ledger.</td></tr>';
+            }
+        };
+
+        // --- EXPORT TO CSV ---
         window.exportTableToCSV = async (tbodyId, filename) => {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
@@ -2568,7 +3166,6 @@
             downloadLink.click();
             document.body.removeChild(downloadLink);
 
-            // 🚨 SECURE AUDIT LOGGING 🚨
             try {
                 await supabase.from('system_events').insert([{
                     event_type: 'DATA_EXPORT',
@@ -2579,7 +3176,7 @@
             } catch (e) { console.error("Audit Log Error:", e); }
         };
 
-        // 2. New PDF Dashboard Snapshot Utility
+        // --- DASHBOARD PDF EXPORT ---
         window.exportDashboardPDF = async (elementId, filename, event) => {
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
@@ -2587,28 +3184,21 @@
             btn.disabled = true;
 
             try {
-                // Target the specific dashboard view
                 const element = document.getElementById(elementId);
-                
-                // Temporarily hide buttons so they don't appear in the PDF
                 const buttons = element.querySelectorAll('button');
                 buttons.forEach(b => b.style.display = 'none');
 
-                // Take the snapshot using html2canvas
                 const canvas = await html2canvas(element, { scale: 1.5, useCORS: true });
                 const imgData = canvas.toDataURL('image/png');
                 
-                // Restore buttons
                 buttons.forEach(b => b.style.display = '');
 
-                // Setup jsPDF (Landscape mode for dashboards)
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('l', 'mm', 'a4'); 
                 
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
                 
-                // Add Official Header
                 pdf.setFontSize(14);
                 pdf.setFont("helvetica", "bold");
                 pdf.text("BexAML Official Dashboard Snapshot", 10, 15);
@@ -2616,13 +3206,10 @@
                 pdf.setFont("helvetica", "normal");
                 pdf.text(`Generated: ${new Date().toLocaleString()}`, 10, 22);
                 
-                // Inject the dashboard image
                 pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth - 20, pdfHeight);
                 
-                // Download
                 pdf.save(filename);
 
-                // 🚨 SECURE AUDIT LOGGING 🚨
                 await supabase.from('system_events').insert([{
                     event_type: 'DASHBOARD_EXPORT',
                     severity: 'WARNING',
@@ -2639,49 +3226,37 @@
             }
         };
 
-        // --- TAML-57: REAL-TIME WEBSOCKET SUBSCRIPTIONS ---
-        function initializeRealtimePulse() {
-            console.log("🟢 Establishing Secure WebSocket Pulse...");
-
-            // 1. Listen for new Transactions
-            supabase.channel('live-transactions')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, payload => {
-                    console.log('Realtime Tx Detected:', payload);
-                    
-                    // Show a toast notification
-                    document.getElementById('toastMessage').innerText = `Live Tx: ${payload.new.transaction_reference} logged.`;
-                    new bootstrap.Toast(document.getElementById('successToast')).show();
-                    
-                    // Instantly refresh the transaction feed without reloading the page
-                    loadLiveTransactions(); 
-                })
-                .subscribe();
-
-            // 2. Listen for new AML Alerts
-            supabase.channel('live-alerts')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, payload => {
-                    console.log('🚨 Realtime AML Alert:', payload);
-                    
-                    // Instantly refresh the UI queues to show the new alert
-                    loadAlertsQueue();
-                    
-                    // If the Head of Compliance is viewing charts, re-render them automatically!
-                    if (!document.getElementById('view-head-compliance').classList.contains('d-none')) {
-                        renderComplianceCharts();
-                    }
-                })
-                .subscribe();
-        }
-
         // Logout Handler
         document.getElementById('logout-btn')?.addEventListener('click', async () => {
-            // 1. Write the logout event to the database BEFORE destroying the session
             await supabase.rpc('log_user_logout');
-            
-            // 2. Destroy the session and redirect
             await supabase.auth.signOut();
             window.location.replace('index.html');
         });
+
+        // Boot system
+        initializeDashboard();
+        loadLiveTransactions();
+        initializeRealtimePulse();
+
+        async function loadDynamicRoles() {
+            const roleSelect = document.getElementById('role-select'); 
+            if (!roleSelect) return;
+
+            const { data: customRoles, error } = await supabase.from('custom_roles').select('role_name');
+            if (error) return console.error("Failed to load custom roles:", error);
+
+            if (customRoles && customRoles.length > 0) {
+                const optGroup = document.createElement('optgroup');
+                optGroup.label = "Bank-Specific Roles"; 
+                customRoles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.role_name;
+                    option.innerText = role.role_name;
+                    optGroup.appendChild(option);
+                });
+                roleSelect.appendChild(optGroup);
+            }
+        }
     </script>
 </body>
 </html>
