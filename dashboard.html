@@ -55,7 +55,7 @@
                         <span class="material-symbols-outlined">badge</span>
                         <span class="small fw-semibold">KYC & Identity</span>
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                    <a href="#" id="nav-tx-monitoring" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
                         <span class="material-symbols-outlined">monitoring</span>
                         <span class="small fw-semibold">Tx Monitoring</span>
                     </a>
@@ -490,6 +490,74 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ========================================== -->
+        <!-- TX MONITORING VIEW (LEDGER & ANOMALIES)    -->
+        <!-- ========================================== -->
+        <div id="view-tx-monitoring" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h4 mb-1 text-dark fw-bold">Transaction Monitoring</h2>
+                    <p class="text-muted small mb-0">Live ledger stream, behavioral baselines, and anomaly detection.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm border-secondary text-muted" id="tx-type-filter" onchange="loadTxMonitoring()">
+                        <option value="ALL">All Transactions</option>
+                        <option value="CREDIT">Credits Only</option>
+                        <option value="DEBIT">Debits Only</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary fw-bold d-flex align-items-center gap-1" onclick="loadTxMonitoring()">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Refresh Stream
+                    </button>
+                </div>
+            </div>
+
+            <!-- TX Monitoring KPIs (Placeholders for TAML-54/56) -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 p-3">
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">24h Ledger Volume</div>
+                        <div class="fs-3 fw-bold text-dark mt-1" id="kpi-tx-volume">Loading...</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 border-start border-warning border-4">
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Behavioral Anomalies (24h)</div>
+                        <div class="fs-3 fw-bold text-dark mt-1" id="kpi-tx-anomalies">0</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">Pending TAML-56 Deployment</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 border-start border-danger border-4">
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Cash Concentration Flags</div>
+                        <div class="fs-3 fw-bold text-dark mt-1" id="kpi-tx-concentration">0</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">Pending TAML-54 Deployment</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Ledger Table -->
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
+                            <tr>
+                                <th class="px-4 py-3">Timestamp</th>
+                                <th class="py-3">Tx Ref</th>
+                                <th class="py-3">Customer Entity</th>
+                                <th class="py-3">Channel</th>
+                                <th class="py-3 text-end">Amount</th>
+                                <th class="py-3 text-center">Engine Status</th>
+                                <th class="px-4 py-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tx-monitoring-body">
+                            <!-- Populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
                 <div id="view-system-config" class="d-none h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4">
@@ -1258,6 +1326,11 @@
             switchView('command-center', e.currentTarget);
         });
 
+        document.getElementById('nav-tx-monitoring')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('tx-monitoring', e.currentTarget);
+        });
+
         document.getElementById('nav-kyc')?.addEventListener('click', (e) => {
             e.preventDefault();
             switchView('kyc', e.currentTarget);
@@ -1283,6 +1356,8 @@
             switchView('audit-logs', e.currentTarget);
         });
 
+        
+
         function switchView(viewName, activeElement) {
             // 1. Reset nav links
             document.querySelectorAll('.nav-link-item').forEach(el => {
@@ -1305,6 +1380,7 @@
             document.getElementById('view-system-config').classList.add('d-none');
             document.getElementById('view-audit-logs').classList.add('d-none');
             document.getElementById('component-escalation-queue')?.classList.add('d-none');
+            document.getElementById('view-tx-monitoring')?.classList.add('d-none');
 
             // 3. Show requested view
             const userRole = document.getElementById('ui-user-role').innerText.toLowerCase().replace(/ /g, '_');
@@ -1313,6 +1389,9 @@
             if (viewName === 'kyc') {
                 document.getElementById('view-kyc-directory').classList.remove('d-none');
                 loadKYCDirectory();
+            } else if (viewName === 'tx-monitoring') {     
+                document.getElementById('view-tx-monitoring').classList.remove('d-none');
+                loadTxMonitoring();
             } else if (viewName === 'case-management') {
                 document.getElementById('view-case-management').classList.remove('d-none');
                 if (isExecutive) document.getElementById('component-escalation-queue')?.classList.remove('d-none');
@@ -2045,6 +2124,92 @@
                 document.getElementById('kpi-sla-breach').innerText = slaBreaches;
                 document.getElementById('kpi-my-conversion').innerText = total > 0 ? `${((myResolved / total) * 100).toFixed(1)}%` : '0.0%';
             } catch (err) { console.error("Error loading Officer KPIs:", err); }
+        }
+
+        // --- TX MONITORING ENGINE (UI SHELL & LEDGER STREAM) ---
+        async function loadTxMonitoring() {
+            try {
+                const tbody = document.getElementById('tx-monitoring-body');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Synchronizing with ledger...</td></tr>';
+
+                const typeFilter = document.getElementById('tx-type-filter').value;
+                
+                // Build query
+                let query = supabase
+                    .from('transactions')
+                    .select(`
+                        id, tx_ref, amount, tx_type, channel, created_at, status, customer_id,
+                        customers ( entity_name, first_name, last_name )
+                    `)
+                    .order('created_at', { ascending: false })
+                    .limit(50); // Fetch latest 50 for live stream
+
+                if (typeFilter !== 'ALL') {
+                    query = query.eq('tx_type', typeFilter);
+                }
+
+                const { data: txs, error } = await query;
+                if (error) throw error;
+
+                tbody.innerHTML = '';
+
+                if (txs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No transactions found for current filter.</td></tr>';
+                    document.getElementById('kpi-tx-volume').innerText = '0';
+                    return;
+                }
+
+                let recentVolume = 0;
+                const now = new Date();
+
+                txs.forEach(tx => {
+                    // KPI Math: Add to volume if within 24h
+                    const txDate = new Date(tx.created_at);
+                    if ((now - txDate) / 36e5 <= 24) {
+                        recentVolume += parseFloat(tx.amount);
+                    }
+
+                    const row = document.createElement('tr');
+                    
+                    const formattedDate = txDate.toLocaleDateString() + ' ' + txDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    const cust = tx.customers || {};
+                    const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Unknown Entity');
+
+                    // Style the amount (Green for credit, Dark for debit)
+                    const isCredit = tx.tx_type === 'CREDIT';
+                    const amountClass = isCredit ? 'text-success' : 'text-dark';
+                    const amountPrefix = isCredit ? '+' : '-';
+                    const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(tx.amount);
+
+                    // Status Badge (Standard for now, will be upgraded by Anomaly Engine)
+                    let statusHtml = `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary" style="font-size: 0.65rem;">CLEARED</span>`;
+
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-muted small text-nowrap">${formattedDate}</td>
+                        <td class="py-3 fw-medium text-dark small">${tx.tx_ref}</td>
+                        <td class="py-3 text-muted small">${entityName}</td>
+                        <td class="py-3 text-muted small text-uppercase">${tx.channel}</td>
+                        <td class="py-3 text-end fw-bold ${amountClass} small">${amountPrefix} ${formattedAmount}</td>
+                        <td class="py-3 text-center">${statusHtml}</td>
+                        <td class="px-4 py-3 text-end">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="loadCustomerProfile('${tx.customer_id}')" title="Inspect Customer">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">person_search</span>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                // Update KPI
+                document.getElementById('kpi-tx-volume').innerText = new Intl.NumberFormat('en-NG', { notation: "compact", compactDisplay: "short", style: "currency", currency: "NGN" }).format(recentVolume);
+
+            } catch (err) {
+                console.error("Error loading Tx Monitoring:", err);
+                document.getElementById('tx-monitoring-body').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger small">Failed to load ledger data.</td></tr>';
+            }
         }
 
         // --- DYNAMIC RECENT ACTIVITY FEED ---
