@@ -1,100 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BexAML | Secure Login</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:;">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Login | 0-day AML Compliance Platform</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
-    
-    <link href="./css/theme.css" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-container": "#6e1284",
+                      "on-surface-variant": "#4f4350",
+                      "on-surface": "#1e1a24",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#fef7ff",
+                      "background": "#fef7ff",
+                      "surface-container": "#f4ebfa",
+                      "inverse-surface": "#332e3a",
+                      "surface-container-low": "#faf0ff",
+                      "error": "#ba1a1a",
+                      "primary": "#4e0061",
+                      "outline": "#817381",
+                      "outline-variant": "#d3c1d1",
+                      "secondary": "#a400b7"
+              },
+              "fontFamily": {
+                      "headline-sm": ["Space Grotesk"],
+                      "display-lg": ["Space Grotesk"],
+                      "label-mono": ["JetBrains Mono"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Space Grotesk"]
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+        }
+        .login-card {
+            box-shadow: 0 4px 24px -1px rgba(110, 18, 132, 0.05);
+        }
+        .mesh-bg {
+            background-image: radial-gradient(circle at 2px 2px, #f4ebfa 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
 </head>
-<body class="bg-light d-flex align-items-center justify-content-center vh-100 font-inter">
+<body class="font-body-md text-on-surface selection:bg-primary-container selection:text-white">
+    <div class="fixed inset-0 mesh-bg opacity-40 pointer-events-none"></div>
+    
+    <main class="min-h-screen flex flex-col items-center justify-center p-4 relative z-10">
+        <div id="alert-anchor" class="w-full max-w-[440px]"></div>
 
-    <div class="container" style="max-width: 450px;">
-        
-        <div class="text-center mb-4">
-            <div class="d-inline-flex align-items-center gap-2 mb-2">
-                <span class="material-symbols-outlined text-primary fs-2">account_balance</span>
-                <span class="fs-4 fw-bold tracking-wide text-dark uppercase">BEX<span class="text-primary">AML</span></span>
+        <div class="mb-8 text-center animate-fade-in">
+            <div class="flex items-center justify-center gap-3 mb-2">
+                <img src="./assets/zero day logo.png" alt="0-day AML Logo" class="w-10 h-10 object-contain">
+                <h1 class="font-headline-md text-2xl text-primary tracking-tight">0-day AML</h1>
             </div>
-            <p class="text-muted small">Financial Intelligence Command Center</p>
+            <p class="font-label-mono text-[11px] uppercase text-outline tracking-widest">Nigeria Security Ops</p>
         </div>
 
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-body p-4 p-md-5">
-                
-                <div id="login-stage-1">
-                    <h5 class="card-title fw-bold text-dark mb-4">Authorized Access Only</h5>
-                    <form id="login-form">
-                        <div class="mb-3">
-                            <label for="email" class="form-label small fw-semibold text-muted">Institutional Email</label>
-                            <input type="email" class="form-control bg-light" id="email" required placeholder="name@bank.com">
-                        </div>
-                        <div class="mb-4">
-                            <label for="password" class="form-label small fw-semibold text-muted">Password</label>
-                            <input type="password" class="form-control bg-light" id="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                            Authenticate <span class="material-symbols-outlined align-middle fs-6 ms-1">lock</span>
-                        </button>
-                    </form>
-                </div>
+        <div class="w-full max-w-[440px] bg-white border border-outline-variant rounded-xl p-8 md:p-10 login-card transition-all duration-500">
+            
+            <div id="login-stage-1">
+                <header class="mb-8">
+                    <h2 class="font-headline-sm text-xl text-on-surface mb-2">Institutional Login</h2>
+                    <div class="flex items-center gap-2 text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                        <span class="font-body-sm text-sm">Authorized Access Only</span>
+                    </div>
+                </header>
 
-                <div id="login-stage-2" class="d-none text-center">
-                    <span class="material-symbols-outlined text-primary fs-1 mb-3">security</span>
-                    <h5 class="card-title fw-bold text-dark mb-2">Two-Factor Authentication</h5>
-                    <p class="text-muted small mb-4">Enter the 6-digit code from your authenticator app.</p>
-                    <form id="mfa-form">
-                        <div class="mb-4">
-                            <input type="text" class="form-control form-control-lg text-center tracking-widest" id="mfa-code" placeholder="000000" maxlength="6" required autocomplete="off">
+                <form id="login-form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="font-label-mono text-[11px] text-on-surface-variant block" for="email">INSTITUTIONAL EMAIL</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">mail</span>
+                            </div>
+                            <input class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all font-body-md text-sm" id="email" required placeholder="officer@institution.gov.ng" type="email">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                            Verify Identity
-                        </button>
-                    </form>
-                </div>
+                    </div>
 
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-label-mono text-[11px] text-on-surface-variant block" for="password">PASSWORD</label>
+                            <a class="font-body-sm text-[12px] text-secondary hover:text-primary-container transition-colors font-medium" href="#">Forgot Password?</a>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">lock</span>
+                            </div>
+                            <input class="w-full pl-10 pr-12 py-3 bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all font-body-md text-sm" id="password" required placeholder="••••••••••••" type="password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-[#6e1284] hover:bg-primary text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        Authenticate Access
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="login-stage-2" class="hidden text-center">
+                <span class="material-symbols-outlined text-primary text-5xl mb-4">lock_clock</span>
+                <h5 class="font-headline-sm text-xl text-on-surface mb-2">Two-Factor Authentication</h5>
+                <p class="text-on-surface-variant text-sm mb-6">Enter the 6-digit code from your authenticator app.</p>
+                <form id="mfa-form" class="space-y-6">
+                    <div>
+                        <input type="text" class="w-full bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all text-center text-2xl tracking-[0.5em] py-3 font-label-mono text-primary" id="mfa-code" placeholder="000000" maxlength="6" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="w-full bg-[#6e1284] hover:bg-primary text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all">
+                        Verify Identity
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-surface-container-highest">
+                <div class="flex items-center justify-between text-[10px] font-label-mono text-outline-variant uppercase tracking-tighter">
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">gavel</span> Audited</span>
+                    <span>Status: Gateway Ready</span>
+                    <span>CBN/NFIU Compliant</span>
+                </div>
             </div>
         </div>
-
-        <div class="text-center mt-4">
-            <p class="text-muted" style="font-size: 0.7rem;">
-                <span class="material-symbols-outlined align-middle" style="font-size: 1rem;">gavel</span>
-                System activity is heavily monitored and audited for CBN/NFIU compliance.
-            </p>
-        </div>
-
-    </div>
+    </main>
 
     <script>
-        // Check for session expiry and inject a Bootstrap alert
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('expired')) {
-                // 1. Build the alert element
                 const alertBox = document.createElement('div');
-                alertBox.className = 'alert alert-warning alert-dismissible fade show mb-4 shadow-sm text-start';
-                alertBox.setAttribute('role', 'alert');
-                
-                // 2. Add the enterprise-grade messaging
+                alertBox.className = 'bg-orange-50 border-l-4 border-orange-500 p-4 mb-6 rounded-r-lg shadow-sm';
                 alertBox.innerHTML = `
-                    <strong>Session Expired</strong><br>
-                    <span class="small">For your security, you were logged out due to inactivity. Please authenticate again.</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="flex items-start">
+                        <span class="material-symbols-outlined text-orange-500 mr-3">timer</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-orange-800">Session Expired</h3>
+                            <p class="text-xs text-orange-700 mt-1">For your security, you were logged out due to inactivity. Please authenticate again.</p>
+                        </div>
+                    </div>
                 `;
-
-                // 3. Inject it cleanly right above the login card
-                const loginCard = document.querySelector('.card');
-                if (loginCard) {
-                    loginCard.parentNode.insertBefore(alertBox, loginCard);
-                }
+                document.getElementById('alert-anchor').appendChild(alertBox);
             }
         });
     </script>
+
     <script type="module" src="./js/auth.js"></script>
 </body>
 </html>
