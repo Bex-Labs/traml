@@ -2012,12 +2012,34 @@
             const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
             console.log("🚨 DECODED JWT PAYLOAD:", jwtPayload);
 
-            const userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-            const tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
+            let userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+            let tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
 
+           // 🚨 FALLBACK RESOLVER: If JWT is missing claims on first login, query the profiles table directly
+            if (!userRole || !tenantId) {
+                console.warn("⚠️ JWT claims missing. Executing fallback to profiles table...");
+                try {
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('role, tenant_id')
+                        .eq('id', session.user.id)
+                        .maybeSingle(); // <--- FIXED: Prevents the 406 Crash if RLS is still updating
+
+                    if (!error && profile) {
+                        userRole = profile.role;
+                        tenantId = profile.tenant_id;
+                        console.log("✓ Fallback Successful. Fetched from DB:", profile);
+                    }
+                } catch (fallbackErr) {
+                    console.error("Fallback query failed:", fallbackErr);
+                }
+            }
+
+            // Final safety net
             if (!userRole || !tenantId || userRole === 'DEBUG_PROFILE_NOT_FOUND') {
-                console.error("Tenancy Context Failed.");
-                return;
+                console.error("🚨 CRITICAL: Tenancy Context Failed. User lacks role or tenant mapping in both JWT and DB.");
+                alert("Account provisioning incomplete. Please contact the System Administrator.");
+                return; // Halt execution and leave screen blank for security
             }
 
             // 3. Unhide the page securely
@@ -2567,185 +2589,7 @@
                 alert("Failed to prepare goAML pre-flight dossier.");
             }
         }
-
-        // --- FINAL GOAML V5.0 XML COMPILER & DISPATCH ENGINE ---
-        document.getElementById('goaml-preflight-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-final-compile');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Compiling goAML XML...';
-            btn.disabled = true;
-
-            try {
-                const strId = document.getElementById('goaml-str-id').value;
-                const cached = JSON.parse(document.getElementById('goaml-raw-json').value);
-                const { custObj, accObj, alertObj } = cached;
-                const { data: { user } } = await supabase.auth.getUser();
-
-                // 1. Extract verified form inputs (Locked vs Amendable)
-                const rentityId = document.getElementById('xml-rentity-id').value;
-                const rentityBranch = document.getElementById('xml-rentity-branch').value;
-                const entityRef = document.getElementById('xml-entity-ref').value;
-                const reportingUser = document.getElementById('xml-user-code').value;
-                const reportDate = document.getElementById('xml-report-date').value;
-                const txNum = document.getElementById('xml-tx-num').value;
-
-                const actionTaken = document.getElementById('xml-action').value;
-                const indicatorCode = document.getElementById('xml-indicator').value;
-                const narrativeReason = document.getElementById('xml-reason').value;
-                const occupationOrIndustry = document.getElementById('xml-sub-occ').value;
-                const refinedAddress = document.getElementById('xml-sub-address').value;
-
-                const isCorporate = document.getElementById('xml-is-corporate').value === 'true';
-                const accountNum = accObj.account_number || '445930066';
-                const bvnNum = custObj.bvn || custObj.registration_number || '22717496684';
-
-                // 2. Build Party XML Node using verified mirror fields
-                let partyNode = '';
-                if (isCorporate) {
-                    partyNode = `
-            <t_entity>
-                <name>${document.getElementById('xml-sub-name').value}</name>
-                <incorporation_number>${bvnNum}</incorporation_number>
-                <business>${occupationOrIndustry}</business>
-                <incorporation_date>${document.getElementById('xml-sub-dob').value}</incorporation_date>
-                <addresses>
-                    <address>
-                        <address_type>BUSINESS</address_type>
-                        <address>${refinedAddress}</address>
-                        <city>Abuja</city>
-                        <country_code>NG</country_code>
-                    </address>
-                </addresses>
-            </t_entity>`;
-                } else {
-                    partyNode = `
-            <t_person>
-                <gender>U</gender>
-                <first_name>${custObj.first_name || custObj.entity_name || 'Ayodele'}</first_name>
-                <last_name>${custObj.last_name || 'Adeyemi'}</last_name>
-                <birthdate>${document.getElementById('xml-sub-dob').value}</birthdate>
-                <nationality1>NG</nationality1>
-                <residence>NG</residence>
-                <occupation>${occupationOrIndustry}</occupation>
-                <addresses>
-                    <address>
-                        <address_type>RESIDENTIAL</address_type>
-                        <address>${refinedAddress}</address>
-                        <city>Abuja</city>
-                        <country_code>NG</country_code>
-                    </address>
-                </addresses>
-                <phones>
-                    <phone>
-                        <tph_contact_type>PERSONAL</tph_contact_type>
-                        <tph_communication_type>L</tph_communication_type>
-                        <tph_number>${document.getElementById('xml-sub-phone').value}</tph_number>
-                    </phone>
-                </phones>
-            </t_person>`;
-                }
-
-                // 3. Assemble full goAML v5.0 XML tree from Mirror Form
-                const xmlPayload = `<?xml version="1.0" encoding="utf-8"?>
-<report>
-    <schema_version>5.0</schema_version>
-    <rentity_id>${rentityId}</rentity_id>
-    <rentity_branch>${rentityBranch}</rentity_branch>
-    <submission_code>E</submission_code>
-    <report_code>STR</report_code>
-    <entity_reference>${entityRef}</entity_reference>
-    <report_date>${reportDate}</report_date>
-    <currency_code_local>NGN</currency_code_local>
-    <reporting_user_code>${reportingUser}</reporting_user_code>
-    <reason>${narrativeReason.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</reason>
-    <action>${actionTaken}</action>
-    <indicators>
-        <indicator>${indicatorCode}</indicator>
-    </indicators>
-    <transaction>
-        <transactionnumber>${txNum}</transactionnumber>
-        <transaction_location>Branch ${rentityBranch}</transaction_location>
-        <date_transaction>${reportDate}</date_transaction>
-        <value_date>${reportDate}</value_date>
-        <transmode_code>C</transmode_code>
-        <amount_local>${exactAmount}</amount_local>
-        <involved_parties>
-            <party>
-                <role>MY_CLIENT</role>
-                <account>
-                    <account>${accountNum}</account>
-                    <institution_name>BexAML Microfinance</institution_name>
-                    <non_bank_institution>false</non_bank_institution>
-                    <opened>${document.getElementById('xml-acc-opened').value}</opened>
-                    <status_code>A</status_code>
-                    <client_number>${bvnNum}</client_number>
-                    <personal_account_type>${!isCorporate}</personal_account_type>
-                    <currency_code>NGN</currency_code>
-                </account>${partyNode}
-            </party>
-        </involved_parties>
-    </transaction>
-</report>`;
-
-                // 4. Trigger XML File Download
-                const fileName = `STR_${entityRef}_${Date.now()}.xml`;
-                const blob = new Blob([xmlPayload], { type: 'application/xml' });
-                const xmlUrl = URL.createObjectURL(blob);
-
-                const a = document.createElement('a');
-                a.href = xmlUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                // 5. Commit Statutory Sign-Off in Database
-                const { error: dbErr } = await supabase
-                    .from('suspicious_transaction_reports')
-                    .update({ 
-                        status: 'APPROVED', 
-                        executive_justification: narrativeReason, 
-                        reviewed_by: user.id,
-                        locked_at: new Date().toISOString()
-                    })
-                    .eq('id', strId);
-
-                if (dbErr) throw dbErr;
-
-                if (alertObj && alertObj.id) {
-                    await supabase.from('alerts').update({ status: 'CLOSED' }).eq('id', alertObj.id);
-                }
-
-                await supabase.from('system_events').insert([{
-                    event_type: 'SAR_APPROVED_XML_DISPATCHED',
-                    severity: 'CRITICAL',
-                    user_id: user.id,
-                    message: `Head of Compliance verified mirror form and dispatched statutory goAML v5.0 XML for ${entityRef}.`,
-                    metadata: { file: fileName, action: actionTaken }
-                }]);
-
-                // 6. Launch Mail Dispatcher & Clean Up UI
-                bootstrap.Modal.getInstance(document.getElementById('goamlPreflightModal')).hide();
-                loadEscalationQueue();
-                renderComplianceCharts();
-
-                document.getElementById('toastMessage').innerText = `goAML V5.0 Compiled & Approved! Attach '${fileName}' to your dispatch email.`;
-                new bootstrap.Toast(document.getElementById('successToast')).show();
-
-                const emailSubject = encodeURIComponent(`STATUTORY STR DISPATCH: goAML v5.0 Submission - ${entityRef}`);
-                const emailBody = encodeURIComponent(`NFIU Electronic Receiving Gateway,\n\nPlease find attached the verified and cryptographically compiled goAML v5.0 XML payload for entity reference ${entityRef}.\n\nStatutory Action Taken: ${actionTaken}\nReporting Branch: ${rentityBranch}\n\n(CHECKER PROTOCOL: Attach downloaded file '${fileName}' before transmitting.)`);
-                window.location.href = `mailto:str-submissions@nfiu.gov.ng?subject=${emailSubject}&body=${emailBody}`;
-
-            } catch (err) {
-                console.error("goAML Compilation Failure:", err);
-                alert("Compilation failed: " + err.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
+        
         // --- FINAL GOAML V5.0 XML COMPILER & DISPATCH ENGINE ---
         document.getElementById('goaml-preflight-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -2841,10 +2685,10 @@
     <transaction>
         <transactionnumber>TX-${Date.now()}</transactionnumber>
         <transaction_location>Branch ${rentityBranch}</transaction_location>
-        <date_transaction>${currentIsoTime}</date_transaction>
+       <date_transaction>${currentIsoTime}</date_transaction>
         <value_date>${currentIsoTime}</value_date>
         <transmode_code>C</transmode_code>
-        <amount_local>0.00</amount_local>
+        <amount_local>${document.getElementById('xml-tx-amount').value}</amount_local>
         <involved_parties>
             <party>
                 <role>MY_CLIENT</role>
@@ -3172,7 +3016,7 @@
                         <td class="py-3"><span class="badge ${statusBadge}">${c.status}</span></td>
                         <td class="py-3 text-muted small fst-italic">"${noteSnippet}"</td>
                         <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-light border text-primary fw-bold uppercase" onclick="loadCustomerProfile('${c.customer_id}')" style="font-size: 0.7rem;">View Dossier</button>
+                            <button class="btn btn-sm btn-light border text-primary fw-bold uppercase" onclick="loadCustomerProfile('${c.customer_id}', '${c.status}')" style="font-size: 0.7rem;">View Dossier</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -3760,7 +3604,7 @@
 
                 // Grab the final score generated by the officer's checkboxes
                 const finalScore = updateLiveRiskScore();
-                const rawTier = finalScore >= 75 ? 'HIGH' : (finalScore >= 40 ? 'MEDIUM' : 'LOW');
+                const newTier = finalScore >= 75 ? 'HIGH' : (finalScore >= 40 ? 'MEDIUM' : 'LOW');
 
                 // Update the database with the EDD-adjusted score
                const { error } = await supabase
@@ -3768,7 +3612,7 @@
                 .update({ 
                     kyc_status: 'COMPLETED',
                     risk_score: finalScore,
-                    risk_tier: sanitizeRiskTier(newTier) // <--- Fixed here
+                    risk_tier: sanitizeRiskTier(newTier) 
                 })
                 .eq('id', customerId);
 
@@ -3899,62 +3743,6 @@
                 alert("Failed to reach the KYC Gateway. Please ensure your Edge Function is running.");
                 document.getElementById('kyc-step-loading').classList.add('d-none');
                 document.getElementById('kyc-step-1').classList.remove('d-none');
-            }
-        });
-
-        document.getElementById('btn-kyc-approve')?.addEventListener('click', async (e) => {
-            const btn = e.currentTarget;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying & Scoring...';
-            btn.disabled = true;
-
-            try {
-                const customerId = document.getElementById('kyc-customer-id').value;
-                const endpoint = document.getElementById('kyc-endpoint').value;
-
-                // 1. Fetch customer data for the Risk Matrix
-                const { data: cust } = await supabase.from('customers').select('*').eq('id', customerId).single();
-                
-                // 2. Calculate Day-0 Static Risk
-                cust.kyc_status = 'COMPLETED'; // Simulate completion for the math
-                const staticScore = calculateStaticRisk(cust);
-                const newTier = staticScore >= 75 ? 'HIGH' : (staticScore >= 40 ? 'MEDIUM' : 'LOW');
-
-                // 3. Update the database with KYC status AND the new Smart Risk Score
-                const { error } = await supabase
-                    .from('customers')
-                    .update({ 
-                        kyc_status: 'COMPLETED',
-                        risk_score: staticScore,
-                        risk_tier: newTier
-                    })
-                    .eq('id', customerId);
-
-                if (error) throw error;
-
-                // 4. Log the system events
-                const { data: { user } } = await supabase.auth.getUser();
-                await supabase.from('system_events').insert([{
-                    event_type: 'KYC_VERIFIED',
-                    severity: 'INFO',
-                    user_id: user.id,
-                    message: `Officer verified identity via ${endpoint}. System assigned Initial Risk Score: ${staticScore} (${newTier}).`,
-                    metadata: { customer_id: customerId, source: endpoint, initial_score: staticScore }
-                }]);
-
-                bootstrap.Modal.getInstance(document.getElementById('kycVerificationModal')).hide();
-                
-                document.getElementById('toastMessage').innerText = `Identity Verified. Risk Score mapped to ${newTier} (${staticScore}).`;
-                new bootstrap.Toast(document.getElementById('successToast')).show();
-
-                loadKYCDirectory(); 
-                renderActivityFeed();
-
-            } catch (err) {
-                console.error("KYC & Scoring Error:", err);
-                alert("Database update failed.");
-            } finally {
-                btn.innerHTML = 'Approve & Verify Identity';
-                btn.disabled = false;
             }
         });
 
@@ -4142,8 +3930,8 @@
             });
         });
 
-        // --- Customer 360 Drill-Down Engine ---
-        window.loadCustomerProfile = async (customerId) => {
+       // --- Customer 360 Drill-Down Engine ---
+        window.loadCustomerProfile = async (customerId, caseStatus = 'NONE') => {
             if (!customerId || customerId === 'null' || customerId === 'undefined') {
                 alert("System Notice: This case is not linked to a valid customer identity.");
                 return;
@@ -4243,7 +4031,19 @@
 
                 const manualSarBtn = document.getElementById('btn-manual-sar');
                 if (manualSarBtn) {
-                    manualSarBtn.setAttribute('data-customer-id', customerId);
+                    // DYNAMIC STATE RENDERING
+                    if (caseStatus === 'CLOSED') {
+                        manualSarBtn.className = "btn btn-success w-100 fw-bold uppercase mt-2 disabled";
+                        manualSarBtn.innerHTML = "<span class='material-symbols-outlined align-middle fs-6 me-1'>lock</span> Case Closed & SAR Dispatched";
+                    } else if (caseStatus === 'ESCALATED' || caseStatus === 'PENDING_APPROVAL') {
+                        manualSarBtn.className = "btn btn-warning text-dark w-100 fw-bold uppercase mt-2 disabled";
+                        manualSarBtn.innerHTML = "<span class='material-symbols-outlined align-middle fs-6 me-1'>hourglass_empty</span> Awaiting Head of Compliance Review";
+                    } else {
+                        // Default / Investigating State
+                        manualSarBtn.className = "btn btn-danger w-100 fw-bold uppercase mt-2";
+                        manualSarBtn.innerHTML = "File Suspicious Activity Report (SAR)";
+                        manualSarBtn.setAttribute('data-customer-id', customerId);
+                    }
                 }
 
                 const panelElement = document.getElementById('customer360Panel');
@@ -4361,7 +4161,20 @@
                 }]);
 
                 bootstrap.Modal.getInstance(document.getElementById('alertPreviewModal')).hide();
-                window.resumeCase(alertId, alertRef);
+                
+                // 1. Instant Success Toast (No SAR popup)
+                document.getElementById('toastMessage').innerText = `✓ Case claimed successfully. Moved to your Assigned workspace.`;
+                new bootstrap.Toast(document.getElementById('successToast')).show();
+
+                // 2. Remove the row optimistically (Instant UI update)
+                const row = Array.from(document.querySelectorAll('#alerts-table-body tr')).find(r => r.innerText.includes(alertRef));
+                if (row) {
+                    row.style.transition = "opacity 0.3s ease";
+                    row.style.opacity = "0";
+                    setTimeout(() => row.remove(), 300);
+                }
+
+                // 3. Refresh queues quietly
                 loadAlertsQueue('UNASSIGNED');
                 renderActivityFeed();
 
@@ -4720,17 +4533,26 @@
                     metadata: { alert_ref: alertRef, recommended_action: action }
                 }]);
 
-                // 5. Clean up UI and notify officer
+               // 5. Clean up UI and notify officer
                 bootstrap.Modal.getInstance(document.getElementById('sarFilingModal')).hide();
                 document.getElementById('sar-resolution-form').reset();
                 
                 document.getElementById('toastMessage').innerText = `SAR Dossier escalated to Head of Compliance for executive approval.`;
                 new bootstrap.Toast(document.getElementById('successToast')).show();
 
-                if (window.loadAlertsQueue) window.loadAlertsQueue('INVESTIGATING');
+                // 6. INSTANT DOM REMOVAL (Finds row and deletes instantly)
+                const rows = document.querySelectorAll('#alerts-table-body tr');
+                rows.forEach(row => {
+                    if (row.innerText.includes(alertRef)) {
+                        row.style.transition = "opacity 0.3s ease";
+                        row.style.opacity = "0";
+                        setTimeout(() => row.remove(), 300);
+                    }
+                });
+
                 if (window.renderOfficerKPIs) window.renderOfficerKPIs(user.id);
                 if (window.renderActivityFeed) window.renderActivityFeed();
-
+                
             } catch (err) {
                 console.error("SAR Escalation Error:", err);
                 alert(`Escalation Failed: ${err.message}`);
@@ -5167,11 +4989,12 @@
                                             }
                                         }]);
                                     } else {
-                                       // 🚨 ACTIVE PRODUCTION ALERT 🚨
+                                        // 🚨 ACTIVE PRODUCTION ALERT 🚨
                                         const alertRef = 'ALT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                                         
                                         const { error: alertErr } = await supabase.from('alerts').insert([{
-                                            transaction_id: tx.id, // <--- REQUIRED: The Audit Trail key
+                                            tenant_id: tenantId, 
+                                            transaction_id: tx.id, // <--- CRITICAL FIX: The missing Audit Trail key!
                                             alert_ref: alertRef,
                                             customer_id: targetCustomerId,
                                             rule_triggered: rule.rule_name,
@@ -5180,7 +5003,7 @@
                                             details: `Automated rule trigger: ${rule.condition_type}. TxRef: ${tx.transaction_reference}, Amount: ₦${parseFloat(tx.amount).toLocaleString()}`
                                         }]);
 
-                                        // Strict Error Logging
+                                        // Strict Error Logging to catch silent database rejections
                                         if (alertErr) {
                                             console.error("🚨 CRITICAL: Database rejected the alert insert!", alertErr);
                                         } else {
@@ -5213,7 +5036,7 @@
                 .subscribe();
         }
 
-       // --- UPGRADED: Stateful Transaction Evaluator (True Structuring Math) ---
+        // --- UPGRADED: Stateful Transaction Evaluator (True Structuring Math) ---
         async function evaluateTransactionRule(tx, rule) {
             let meta = {};
             if (typeof rule.rule_metadata === 'string') {
@@ -5232,35 +5055,27 @@
             if (rule.condition_type === 'STRUCTURING_PATTERN' || rule.condition_type === 'BEHAVIORAL_VELOCITY') {
                 const lookbackHours = parseInt(meta.time_window_hours || rule.time_window_hours || 24);
                 
-                // Fallbacks to ensure the math always works even if UI fields were left blank
+                // Fallback to 5,000,000 if not specified in JSON
                 const statutoryThreshold = parseFloat(meta.aggregate_threshold || meta.threshold_amount || 5000000);
-                const minTxCount = parseInt(meta.min_tx_count_24h || 3);
-                const maxAmountPerTx = parseFloat(meta.max_amount_per_tx || 4999999);
 
-                // EVASION MATH: If a single txn is above the max smurfing size, it's not structuring
-                if (txAmount > maxAmountPerTx) return false;
+                // TRUE EVASION MATH: To be a "Smurf", the individual transaction MUST fly under the radar.
+                // If the single transaction is already ₦5M+, it's not structuring, the CTR rule catches it.
+                if (txAmount >= statutoryThreshold) return false;
 
                 try {
-                    // Call the upgraded database function
-                    const { data: stats, error } = await supabase.rpc('get_rolling_tx_stats', {
+                    const { data: rollingVolume, error } = await supabase.rpc('get_rolling_tx_volume', {
                         p_account_id: tx.account_id,
                         p_hours: lookbackHours,
-                        p_tx_type: tx.transaction_type || 'CREDIT' // DEBIT for Outflows, CREDIT for Inflows
+                        p_tx_type: tx.transaction_type || 'CREDIT'
                     });
 
-                    if (error) {
-                        console.error("[RPC Error] Failed to fetch stats:", error);
-                        return false;
-                    }
+                    if (error) return false;
 
-                    const currentSum = parseFloat(stats.total_volume);
-                    const currentCount = parseInt(stats.tx_count);
-                    
-                    // The X-Ray Vision: Watch this in your F12 Console!
-                    console.log(`[X-Ray] ${rule.rule_name} | Tx: ₦${txAmount.toLocaleString()} | 24h Count: ${currentCount}/${minTxCount} | Rolling Sum: ₦${currentSum.toLocaleString()} / ₦${statutoryThreshold.toLocaleString()}`);
+                    const currentSum = parseFloat(rollingVolume);
+                    console.log(`[X-Ray] ${rule.rule_name} | Tx: ₦${txAmount.toLocaleString()} | Rolling: ₦${currentSum.toLocaleString()} | Limit: ₦${statutoryThreshold.toLocaleString()}`);
 
-                    // Trap snaps shut ONLY if BOTH the count and the sum breach the threshold
-                    return (currentSum >= statutoryThreshold) && (currentCount >= minTxCount);
+                    // Trap snaps shut if the rolling sum crosses the limit!
+                    return currentSum >= statutoryThreshold;
                 } catch (err) {
                     return false;
                 }
