@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BexAML | Command Center</title>
+    <title>coreAML | Command Center</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:;">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,17 +18,17 @@
     <link href="./css/theme.css" rel="stylesheet">
 
     <style>
-        :root {
-            /* Core Brand Colors */
-            --bs-primary: #4e0061;
-            --bs-primary-rgb: 78, 0, 97;
-            --bs-secondary: #a400b7;
-            --bs-body-bg: #fef7ff; /* Brand Surface */
-            --bs-body-color: #1e1a24;
-            --bs-light: #f4ebfa;
-            --bs-dark: #332e3a; /* Inverse Surface */
-            --bs-danger: #ba1a1a;
+       :root {
+            /* Theme Colors: Blue & White */
+            --bs-primary: #0F172A; /* Deep Institutional Blue */
+            --bs-body-bg: #F8FAFC; /* Crisp White/Slate Surface */
+            --bs-dark: #0B1120; 
+            --bs-light: #F1F5F9;
             
+            /* Call-outs & Buttons: Action Red */
+            --brand-red: #DC2626;
+            --brand-red-hover: #B91C1C;
+
             /* Typography */
             --font-body: 'Inter', sans-serif;
             --font-headline: 'Space Grotesk', sans-serif;
@@ -40,31 +40,27 @@
             background-color: var(--bs-body-bg) !important;
         }
 
-        /* Apply Space Grotesk to all Headers */
         h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title, .fw-bold, .offcanvas-title, th {
             font-family: var(--font-headline) !important;
         }
 
-        /* Apply JetBrains Mono to Data, Dates, and IDs */
         .font-monospace, table tbody tr td:first-child, .badge {
             font-family: var(--font-mono) !important;
         }
 
-        /* 1. Navbar Transformation (Glassmorphism) */
+        /* 1. Navbar (White/Glass) */
         .navbar.bg-white {
-            background-color: rgba(254, 247, 255, 0.8) !important;
+            background-color: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(8px);
-            border-bottom: 1px solid #e8dfee !important;
+            border-bottom: 1px solid #E2E8F0 !important;
         }
 
-        /* 2. Sidebar Transformation (Dark Theme) */
-        /* Force the main container to the new dark color */
+        /* 2. Sidebar (Deep Blue) */
         .col-md-2.bg-white {
-            background-color: var(--bs-dark) !important; 
-            border-right: 1px solid #4f4350 !important;
+            background-color: var(--bs-primary) !important; 
+            border-right: 1px solid #1E293B !important;
         }
-        
-        /* Strip Bootstrap's default list-group styling */
+
         .list-group-item {
             background-color: transparent !important;
             border-color: transparent !important;
@@ -72,71 +68,61 @@
             border-radius: 8px !important;
             margin-left: 12px !important;
             margin-right: 12px !important;
-            width: auto !important; /* Stops the 100% width horizontal overflow */
+            width: auto !important;
         }
 
-        /* Completely hide scrollbars for a clean, app-like sidebar */
-        .col-md-2, .list-group {
-            overflow-x: hidden !important;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
-        }
-        .list-group::-webkit-scrollbar, .col-md-2::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, and Opera */
-        }
-
-        /* Sidebar Links (Inactive) */
         .col-md-2 a.text-muted {
-            color: #d3c1d1 !important; 
+            color: #94A3B8 !important; 
             transition: all 0.2s ease-in-out !important;
         }
         .col-md-2 a.text-muted:hover {
             background-color: rgba(255,255,255,0.05) !important;
-            color: #ffffff !important;
+            color: #FFFFFF !important;
         }
 
-        /* Sidebar Links (Active) */
+        /* Sidebar Links (Active) - Red Callout Edge */
         .col-md-2 a.text-primary.bg-light {
-            background-color: rgba(245, 174, 255, 0.1) !important; 
-            color: #f5aeff !important;
-            border-left: 4px solid #f5aeff !important;
-            border-radius: 0 8px 8px 0 !important; /* Flat on the left edge */
-            margin-left: 0 !important; /* Push active state to the absolute edge */
+            background-color: rgba(220, 38, 38, 0.1) !important; 
+            color: #FFFFFF !important;
+            border-left: 4px solid var(--brand-red) !important;
+            border-radius: 0 8px 8px 0 !important;
+            margin-left: 0 !important; 
             padding-left: 20px !important;
         }
 
-        /* Override the bottom logout area background */
         .col-md-2 .bg-white, .col-md-2 .border-top {
-            background-color: var(--bs-dark) !important;
-            border-top-color: #4f4350 !important;
+            background-color: var(--bs-primary) !important;
+            border-top-color: #1E293B !important;
         }
 
         /* 3. Card Transformations */
         .card {
             background-color: #ffffff !important;
-            border: 1px solid #d3c1d1 !important;
+            border: 1px solid #E2E8F0 !important;
             border-radius: 0.75rem !important;
-            box-shadow: 0 4px 24px -1px rgba(110, 18, 132, 0.05) !important;
+            box-shadow: 0 4px 24px -1px rgba(15, 23, 42, 0.05) !important;
         }
 
         .card-header.bg-white, .card-header.bg-light {
-            background-color: #faf0ff !important; 
-            border-bottom: 1px solid #d3c1d1 !important;
+            background-color: #F8FAFC !important; 
+            border-bottom: 1px solid #E2E8F0 !important;
         }
 
-        /* 4. Button Transformations */
+        /* 4. Button Transformations (Action Red) */
         .btn-primary {
-            background-color: #6e1284 !important;
-            border-color: #6e1284 !important;
+            background-color: var(--brand-red) !important;
+            border-color: var(--brand-red) !important;
+            color: #ffffff !important;
         }
         .btn-primary:hover {
-            background-color: #4e0061 !important;
+            background-color: var(--brand-red-hover) !important;
+            border-color: var(--brand-red-hover) !important;
         }
-        
+
         /* 5. Table Enhancements */
         .table-light th {
-            background-color: #f4ebfa !important;
-            color: #4f4350 !important;
+            background-color: #F1F5F9 !important;
+            color: #475569 !important;
         }
     </style>
 
@@ -146,9 +132,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
         <div class="container-fluid p-0">
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <img src="./assets/zero day logo.png" id="brand-logo-img" alt="0-day AML Logo" style="height: 32px; width: auto;" class="d-none">
+                <img src="./assets/zero day logo.png" id="brand-logo-img" alt="coreAML Logo" style="height: 32px; width: auto;" class="d-none">
                 <span class="material-symbols-outlined text-danger fs-4 d-none" id="admin-brand-icon">admin_panel_settings</span>
-                <span class="fs-6 fw-bold tracking-wide text-dark uppercase" id="brand-text">0-day<span class="text-primary">AML</span></span>
+                <span class="fs-5 fw-bold tracking-wide text-dark uppercase" id="brand-text" style="color: #0F172A !important;">core<span style="color: #DC2626;">AML</span></span>
             </a>
 
             <div class="d-flex align-items-center gap-4">
@@ -183,7 +169,7 @@
                     </a>
                     <a href="#" id="nav-tx-monitoring" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
                         <span class="material-symbols-outlined">monitoring</span>
-                        <span class="small fw-semibold">Tx Monitoring</span>
+                        <span class="small fw-semibold">Transaction Monitoring</span>
                     </a>
                     <a href="#" id="nav-case-management" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
                         <span class="material-symbols-outlined">folder_managed</span>
@@ -2047,14 +2033,15 @@
             const adminBrandIcon = document.getElementById('admin-brand-icon');
             const brandText = document.getElementById('brand-text');
 
+           // --- BRAND LOGO TOGGLE ENGINE ---
             if (userRole === 'system_admin') {
                 if (brandLogoImg) brandLogoImg.classList.add('d-none');
                 if (adminBrandIcon) adminBrandIcon.classList.remove('d-none');
-                if (brandText) brandText.innerHTML = `System<span class="text-danger">Admin</span>`;
+                if (brandText) brandText.innerHTML = `System<span style="color: #DC2626;">Admin</span>`;
             } else {
                 if (brandLogoImg) brandLogoImg.classList.remove('d-none');
                 if (adminBrandIcon) adminBrandIcon.classList.add('d-none');
-                if (brandText) brandText.innerHTML = `0-day<span class="text-primary">AML</span>`;
+                if (brandText) brandText.innerHTML = `core<span style="color: #DC2626;">AML</span>`;
             }
             // ---------------------------------
 
@@ -5102,7 +5089,7 @@
                     loadTxMonitoring(); 
                     loadLiveTransactions();
 
-                    // GLOBAL SCOPE: Fetch session and tenant ONCE for the entire pipeline
+                    // GLOBAL SCOPE FIX: Fetch session and tenant ONCE for the entire pipeline
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) return; 
                     
@@ -5180,11 +5167,11 @@
                                             }
                                         }]);
                                     } else {
-                                        // 🚨 ACTIVE PRODUCTION ALERT 🚨
+                                       // 🚨 ACTIVE PRODUCTION ALERT 🚨
                                         const alertRef = 'ALT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                                         
-                                        await supabase.from('alerts').insert([{
-                                            tenant_id: tenantId, // <--- THE MISSING RLS KEY!
+                                        const { error: alertErr } = await supabase.from('alerts').insert([{
+                                            transaction_id: tx.id, // <--- REQUIRED: The Audit Trail key
                                             alert_ref: alertRef,
                                             customer_id: targetCustomerId,
                                             rule_triggered: rule.rule_name,
@@ -5192,6 +5179,13 @@
                                             status: 'UNASSIGNED',
                                             details: `Automated rule trigger: ${rule.condition_type}. TxRef: ${tx.transaction_reference}, Amount: ₦${parseFloat(tx.amount).toLocaleString()}`
                                         }]);
+
+                                        // Strict Error Logging
+                                        if (alertErr) {
+                                            console.error("🚨 CRITICAL: Database rejected the alert insert!", alertErr);
+                                        } else {
+                                            console.log(`[Active Engine] Production Alert generated successfully: ${alertRef}`);
+                                        }
 
                                         if (rule.action_to_take === 'AUTO_FREEZE' && targetCustomerId) {
                                             await supabase.from('customers')
@@ -5219,7 +5213,7 @@
                 .subscribe();
         }
 
-        // --- UPGRADED: Stateful Transaction Evaluator (True Structuring Math) ---
+       // --- UPGRADED: Stateful Transaction Evaluator (True Structuring Math) ---
         async function evaluateTransactionRule(tx, rule) {
             let meta = {};
             if (typeof rule.rule_metadata === 'string') {
@@ -5237,33 +5231,43 @@
 
             if (rule.condition_type === 'STRUCTURING_PATTERN' || rule.condition_type === 'BEHAVIORAL_VELOCITY') {
                 const lookbackHours = parseInt(meta.time_window_hours || rule.time_window_hours || 24);
-                const statutoryThreshold = parseFloat(meta.max_amount_per_tx || meta.threshold_amount || 5000000);
+                
+                // Fallbacks to ensure the math always works even if UI fields were left blank
+                const statutoryThreshold = parseFloat(meta.aggregate_threshold || meta.threshold_amount || 5000000);
+                const minTxCount = parseInt(meta.min_tx_count_24h || 3);
+                const maxAmountPerTx = parseFloat(meta.max_amount_per_tx || 4999999);
 
-                // TRUE EVASION MATH: To be a "Smurf", the individual transaction MUST fly under the radar.
-                // If the single transaction is already ₦5M+, it's not structuring, the CTR rule catches it.
-                if (txAmount >= statutoryThreshold) return false;
+                // EVASION MATH: If a single txn is above the max smurfing size, it's not structuring
+                if (txAmount > maxAmountPerTx) return false;
 
                 try {
-                    const { data: rollingVolume, error } = await supabase.rpc('get_rolling_tx_volume', {
+                    // Call the upgraded database function
+                    const { data: stats, error } = await supabase.rpc('get_rolling_tx_stats', {
                         p_account_id: tx.account_id,
                         p_hours: lookbackHours,
-                        p_tx_type: tx.transaction_type || 'CREDIT'
+                        p_tx_type: tx.transaction_type || 'CREDIT' // DEBIT for Outflows, CREDIT for Inflows
                     });
 
-                    if (error) return false;
+                    if (error) {
+                        console.error("[RPC Error] Failed to fetch stats:", error);
+                        return false;
+                    }
 
-                    const currentSum = parseFloat(rollingVolume);
-                    console.log(`[X-Ray] ${rule.rule_name} | Tx: ₦${txAmount.toLocaleString()} | Rolling: ₦${currentSum.toLocaleString()} | Limit: ₦${statutoryThreshold.toLocaleString()}`);
+                    const currentSum = parseFloat(stats.total_volume);
+                    const currentCount = parseInt(stats.tx_count);
+                    
+                    // The X-Ray Vision: Watch this in your F12 Console!
+                    console.log(`[X-Ray] ${rule.rule_name} | Tx: ₦${txAmount.toLocaleString()} | 24h Count: ${currentCount}/${minTxCount} | Rolling Sum: ₦${currentSum.toLocaleString()} / ₦${statutoryThreshold.toLocaleString()}`);
 
-                    // Trap snaps shut if the rolling sum crosses the limit!
-                    return currentSum >= statutoryThreshold;
+                    // Trap snaps shut ONLY if BOTH the count and the sum breach the threshold
+                    return (currentSum >= statutoryThreshold) && (currentCount >= minTxCount);
                 } catch (err) {
                     return false;
                 }
             }
             return false;
         }
-
+        
         // --- TAML-39: MANUAL RISK OVERRIDE ---
         window.openRiskOverrideModal = () => {
             if (!window.currentViewedCustomer) return;
