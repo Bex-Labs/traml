@@ -14,20 +14,17 @@
           theme: {
             extend: {
               "colors": {
-                      "primary-container": "#6e1284",
-                      "on-surface-variant": "#4f4350",
-                      "on-surface": "#1e1a24",
-                      "surface-container-lowest": "#ffffff",
-                      "surface": "#fef7ff",
-                      "background": "#fef7ff",
-                      "surface-container": "#f4ebfa",
-                      "inverse-surface": "#332e3a",
-                      "surface-container-low": "#faf0ff",
+                      "primary": "#0F172A",          /* Deep Institutional Blue */
+                      "primary-hover": "#1E293B",
+                      "action": "#DC2626",           /* Action Red */
+                      "action-hover": "#B91C1C",
+                      "on-surface-variant": "#475569",
+                      "on-surface": "#0B1120",
+                      "surface": "#ffffff",
+                      "background": "#F8FAFC",       /* Crisp White/Slate */
                       "error": "#ba1a1a",
-                      "primary": "#4e0061",
-                      "outline": "#817381",
-                      "outline-variant": "#d3c1d1",
-                      "secondary": "#a400b7"
+                      "outline": "#CBD5E1",
+                      "outline-variant": "#E2E8F0"
               },
               "fontFamily": {
                       "headline-sm": ["Space Grotesk"],
@@ -51,10 +48,10 @@
             -webkit-font-smoothing: antialiased;
         }
         .login-card {
-            box-shadow: 0 4px 24px -1px rgba(110, 18, 132, 0.05);
+            box-shadow: 0 4px 24px -1px rgba(15, 23, 42, 0.08); /* Deep Blue Shadow */
         }
         .mesh-bg {
-            background-image: radial-gradient(circle at 2px 2px, #f4ebfa 1px, transparent 0);
+            background-image: radial-gradient(circle at 2px 2px, #E2E8F0 1px, transparent 0); /* Slate Mesh */
             background-size: 24px 24px;
         }
     </style>
@@ -67,10 +64,9 @@
 
         <div class="mb-8 text-center animate-fade-in">
             <div class="flex items-center justify-center gap-3 mb-2">
-                <img src="./assets/zero day logo.png" alt="0-day AML Logo" class="w-10 h-10 object-contain">
-                <h1 class="font-headline-md text-2xl text-primary tracking-tight">0-day AML</h1>
+                <img src="./assets/zero day logo.png" alt="coreAML Logo" class="w-10 h-10 object-contain">
+                <h1 class="font-headline-md text-2xl text-primary tracking-tight">core<span class="text-action">AML</span></h1>
             </div>
-            <p class="font-label-mono text-[11px] uppercase text-outline tracking-widest">Nigeria Security Ops</p>
         </div>
 
         <div class="w-full max-w-[440px] bg-white border border-outline-variant rounded-xl p-8 md:p-10 login-card transition-all duration-500">
@@ -86,7 +82,7 @@
 
                 <form id="login-form" class="space-y-6">
                     <div class="space-y-2">
-                        <label class="font-label-mono text-[11px] text-on-surface-variant block" for="email">INSTITUTIONAL EMAIL</label>
+                        <label class="font-label-mono text-[11px] text-on-surface-variant block" for="email"> EMAIL</label>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">mail</span>
@@ -98,17 +94,17 @@
                     <div class="space-y-2">
                         <div class="flex justify-between items-center">
                             <label class="font-label-mono text-[11px] text-on-surface-variant block" for="password">PASSWORD</label>
-                            <a class="font-body-sm text-[12px] text-secondary hover:text-primary-container transition-colors font-medium" href="#">Forgot Password?</a>
+                            <a class="font-body-sm text-[12px] text-primary hover:text-action transition-colors font-bold" href="#">Forgot Password?</a>
                         </div>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">lock</span>
+                                <span class="material-symbols-outlined text-outline group-focus-within:text-action transition-colors">lock</span>
                             </div>
-                            <input class="w-full pl-10 pr-12 py-3 bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all font-body-md text-sm" id="password" required placeholder="••••••••••••" type="password">
+                            <input class="w-full pl-10 pr-12 py-3 bg-surface border border-outline-variant focus:border-action focus:ring-1 focus:ring-action/20 rounded-lg outline-none transition-all font-body-md text-sm" id="password" required placeholder="••••••••••••" type="password">
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-[#6e1284] hover:bg-primary text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full bg-action hover:bg-action-hover text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-action/20 active:scale-[0.98] transition-all">
                         Authenticate Access
                         <span class="material-symbols-outlined">chevron_right</span>
                     </button>
@@ -127,14 +123,6 @@
                         Verify Identity
                     </button>
                 </form>
-            </div>
-
-            <div class="mt-8 pt-6 border-t border-surface-container-highest">
-                <div class="flex items-center justify-between text-[10px] font-label-mono text-outline-variant uppercase tracking-tighter">
-                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">gavel</span> Audited</span>
-                    <span>Status: Gateway Ready</span>
-                    <span>CBN/NFIU Compliant</span>
-                </div>
             </div>
         </div>
     </main>

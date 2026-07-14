@@ -171,27 +171,27 @@
                         <span class="material-symbols-outlined">monitoring</span>
                         <span class="small fw-semibold">Transaction Monitoring</span>
                     </a>
-                    <a href="#" id="nav-case-management" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
+                   <a href="#" id="nav-case-management" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted">
                         <span class="material-symbols-outlined">folder_managed</span>
                         <span class="small fw-semibold">Case Management</span>
                     </a>
 
-                    <a href="#" id="nav-team-management" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                    <a href="#" id="nav-team-management" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">group_add</span>
                         <span class="small fw-semibold">Team Management</span>
                     </a>
                     
-                    <a href="#" id="nav-system-config" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                    <a href="#" id="nav-system-config" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">settings</span>
                         <span class="small fw-semibold">System Config</span>
                     </a>
 
-                    <a href="#" id="nav-report-archive" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                    <a href="#" id="nav-report-archive" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">inventory_2</span>
                         <span class="small fw-semibold">Immutable Vault</span>
                     </a>
 
-                    <a href="#" id="nav-audit-logs" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                    <a href="#" id="nav-audit-logs" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">plagiarism</span>
                         <span class="small fw-semibold">Branch Audit Ledger</span>
                     </a>
@@ -312,35 +312,6 @@
                                 </div>
                                 <div class="card-body">
                                     <canvas id="workloadChart" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="component-escalation-queue" class="d-none">
-                    <div class="row mt-2 mb-5">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
-                                <div class="card-header bg-dark border-bottom py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold uppercase text-black d-flex align-items-center gap-2">
-                                        <span class="material-symbols-outlined text-danger fs-5">gavel</span> Pending Executive Approval (SARs)
-                                    </h6>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light text-muted small text-uppercase">
-                                            <tr>
-                                                <th class="py-3 px-4 fw-semibold">Case Ref</th>
-                                                <th class="py-3 fw-semibold">Target Entity</th>
-                                                <th class="py-3 fw-semibold">Trigger / Typology</th>
-                                                <th class="py-3 fw-semibold">Investigator Notes</th>
-                                                <th class="py-3 text-end px-4 fw-semibold">Executive Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="escalation-queue-body" class="bg-white">
-                                            </tbody>
-                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -606,7 +577,7 @@
                             </div>
                             <div class="input-group input-group-sm shadow-sm" style="width: 250px;">
                                 <span class="input-group-text bg-white border-end-0"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Search RC or Name...">
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Search BVN, RC or Name...">
                             </div>
                         </div>
                     </div>
@@ -654,8 +625,8 @@
                     <div class="row g-4 mb-5" id="qa-governance-section">
                         <div class="col-12">
                             <div class="card border-0 shadow-sm border-start border-warning border-4">
-                                <div class="card-header bg-dark border-bottom py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold uppercase text-black d-flex align-items-center gap-2">
+                                <div class="card-header bg-light border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
                                         <span class="material-symbols-outlined text-warning fs-5">policy</span> False-Positive QA Verification Queue
                                     </h6>
                                     <span class="badge bg-warning text-dark font-monospace" id="qa-queue-count">0 PENDING</span>
@@ -680,7 +651,43 @@
                         </div>
                     </div>
 
+                    <div class="row g-4 mb-4 d-none" id="component-escalation-queue">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                                <div class="card-header bg-light border-bottom py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger fs-5">gavel</span> Pending Executive Approval (SARs)
+                                    </h6>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small text-uppercase">
+                                            <tr>
+                                                <th class="py-3 px-4 fw-semibold">Case Ref</th>
+                                                <th class="py-3 fw-semibold">Target Entity</th>
+                                                <th class="py-3 fw-semibold">Trigger / Typology</th>
+                                                <th class="py-3 fw-semibold">Investigator Notes</th>
+                                                <th class="py-3 text-end px-4 fw-semibold">Executive Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="escalation-queue-body" class="bg-white">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column" style="min-height: 500px;">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold uppercase text-dark">Active & Archived Cases</h6>
+                            <select class="form-select form-select-sm bg-light text-muted fw-semibold border-0" id="filter-case-status" style="width: 180px;" onchange="applyCaseFilters()">
+                                <option value="ALL">All Statuses</option>
+                                <option value="INVESTIGATING">Investigating</option>
+                                <option value="ESCALATED">Escalated (Pending)</option>
+                                <option value="CLOSED">Closed (Resolved)</option>
+                            </select>
+                        </div>
                         <div class="table-responsive flex-grow-1" style="max-height: 600px; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light text-muted small text-uppercase sticky-top">
@@ -804,13 +811,13 @@
                     <p class="text-muted small mb-0">Live ledger stream, behavioral baselines, and anomaly detection.</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm border-secondary text-muted" id="tx-type-filter" onchange="loadTxMonitoring()">
+                   <select class="form-select form-select-sm border-secondary text-muted" id="tx-type-filter" style="width: 160px;" onchange="loadTxMonitoring()">
                         <option value="ALL">All Transactions</option>
                         <option value="CREDIT">Credits Only</option>
                         <option value="DEBIT">Debits Only</option>
                     </select>
                     <button class="btn btn-sm btn-primary fw-bold d-flex align-items-center gap-1" onclick="loadTxMonitoring()">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Refresh Stream
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Refresh
                     </button>
                 </div>
             </div>
@@ -1283,7 +1290,7 @@
                     <p class="text-muted small mb-4">Send a secure setup link to a new compliance officer. They will automatically be assigned to your institution.</p>
                     <form id="invite-form">
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted">Institutional Email</label>
+                            <label class="form-label small fw-semibold text-muted">Email</label>
                             <input type="email" class="form-control bg-light" id="invite-email" required placeholder="officer@bank.com">
                         </div>
                         <div class="mb-4">
@@ -2008,30 +2015,42 @@
                 return;
             }
 
-            // 2. Extract JWT Metadata
-            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+         // 2. Extract JWT Metadata
+            let jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
             console.log("🚨 DECODED JWT PAYLOAD:", jwtPayload);
 
             let userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
             let tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
 
-           // 🚨 FALLBACK RESOLVER: If JWT is missing claims on first login, query the profiles table directly
+           // 🚨 JWT REFRESH ENGINE: If claims are missing, force a session refresh to unlock RLS!
             if (!userRole || !tenantId) {
-                console.warn("⚠️ JWT claims missing. Executing fallback to profiles table...");
-                try {
-                    const { data: profile, error } = await supabase
-                        .from('profiles')
-                        .select('role, tenant_id')
-                        .eq('id', session.user.id)
-                        .maybeSingle(); // <--- FIXED: Prevents the 406 Crash if RLS is still updating
+                console.warn("⚠️ JWT claims missing. Forcing token refresh to unlock Row Level Security (RLS)...");
+                const { data: refreshData } = await supabase.auth.refreshSession();
+                
+                if (refreshData?.session) {
+                    jwtPayload = JSON.parse(atob(refreshData.session.access_token.split('.')[1]));
+                    userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+                    tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
+                    console.log("✓ Token Refresh Successful. RLS Unlocked.", { userRole, tenantId });
+                }
 
-                    if (!error && profile) {
-                        userRole = profile.role;
-                        tenantId = profile.tenant_id;
-                        console.log("✓ Fallback Successful. Fetched from DB:", profile);
+                // If STILL missing (e.g. Postgres trigger delay), use the profile fallback
+                if (!userRole || !tenantId) {
+                    try {
+                        const { data: profile, error } = await supabase
+                            .from('profiles')
+                            .select('role, tenant_id')
+                            .eq('id', session.user.id)
+                            .maybeSingle(); 
+
+                        if (!error && profile) {
+                            userRole = profile.role;
+                            tenantId = profile.tenant_id;
+                            console.log("✓ Fallback Successful. Fetched from DB:", profile);
+                        }
+                    } catch (fallbackErr) {
+                        console.error("Fallback query failed:", fallbackErr);
                     }
-                } catch (fallbackErr) {
-                    console.error("Fallback query failed:", fallbackErr);
                 }
             }
 
@@ -2103,6 +2122,26 @@
 
             // 6. Populate the invite dropdown with custom roles
             loadDynamicRoles();
+
+            // Establish Global User ID for secure memory isolation
+            window.currentUserId = session.user.id;
+
+            // 7. RESTORE TAB STATE (State Persistence - Isolated by User)
+            const savedView = localStorage.getItem('coreAML_activeView_' + window.currentUserId);
+            if (savedView) {
+                const navMap = {
+                    'command-center': 'nav-command-center',
+                    'kyc': 'nav-kyc',
+                    'tx-monitoring': 'nav-tx-monitoring',
+                    'case-management': 'nav-case-management',
+                    'team-management': 'nav-team-management',
+                    'system-config': 'nav-system-config',
+                    'report-archive': 'nav-report-archive',
+                    'audit-logs': 'nav-audit-logs'
+                };
+                const navBtn = navMap[savedView] ? document.getElementById(navMap[savedView]) : null;
+                switchView(savedView, navBtn);
+            }
         }
 
         // --- View Router Logic ---
@@ -2153,6 +2192,11 @@
         };
 
         function switchView(viewName, activeElement) {
+            // Persist the user's active view securely to their specific session ID
+            if (window.currentUserId) {
+                localStorage.setItem('coreAML_activeView_' + window.currentUserId, viewName);
+            }
+
             // 1. Reset nav links
             document.querySelectorAll('.nav-link-item').forEach(el => {
                 el.classList.remove('text-primary', 'bg-light', 'border-primary');
@@ -3003,7 +3047,7 @@
                             slaHtml = `<br><span class="badge bg-success bg-opacity-10 text-success border border-success mt-1" style="font-size: 0.6rem;">${daysLeft} DAYS LEFT</span>`;
                         }
                     } else {
-                        slaHtml = `<br><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary mt-1" style="font-size: 0.6rem;">RESOLVED</span>`;
+                        slaHtml = `<br><span class="badge bg-success bg-opacity-10 text-success border border-success mt-1" style="font-size: 0.6rem;">RESOLVED</span>`;
                     }
 
                     row.innerHTML = `
@@ -3404,6 +3448,7 @@
         }
 
         // --- TX MONITORING ENGINE (UI SHELL & LEDGER STREAM) ---
+        window.loadTxMonitoring = loadTxMonitoring; // Expose to HTML inline buttons
         async function loadTxMonitoring() {
             try {
                 const tbody = document.getElementById('tx-monitoring-body');
@@ -3467,7 +3512,7 @@
                         <td class="py-3 fw-medium text-dark small">${tx.transaction_reference}</td>
                         <td class="py-3 text-muted small">${entityName}</td>
                         <td class="py-3 text-muted small text-uppercase">API</td> <td class="py-3 text-end fw-bold ${amountClass} small">${amountPrefix} ${formattedAmount}</td>
-                        <td class="py-3 text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary" style="font-size: 0.65rem;">CLEARED</span></td>
+                       <td class="py-3 text-center"><span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size: 0.65rem;">CLEARED</span></td>
                         <td class="px-4 py-3 text-end">
                             <button class="btn btn-sm btn-outline-secondary" onclick="loadCustomerProfile('${customerId}')" title="Inspect Customer">
                                 <span class="material-symbols-outlined" style="font-size: 16px;">person_search</span>
@@ -3768,11 +3813,12 @@
         let currentKycFilter = 'ALL';
 
         async function loadKYCDirectory() {
-            try {
+          try {
                 const tbody = document.getElementById('kyc-directory-body');
                 if (!tbody) return;
 
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Loading ${currentKycFilter.toLowerCase()} directory...</td></tr>`;
+                const filterText = currentKycFilter === 'ALL' ? '' : `${currentKycFilter.toLowerCase()} `;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Loading ${filterText}directory...</td></tr>`;
 
                 // Build query based on the active tab
                 let query = supabase
@@ -3790,7 +3836,7 @@
                 tbody.innerHTML = '';
 
                 if (customers.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No ${currentKycFilter.toLowerCase()} customers found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No ${filterText}customers found.</td></tr>`;
                     return;
                 }
 
@@ -3832,12 +3878,14 @@
 
                     const industry = cust.industry || (cust.customer_type === 'Individual' ? 'Retail / Personal' : 'Uncategorized');
                     const geography = cust.geography || 'NG (Domestic)';
-                    const idDisplay = cust.registration_number ? `RC: ${cust.registration_number}` : `ID: ${cust.id.split('-')[0]}`;
+                    
+                    // Prioritize showing the actual BVN or RC Number in the table so it is fully searchable!
+                    const idDisplay = cust.registration_number ? `RC: ${cust.registration_number}` : (cust.bvn ? `BVN: ${cust.bvn}` : `ID: ${cust.id.split('-')[0]}`);
 
                     row.innerHTML = `
                         <td class="px-4 py-3">
                             <div class="fw-bold text-dark small">${entityName}</div>
-                            <div class="text-muted" style="font-size: 0.7rem;">${idDisplay}</div>
+                            <div class="text-muted font-monospace" style="font-size: 0.7rem;">${idDisplay}</div>
                         </td>
                         <td class="py-3">
                             <span class="badge ${kycBadge}">${cust.kyc_status || 'NOT DONE'}</span>
@@ -3901,33 +3949,41 @@
             }
         };
 
-        // --- GLOBAL SEARCH ENGINE ---
-        const searchInputs = document.querySelectorAll('input[placeholder*="Search"]');
-        searchInputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const activeView = document.querySelector('.nav-link-item.text-primary')?.id;
-                let tableBodyId = '';
+        // --- UPGRADED GLOBAL SEARCH ENGINE ---
+        document.addEventListener('input', (e) => {
+            const input = e.target;
+            
+            // Only trigger if it's an actual search bar
+            if (input.tagName === 'INPUT' && input.placeholder && input.placeholder.includes('Search')) {
+                const searchTerm = input.value.toLowerCase();
+                let targetTableBodies = [];
 
-                if (activeView === 'nav-command-center') tableBodyId = 'transaction-feed';
-                else if (activeView === 'nav-kyc') tableBodyId = 'kyc-directory-body';
-                else if (activeView === 'nav-case-management') tableBodyId = 'case-management-body';
-                
-                if (!tableBodyId) return;
-
-                const rows = document.querySelectorAll(`#${tableBodyId} tr`);
-                
-                rows.forEach(row => {
-                    if (row.cells.length === 1) return; 
-                    
-                    const rowText = row.innerText.toLowerCase();
-                    if (rowText.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
+                if (input.placeholder.includes('BVN, TxID')) {
+                    // GLOBAL NAVBAR SEARCH: Brute-force grab ALL tables by their exact IDs
+                    const globalBodies = document.querySelectorAll('#alerts-table-body, #kyc-directory-body, #case-management-body, #escalation-queue-body, #transaction-feed, #team-directory-body, #tx-monitoring-body');
+                    targetTableBodies = Array.from(globalBodies);
+                } else {
+                    // LOCAL VIEW SEARCH: Find the table directly inside the specific card/view
+                    const parentView = input.closest('div[id^="view-"], div[id^="component-"], .card');
+                    if (parentView) {
+                        targetTableBodies = Array.from(parentView.querySelectorAll('tbody'));
                     }
+                }
+
+                // Apply the filter to the target rows instantly
+                targetTableBodies.forEach(tbody => {
+                    if (!tbody) return;
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        // Skip system messages like "Loading..." which usually have 1 cell
+                        if (row.cells.length <= 1) return; 
+                        
+                        // Use textContent: 10x faster than innerText and perfectly extracts table data
+                        const rowText = row.textContent.toLowerCase();
+                        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+                    });
                 });
-            });
+            }
         });
 
        // --- Customer 360 Drill-Down Engine ---
@@ -4562,6 +4618,22 @@
             }
         });
 
+        window.applyCaseFilters = () => {
+            const filter = document.getElementById('filter-case-status').value;
+            const rows = document.querySelectorAll('#case-management-body tr');
+            
+            rows.forEach(row => {
+                if (row.cells.length <= 1) return; // Skip "Loading" messages
+                const statusCell = row.cells[3].innerText.toUpperCase();
+                
+                if (filter === 'ALL' || statusCell.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        };
+
         // --- ENTERPRISE TABLE FILTERING & SORTING ENGINE ---
         function applyAlertFilters() {
             const severityFilter = document.getElementById('filter-severity').value.toUpperCase();
@@ -4858,10 +4930,10 @@
                     // Match telemetry using system event footprint
                     const userEvents = events ? events.filter(e => e.user_id === officer.id) : [];
                     const lastEvent = userEvents.length > 0 ? new Date(userEvents[0].created_at) : null;
-                    const isOnline = lastEvent && (new Date() - lastEvent) / 60000 < 15; 
+                  const isOnline = lastEvent && (new Date() - lastEvent) / 60000 < 15; 
                     
                     const statusText = isOnline ? "Online" : "Away";
-                    const badgeClass = isOnline ? "bg-success" : "bg-secondary";
+                    const badgeClass = isOnline ? "bg-success" : "bg-dark"; // Removed purple override
                     const lastActiveTime = lastEvent ? lastEvent.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Never";
 
                     const row = document.createElement('tr');
@@ -5306,6 +5378,12 @@
 
         // Logout Handler
         document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            // Enterprise Security: Wipe the saved tab state before logging out
+            if (window.currentUserId) {
+                localStorage.removeItem('coreAML_activeView_' + window.currentUserId);
+            }
+            localStorage.removeItem('coreAML_activeView'); // Catch-all to wipe the old legacy key
+
             await supabase.rpc('log_user_logout');
             await supabase.auth.signOut();
             window.location.replace('index.html');
