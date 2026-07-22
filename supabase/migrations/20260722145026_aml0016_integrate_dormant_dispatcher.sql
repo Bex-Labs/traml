@@ -15,7 +15,7 @@ DECLARE
 
 BEGIN
 
-    -- Identify the account and customer associated with the transaction
+    -- Identify account and customer
 
     SELECT *
     INTO account_record
@@ -28,7 +28,7 @@ BEGIN
     WHERE id = account_record.customer_id;
 
 
-    -- Evaluate all active transaction rules for the customer's tenant
+    -- Process all active transaction rules
 
     FOR active_rule IN
 
@@ -40,12 +40,11 @@ BEGIN
 
     LOOP
 
-        -- Reset evaluator output before processing each rule
+        -- Reset each iteration
 
         alert_text := NULL;
         alert_severity := 'HIGH';
 
-        -- Dispatch to the appropriate evaluator
 
         CASE active_rule.condition_type
 
