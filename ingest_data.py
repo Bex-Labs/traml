@@ -6,8 +6,8 @@ import time
 print("🏗️ Booting Sentinel AML REST Ingestion Module...")
 
 # 1. Connect via HTTPS
-SUPABASE_URL = "https://mbwgglgvykjpsnvnvcsj.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1id2dnbGd2eWtqcHNudm52Y3NqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTE0MjQ5MCwiZXhwIjoyMDk0NzE4NDkwfQ.RTbElP3o6KlI5ebCTue8ZKU9TpKpZsNTdhhsSnuyfps" 
+SUPABASE_URL = ""
+SUPABASE_KEY = "" 
 
 try:
     print("🔌 Connecting to Supabase API...")
