@@ -42,42 +42,62 @@ const API = {
 
     alerts: {
 
-        /**
-         * Load all unassigned alerts.
-         */
-        /**
- * Load alerts by workflow status.
- *
- * @param {string} status
- * @returns {Promise<Array>}
- */
-async getByStatus(status) {
+    /**
+     * Load alerts by workflow status.
+     *
+     * @param {string} status
+     * @returns {Promise<Array>}
+     */
+    async getByStatus(status) {
 
-    return execute(() =>
-        supabase
-            .from("alerts")
-            .select(`
-                id,
-                alert_ref,
-                rule_triggered,
-                severity,
-                status,
-                created_at,
-                customers (
-                    entity_name,
-                    first_name,
-                    last_name
-                )
-            `)
-            .eq("status", status)
-            .order("created_at", {
-                ascending: false
-            })
-    );
-
-}
+        return execute(() =>
+            supabase
+                .from("alerts")
+                .select(`
+                    id,
+                    alert_ref,
+                    rule_triggered,
+                    severity,
+                    status,
+                    created_at,
+                    customers (
+                        entity_name,
+                        first_name,
+                        last_name
+                    )
+                `)
+                .eq("status", status)
+                .order("created_at", {
+                    ascending: false
+                })
+        );
 
     },
+
+    /******************************************************
+     * Claim an alert using optimistic locking.
+     *
+     * Returns an array exactly like the original
+     * dashboard implementation so that no UI behaviour
+     * changes during this refactor.
+     ******************************************************/
+    async claim(alertId, userId) {
+
+        return execute(() =>
+            supabase
+                .from("alerts")
+                .update({
+                    status: "INVESTIGATING",
+                    assigned_user_id: userId
+                })
+                .eq("id", alertId)
+                .eq("status", "UNASSIGNED")
+                .select()
+        );
+
+    }
+
+},
 
     customers: {},
 
