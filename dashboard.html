@@ -2000,7 +2000,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
-        import { supabase } from './js/config.js';
+        import { supabase } from "./js/config.js";
+        import API from "./js/api.js";
 
         let currentProactiveCaseId = null;
         let pinnedEntities = [];
@@ -3274,16 +3275,7 @@
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Fetching ${filterStatus.toLowerCase()} alerts...</td></tr>`;
 
                 // Fetch ALL alerts matching the status
-                const { data: alerts, error } = await supabase
-                    .from('alerts')
-                    .select(`
-                        id, alert_ref, rule_triggered, severity, status, created_at,
-                        customers ( entity_name, first_name, last_name )
-                    `)
-                    .eq('status', filterStatus)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
+                const alerts = await API.alerts.getByStatus(filterStatus);
                 
                 allAlerts = alerts || [];
                 currentAlertsPage = 1; // Reset to page 1 on new filter
