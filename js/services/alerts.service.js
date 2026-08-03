@@ -17,22 +17,11 @@
 // ======================================================
 
 import { supabase } from "../config.js";
+import { execute } from "../utils/apiExecutor.js";
 
 /**
  * Standardised execution wrapper.
  */
-async function execute(operation) {
-
-    const { data, error } = await operation();
-
-    if (error) {
-        console.error("[Alert Service]", error);
-        throw error;
-    }
-
-    return data;
-
-}
 
 /**
  * Load alerts by workflow status.
