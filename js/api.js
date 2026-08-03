@@ -40,7 +40,44 @@ async function execute(operation) {
  */
 const API = {
 
-    alerts: {},
+    alerts: {
+
+        /**
+         * Load all unassigned alerts.
+         */
+        /**
+ * Load alerts by workflow status.
+ *
+ * @param {string} status
+ * @returns {Promise<Array>}
+ */
+async getByStatus(status) {
+
+    return execute(() =>
+        supabase
+            .from("alerts")
+            .select(`
+                id,
+                alert_ref,
+                rule_triggered,
+                severity,
+                status,
+                created_at,
+                customers (
+                    entity_name,
+                    first_name,
+                    last_name
+                )
+            `)
+            .eq("status", status)
+            .order("created_at", {
+                ascending: false
+            })
+    );
+
+}
+
+    },
 
     customers: {},
 
