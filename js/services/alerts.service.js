@@ -76,3 +76,30 @@ export async function claim(alertId, userId) {
     );
 
 }
+
+/**
+ * Retrieve all alerts for a customer.
+ *
+ * @param {string} customerId
+ * @returns {Promise<Array>}
+ */
+export async function getByCustomer(customerId) {
+
+    return execute(() =>
+        supabase
+            .from("alerts")
+            .select(`
+                id,
+                alert_ref,
+                status,
+                severity,
+                rule_triggered,
+                created_at
+            `)
+            .eq("customer_id", customerId)
+            .order("created_at", {
+                ascending: false
+            })
+    );
+
+}
