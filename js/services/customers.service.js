@@ -47,3 +47,21 @@ export async function getDirectory(filter = "ALL") {
     return execute(() => query);
 
 }
+
+/**
+ * Retrieve a single customer by ID.
+ *
+ * @param {string} customerId
+ * @returns {Promise<Object|null>}
+ */
+export async function getById(customerId) {
+
+    return execute(() =>
+        supabase
+            .from("customers")
+            .select("*")
+            .eq("id", customerId)
+            .maybeSingle()
+    );
+
+}

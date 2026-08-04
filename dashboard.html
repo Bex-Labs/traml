@@ -3960,28 +3960,21 @@
             }
 
             try {
-                const { data: customer, error: custError } = await supabase
-                    .from('customers')
-                    .select('*')
-                    .eq('id', customerId)
-                    .maybeSingle(); 
+                const investigation =
+                    await API.investigations.open(customerId);
 
-                if (custError) throw custError;
+                const customer = investigation.customer;
+
+                const riskProfile = investigation.profile.risk;
+
+                const totalAlerts = investigation.metrics.totalAlerts;
+
                 window.currentViewedCustomer = customer;
-
-                const riskProfile = await API.risk.getInvestigationProfile(customerId);
 
                 if (!customer) {
                     alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted.`);
                     return;
                 }
-
-                const { count, error: countError } = await supabase
-                    .from('alerts')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('customer_id', customerId);
-
-                if (countError) throw countError;
 
                 const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
                 document.getElementById('panel-entity-name').innerText = entityName;
@@ -4009,7 +4002,7 @@
                         ${currentTier} RISK (${currentScore}/100)
                     </span>`;
                 
-                document.getElementById('panel-total-alerts').innerText = count || 0;
+                document.getElementById('panel-total-alerts').innerText = totalAlerts;
                 document.getElementById('panel-industry').innerText = customer.industry || (customer.customer_type === 'Individual' ? 'Retail / Personal' : 'Not Provided');
                 document.getElementById('panel-geography').innerText = customer.geography || 'NG (Domestic)';
                 document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
