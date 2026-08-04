@@ -12,6 +12,7 @@
 
 import { supabase } from "./config.js";
 import * as alerts from "./services/alerts.service.js";
+import * as customers from "./services/customers.service.js";
 
 /**
  * Executes a Supabase operation and standardises
@@ -43,7 +44,7 @@ const API = {
 
     alerts,
 
-    customers: {},
+    customers,
 
     transactions: {},
 

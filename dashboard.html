@@ -3812,19 +3812,7 @@
                 const filterText = currentKycFilter === 'ALL' ? '' : `${currentKycFilter.toLowerCase()} `;
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Loading ${filterText}directory...</td></tr>`;
 
-                // Build query based on the active tab
-                let query = supabase
-                    .from('customers')
-                    .select('*')
-                    .order('risk_score', { ascending: false })
-                    .limit(50);
-
-                if (currentKycFilter === 'PENDING') query = query.eq('kyc_status', 'PENDING');
-                if (currentKycFilter === 'COMPLETED') query = query.eq('kyc_status', 'COMPLETED');
-
-                const { data: customers, error } = await query;
-
-                if (error) throw error;
+                const customers = await API.customers.getDirectory(currentKycFilter);
                 tbody.innerHTML = '';
 
                 if (customers.length === 0) {
