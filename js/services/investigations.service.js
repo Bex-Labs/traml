@@ -16,12 +16,14 @@ import * as alerts from "./alerts.service.js";
 /**
  * Open an investigation context.
  *
- * Version 1:
+ * Version 1
+ * ----------
+ * Composes:
  *  - Customer
  *  - Risk
+ *  - Alerts
  *
  * Future versions will enrich this object with:
- *  - Alerts
  *  - Transactions
  *  - Accounts
  *  - Intelligence
@@ -31,42 +33,135 @@ import * as alerts from "./alerts.service.js";
  */
 export async function open(customerId) {
 
+    // ==================================================
+    // 1. Gather domain data
+    // ==================================================
+
     const [
+        customer,
+        riskProfile,
+        customerAlerts
+    ] = await Promise.all([
+        customers.getById(customerId),
+        risk.getInvestigationProfile(customerId),
+        alerts.getByCustomer(customerId)
+    ]);
 
-    customer,
+    // ==================================================
+    // 2. Compute investigation metrics
+    // ==================================================
 
-    riskProfile,
+    const metrics = 
+    buildMetrics(customerAlerts);
 
-    customerAlerts
+    // ==================================================
+    // 3. Compute investigation assessment
+    // ==================================================
 
-] = await Promise.all([
+    const assessment =
+    buildAssessment(riskProfile, customerAlerts);
 
-    customers.getById(customerId),
+    // ==================================================
+    // 4. Build investigation timeline
+    // ==================================================
 
-    risk.getInvestigationProfile(customerId),
+    const timeline =
+    buildTimeline(customerAlerts);
 
-    alerts.getByCustomer(customerId)
+    // ==================================================
+    // 5. Return investigation model
+    // ==================================================
 
-]);
+    return {
 
-return {
+        customer,
 
-    customer,
+        profile: {
 
-    profile: {
+            risk: riskProfile,
 
-        risk: riskProfile,
+            alerts: customerAlerts
 
-        alerts: customerAlerts
+        },
 
-    },
+        metrics,
 
-    metrics: {
+        assessment,
 
-        totalAlerts: customerAlerts.length
+        timeline
 
-    }
+    };
 
-};
+}
+
+function buildMetrics(customerAlerts) {
+
+    return {
+
+        totalAlerts: customerAlerts.length,
+
+        openAlerts:
+            customerAlerts.filter(alert =>
+                alert.status !== "CLOSED"
+            ).length,
+
+        investigatingAlerts:
+            customerAlerts.filter(alert =>
+                alert.status === "INVESTIGATING"
+            ).length,
+
+        closedAlerts:
+            customerAlerts.filter(alert =>
+                alert.status === "CLOSED"
+            ).length,
+
+        highSeverityAlerts:
+            customerAlerts.filter(alert =>
+                alert.severity === "HIGH"
+            ).length
+
+    };
+
+}
+
+function buildAssessment(riskProfile, customerAlerts) {
+
+    return {
+
+        priority:
+            riskProfile?.risk_level === "HIGH"
+                ? "HIGH"
+                : customerAlerts.some(alert =>
+                    alert.severity === "HIGH"
+                )
+                    ? "HIGH"
+                    : "NORMAL",
+
+        requiresEscalation:
+            customerAlerts.some(alert =>
+                alert.status === "PENDING_APPROVAL"
+            )
+
+    };
+
+}
+
+function buildTimeline(customerAlerts) {
+
+    return customerAlerts.map(alert => ({
+
+        type: "ALERT",
+
+        timestamp: alert.created_at,
+
+        title: alert.alert_ref,
+
+        severity: alert.severity,
+
+        status: alert.status,
+
+        data: alert
+
+    }));
 
 }
