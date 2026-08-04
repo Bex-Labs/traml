@@ -3982,7 +3982,9 @@
 
                 if (custError) throw custError;
                 window.currentViewedCustomer = customer;
-                
+
+                const riskProfile = await API.risk.getInvestigationProfile(customerId);
+
                 if (!customer) {
                     alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted.`);
                     return;
@@ -3999,8 +4001,27 @@
                 document.getElementById('panel-entity-name').innerText = entityName;
                 document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
                 
-                let badgeClass = customer.risk_tier === 'HIGH' ? 'bg-danger' : (customer.risk_tier === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-success');
-                document.getElementById('panel-risk-badge').innerHTML = `<span class="badge ${badgeClass}">${customer.risk_tier || 'UNKNOWN'} RISK (${customer.risk_score || 0}/100)</span>`;
+                const currentTier =
+                    riskProfile?.risk_level ??
+                    customer.risk_tier ??
+                    "UNKNOWN";
+
+                const currentScore =
+                    riskProfile?.total_score ??
+                    customer.risk_score ??
+                    0;
+
+                let badgeClass =
+                    currentTier === "HIGH"
+                        ? "bg-danger"
+                        : currentTier === "MEDIUM"
+                            ? "bg-warning text-dark"
+                            : "bg-success";
+
+                document.getElementById("panel-risk-badge").innerHTML =
+                    `<span class="badge ${badgeClass}">
+                        ${currentTier} RISK (${currentScore}/100)
+                    </span>`;
                 
                 document.getElementById('panel-total-alerts').innerText = count || 0;
                 document.getElementById('panel-industry').innerText = customer.industry || (customer.customer_type === 'Individual' ? 'Retail / Personal' : 'Not Provided');
