@@ -3451,21 +3451,7 @@
                 const typeFilter = document.getElementById('tx-type-filter').value;
                 
                 // Build query strictly matching the proven CBS schema
-                let query = supabase
-                    .from('transactions')
-                    .select(`
-                        id, amount, transaction_type, transaction_timestamp, transaction_reference,
-                        accounts ( customers ( id, entity_name, first_name, last_name ) )
-                    `)
-                    .order('transaction_timestamp', { ascending: false })
-                    .limit(50); 
-
-                if (typeFilter !== 'ALL') {
-                    query = query.eq('transaction_type', typeFilter);
-                }
-
-                const { data: txs, error } = await query;
-                if (error) throw error;
+                const txs = await API.transactions.getMonitoringFeed(typeFilter);
 
                 tbody.innerHTML = '';
 
