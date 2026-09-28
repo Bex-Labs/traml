@@ -57,3 +57,34 @@ export async function getMonitoringFeed(typeFilter = "ALL") {
     return execute(() => query);
 
 }
+
+/**
+ * Retrieve recent transactions for a customer.
+ *
+ * @param {string} customerId
+ * @returns {Promise<Array>}
+ */
+export async function getByCustomer(customerId) {
+
+    return execute(() =>
+        supabase
+            .from("transactions")
+            .select(`
+                id,
+                amount,
+                transaction_type,
+                transaction_timestamp,
+                transaction_reference,
+                account_id,
+                counterparty_account,
+                accounts!inner (
+                    customer_id
+                )
+            `)
+            .eq("accounts.customer_id", customerId)
+            .order("transaction_timestamp", {
+                ascending: false
+            })
+    );
+
+}

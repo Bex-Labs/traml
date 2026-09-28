@@ -3,433 +3,2481 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Core Banking Simulator</title>
+    <title>Core Banking | Teller Terminal</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
-    <link href="./css/theme.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,1&display=swap" rel="stylesheet" />
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-        .dynamic-bg { transition: background-color 0.4s ease; }
-        .dynamic-text { transition: color 0.4s ease; }
-        #bank-selector-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95); z-index: 2000;
-            display: flex; align-items: center; justify-content: center;
+        :root {
+            --bs-primary: #0F172A; /* Deep Institutional Blue */
+            --bs-body-bg: #F8FAFC;
+            --brand-red: #DC2626;
+            --brand-red-hover: #B91C1C;
         }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bs-body-bg); height: 100vh; overflow: hidden; }
+        .font-mono { font-family: 'JetBrains Mono', monospace !important; }
+        
+        /* Modern Header */
+        .navbar { height: 65px; background-color: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(8px); }
+        
+        /* Modern Sidebar */
+        .sidebar { background-color: var(--bs-primary); border-right: 1px solid #1E293B; }
+        .sidebar .nav-link { color: #94A3B8; border-radius: 8px; margin: 4px 12px; padding: 12px 16px; transition: all 0.2s; }
+        .sidebar .nav-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .sidebar .nav-link.active { background-color: rgba(220, 38, 38, 0.1); color: #fff; border-left: 4px solid var(--brand-red); border-radius: 0 8px 8px 0; margin-left: 0; padding-left: 24px; }
+        
+        /* Till LED Indicators */
+        .led-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .led-green { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .led-red { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .led-warning { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+
+        /* Component Styling */
+        .form-control-dense { font-size: 0.85rem; padding: 0.5rem 0.75rem; border-color: #cbd5e1; background-color: #f8fafc; }
+        .matrix-input { width: 80px; text-align: center; font-weight: bold; }
+        .btn-primary { background-color: var(--brand-red); border-color: var(--brand-red); color: white; }
+        .btn-primary:hover { background-color: var(--brand-red-hover); border-color: var(--brand-red-hover); }
+        
+        .table-blotter th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; background: #F1F5F9; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; padding: 12px; }
+        .table-blotter td { font-size: 0.8rem; padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
     </style>
 </head>
-<body id="banking-body">
+<body>
 
-    <div id="bank-selector-overlay">
-        <div class="card border-0 shadow-lg" style="width: 400px; border-radius: 12px;">
-            <div class="card-body p-5 text-center">
-                <span class="material-symbols-outlined fs-1 text-primary mb-3">account_balance</span>
-                <h4 class="fw-bold text-dark mb-1">Core Banking Simulator</h4>
-                <p class="text-muted small mb-4">Select an institution to simulate customer and teller activity.</p>
-                
-                <select id="bank-selector-dropdown" class="form-select form-select-lg mb-4 bg-light border-secondary border-opacity-25">
-                    <option value="" disabled selected>Loading deployed banks...</option>
-                </select>
-                
-                <button id="btn-enter-bank" class="btn btn-primary w-100 fw-bold py-2" disabled>Enter Banking Portal</button>
-                <div class="mt-3">
-                    <a href="index.html" class="text-muted small text-decoration-none">Return to BexAML Compliance Platform</a>
-                </div>
+    <!-- MODERN WHITE GLASS HEADER -->
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom px-4 shadow-sm z-3 position-relative">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-danger fs-3">account_balance</span>
+                <span class="fs-5 fw-bold tracking-wide text-dark text-uppercase" id="ui-bank-name" style="color: #0F172A !important;">Head Office - <span class="text-danger">001</span></span>
             </div>
-        </div>
-    </div>
-
-    <nav class="navbar navbar-expand-lg navbar-dark dynamic-bg shadow-sm px-4" id="nav-header" style="background-color: #0f172a;">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <span class="material-symbols-outlined fs-3">account_balance_wallet</span>
-                <span class="fs-5 fw-bold tracking-wide text-white uppercase" id="ui-bank-name">Bank Portal</span>
-            </a>
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-white text-dark bg-opacity-25 fw-semibold font-monospace" id="ui-tenant-id">...</span>
-                <button class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 fw-semibold" onclick="location.reload()">
-                    <span class="material-symbols-outlined fs-6">swap_horiz</span> Switch Bank
-                </button>
+            
+            <div class="d-flex align-items-center gap-4">
+                <!-- Till Monitor -->
+                <div class="d-flex align-items-center gap-4 bg-light px-4 py-2 rounded-pill border border-secondary border-opacity-25" id="global-till-monitor">
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="till-led" class="led-indicator led-red"></span>
+                        <span id="till-status" class="fw-bold font-mono text-uppercase" style="font-size: 0.75rem; color: #64748b;">TILL: CLOSED</span>
+                    </div>
+                    <div class="border-start border-secondary border-opacity-25 ps-4 d-flex gap-3 align-items-center">
+                        <div style="font-size: 0.7rem; color: #64748b;" class="text-uppercase fw-bold">Physical Cash:</div>
+                        <div class="fw-bold font-mono text-dark" id="till-balance">₦ 0.00</div>
+                    </div>
+                    <!-- RESTORED VAULT LIMIT -->
+                    <div class="border-start border-secondary border-opacity-25 ps-4 d-flex gap-3 align-items-center">
+                        <div style="font-size: 0.7rem; color: #64748b;" class="text-uppercase fw-bold">Vault Limit:</div>
+                        <div class="fw-bold font-mono text-warning" id="till-limit">₦ 5,000,000.00</div>
+                    </div>
+                </div>
+                
+               <!-- Profile -->
+                <div class="text-end border-start ps-4 pe-2">
+                    <div class="fw-semibold text-dark" style="font-size: 0.85rem;" id="ui-teller-name">Loading...</div>
+                    <div class="text-danger fw-bold text-uppercase" style="font-size: 0.65rem;" id="ui-teller-role">...</div>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container py-5">
-        <div class="row g-4">
+    <!-- NEW VERTICAL SIDEBAR LAYOUT -->
+    <div class="container-fluid px-0">
+        <div class="row g-0" style="height: calc(100vh - 65px);">
             
-            <div class="col-md-5">
-                <div class="card border-0 shadow-sm h-100" style="border-top: 4px solid var(--bs-primary) !important;" id="card-edge">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2 uppercase tracking-wide dynamic-text" id="ui-header-text">
-                            <span class="material-symbols-outlined fs-5">send_money</span> Transfer Funds
-                        </h6>
+            <!-- LEFT SIDEBAR -->
+            <div class="col-md-2 sidebar d-flex flex-column h-100 pt-3">
+                <div class="nav flex-column nav-pills flex-grow-1" id="terminalTabs" role="tablist" aria-orientation="vertical">
+                    
+                    <!-- TELLER SPECIFIC MODULES -->
+                    <div id="sidebar-teller-modules">
+                        <a class="nav-link active d-flex align-items-center gap-3" id="nav-cash-tab" data-bs-toggle="pill" href="#tab-cash" role="tab">
+                            <span class="material-symbols-outlined">payments</span> <span class="fw-semibold small text-uppercase">Cash Ops</span>
+                        </a>
+                        <a class="nav-link d-flex align-items-center gap-3" id="nav-transfer-tab" data-bs-toggle="pill" href="#tab-transfer" role="tab">
+                            <span class="material-symbols-outlined">swap_horiz</span> <span class="fw-semibold small text-uppercase">Transfers</span>
+                        </a>
+                        <a class="nav-link d-flex align-items-center gap-3" id="nav-onboard-tab" data-bs-toggle="pill" href="#tab-onboard" role="tab">
+                            <span class="material-symbols-outlined">person_add</span> <span class="fw-semibold small text-uppercase">Onboard</span>
+                        </a>
                     </div>
-                    <div class="card-body p-4 bg-light">
-                        <form id="transfer-form">
-                            <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted uppercase">Source Account</label>
-                                <button type="button" class="btn btn-white border border-secondary border-opacity-25 shadow-sm w-100 py-3 d-flex justify-content-between align-items-center mb-2" onclick="openTileDirectory('source')">
-                                    <span id="source-btn-text" class="fw-bold text-muted">Click to select customer...</span>
-                                    <span class="material-symbols-outlined text-primary fs-5">person_search</span>
-                                </button>
-                                <div id="source-account-card" class="card border border-secondary border-opacity-25 bg-white d-none">
-                                    <div class="card-body p-3 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0" id="source-name">Loading...</h6>
-                                            <p class="small text-muted mb-0 font-monospace" id="source-detail">Acct: ... | Bal: ...</p>
+
+                    <!-- UNIVERSAL MODULES (Checker capability) -->
+                    <a class="nav-link d-flex align-items-center gap-3" id="nav-inquiry-tab" data-bs-toggle="pill" href="#tab-inquiry" role="tab">
+                        <span class="material-symbols-outlined">manage_search</span> <span class="fw-semibold small text-uppercase">Inquiry</span>
+                    </a>
+                    
+                    <!-- DYNAMIC TILL / COMMAND CENTER TAB -->
+                    <a class="nav-link d-flex align-items-center gap-3" id="nav-till-tab" data-bs-toggle="pill" href="#tab-till" role="tab">
+                        <span class="material-symbols-outlined">lock_open</span> <span class="fw-semibold small text-uppercase" id="nav-till-text">Till / Vault</span>
+                    </a>
+
+                    <!-- MANAGER SPECIFIC MODULES -->
+                    <div id="sidebar-manager-modules" class="d-none">
+                        <!-- NEW LOAN ORIGINATION TAB -->
+                        <a class="nav-link d-flex align-items-center gap-3" id="nav-loans-tab" data-bs-toggle="pill" href="#tab-loans" role="tab">
+                            <span class="material-symbols-outlined">real_estate_agent</span> <span class="fw-semibold small text-uppercase">Loan Origination</span>
+                        </a>
+                        <a class="nav-link d-flex align-items-center gap-3" id="nav-reports-tab" data-bs-toggle="pill" href="#tab-reports" role="tab" onclick="fetchBranchReports()">
+                            <span class="material-symbols-outlined">analytics</span> <span class="fw-semibold small text-uppercase">Branch Reports</span>
+                        </a>
+                        <a class="nav-link d-flex align-items-center gap-3" id="nav-audit-tab" data-bs-toggle="pill" href="#tab-audit" role="tab" onclick="fetchStaffAudit()">
+                            <span class="material-symbols-outlined">shield_person</span> <span class="fw-semibold small text-uppercase">Staff Audit</span>
+                        </a>
+                    </div>
+
+                    <!-- BOTTOM ANCHORED LOGOUT -->
+                    <div class="mt-auto mb-3">
+                        <hr class="border-secondary opacity-25 mx-3">
+                        <a class="nav-link d-flex align-items-center gap-3 text-danger" style="cursor: pointer;" onclick="logout()">
+                            <span class="material-symbols-outlined">logout</span> <span class="fw-bold small text-uppercase">Log Out</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE WORKSPACE (FORMS) -->
+            <div class="col-md-6 p-5 overflow-auto h-100 bg-white">
+                <div class="tab-content" id="v-pills-tabContent">
+                
+                <!-- TAB 1: CASH OPS -->
+                <div class="tab-pane fade show active" id="tab-cash">
+                    <div class="alert alert-warning d-none text-center fw-bold py-2" id="till-closed-warning" style="font-size: 0.85rem;">
+                        <span class="material-symbols-outlined align-middle fs-6 me-1">lock</span> Till is locked/closed. Open till to process transactions.
+                    </div>
+                    <form id="tx-form">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Transaction Type</label>
+                            <select class="form-select form-control-dense fw-bold bg-light" id="tx-type">
+                                <option value="DEPOSIT">CASH DEPOSIT (IN)</option>
+                                <option value="WITHDRAWAL">CASH WITHDRAWAL (OUT)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Account Number (9 or 10 Digits)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><span class="material-symbols-outlined fs-5 text-muted">search</span></span>
+                                <input type="text" class="form-control form-control-dense font-mono fw-bold text-primary fs-6" id="lookup-acct" placeholder="e.g. 1044593006" maxlength="10">
+                            </div>
+                            <div class="card mt-2 border-primary bg-primary bg-opacity-10 d-none" id="customer-card">
+                                <div class="card-body p-3 d-flex align-items-center gap-3">
+                                    <div class="bg-white rounded p-2 shadow-sm border"><span class="material-symbols-outlined text-primary">person</span></div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 fw-bold text-dark" id="cust-name">Loading...</h6>
+                                        <div class="d-flex gap-2 mt-1"><span class="badge bg-success bg-opacity-25 text-success border border-success" style="font-size: 0.65rem;" id="cust-tier">TIER 1</span></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="verified-account-id">
+                            </div>
+                        </div>
+                        <div class="mb-4 border rounded p-3 bg-light">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-3 d-block border-bottom pb-2">Physical Cash Breakdown</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-dense matrix-input font-mono denom-qty" data-val="1000" min="0" value="0">
+                                    <span class="text-muted fw-bold small">x ₦1,000</span>
+                                </div>
+                                <div class="font-mono fw-bold text-dark denom-row-total">₦ 0</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-dense matrix-input font-mono denom-qty" data-val="500" min="0" value="0">
+                                    <span class="text-muted fw-bold small">x ₦500</span>
+                                </div>
+                                <div class="font-mono fw-bold text-dark denom-row-total">₦ 0</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" class="form-control form-control-dense matrix-input font-mono denom-qty" data-val="200" min="0" value="0">
+                                    <span class="text-muted fw-bold small">x ₦200</span>
+                                </div>
+                                <div class="font-mono fw-bold text-dark denom-row-total">₦ 0</div>
+                            </div>
+                            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-uppercase" style="font-size: 0.8rem;">Calculated Total</span>
+                                <span class="fw-bold fs-5 font-mono text-primary" id="matrix-total">₦ 0.00</span>
+                            </div>
+                            <input type="hidden" id="calculated-tx-amount" value="0">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Transaction Note (Receipt Description)</label>
+                            <input type="text" class="form-control form-control-dense" id="tx-narration" placeholder="e.g. Branch Cash Deposit">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" id="btn-post-tx" disabled>PROCESS TRANSACTION</button>
+                    </form>
+                </div>
+
+                <!-- TAB 2: TRANSFERS -->
+                <div class="tab-pane fade" id="tab-transfer">
+                    <form id="transfer-form">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Transfer Network</label>
+                            <select class="form-select form-control-dense fw-bold bg-light" id="trf-network" onchange="toggleTransferNetwork()">
+                                <option value="INTERNAL">Internal Transfer (Book-to-Book)</option>
+                                <option value="EXTERNAL">External Transfer (NIBSS NIP)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Source Account (Sender)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><span class="material-symbols-outlined fs-5 text-danger">upload</span></span>
+                                <input type="text" class="form-control form-control-dense font-mono fw-bold fs-6" id="lookup-source-acct" placeholder="Account Number" maxlength="10">
+                            </div>
+                            <div class="card mt-2 border-secondary bg-light d-none" id="source-card">
+                                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-dark small" id="source-name">Loading...</span><span class="badge bg-dark bg-opacity-10 text-dark" id="source-tier">TIER</span>
+                                </div>
+                                <input type="hidden" id="verified-source-id">
+                            </div>
+                        </div>
+
+                        <div class="mb-4 d-none" id="external-bank-container">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Destination Bank (NIBSS)</label>
+                            <select class="form-select form-control-dense fw-bold text-primary" id="dest-bank-name">
+                                <option value="Guaranty Trust Bank">Guaranty Trust Bank (GTB)</option>
+                                <option value="Zenith Bank">Zenith Bank</option>
+                                <option value="United Bank for Africa">United Bank for Africa (UBA)</option>
+                                <option value="First Bank of Nigeria">First Bank of Nigeria</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Destination Account (Receiver)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><span class="material-symbols-outlined fs-5 text-success">download</span></span>
+                                <input type="text" class="form-control form-control-dense font-mono fw-bold fs-6" id="lookup-dest-acct" placeholder="Account Number" maxlength="10">
+                            </div>
+                            <div class="card mt-2 border-secondary bg-light d-none" id="dest-card">
+                                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-dark small" id="dest-name">Loading...</span><span class="badge bg-dark bg-opacity-10 text-dark" id="dest-tier">TIER</span>
+                                </div>
+                                <input type="hidden" id="verified-dest-id">
+                            </div>
+                            <div class="form-text small text-muted d-none mt-1" id="external-dest-warning">
+                                <span class="material-symbols-outlined align-middle" style="font-size: 14px;">info</span> For NIP transfers, beneficiary name resolution is simulated.
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Transfer Amount (NGN)</label>
+                            <div class="input-group"><span class="input-group-text bg-light fw-bold text-muted">₦</span><input type="number" class="form-control form-control-dense font-mono fw-bold text-dark fs-5" id="transfer-amount" required min="1"></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Narration</label>
+                            <input type="text" class="form-control form-control-dense" id="transfer-narration" required>
+                        </div>
+                        <!-- CBN REGULATORY DISCLOSURE & LIMIT WARNING -->
+                        <div class="alert alert-danger py-2 d-none mb-3" id="cbn-limit-warning">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined fs-5">gavel</span>
+                                <span class="small fw-bold">CBN Mandate: Outward transfers restricted to ₦20,000 limit (Tier 1 / New Device).</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 d-none" id="fee-disclosure-container">
+                            <div class="border border-secondary border-opacity-25 bg-light p-3 rounded-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                    <span class="small fw-bold text-muted text-uppercase">NIBSS Transfer Fee (VAT Inclusive)</span>
+                                    <span class="badge bg-warning text-dark fw-bold font-monospace" id="transfer-fee-display">₦0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small fw-bold text-dark text-uppercase">Total Ledger Debit</span>
+                                    <span class="fw-bold text-danger font-monospace fs-5" id="total-debit-display">₦0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100 fw-bold shadow-sm" id="btn-post-transfer" disabled>AUTHORIZE TRANSFER</button>
+                    </form>
+                </div>
+
+                <!-- TAB 3: ONBOARDING (MAKER ONLY) -->
+                <div class="tab-pane fade" id="tab-onboard">
+                    <form id="onboarding-form">
+                        <h6 class="fw-bold text-dark mb-3 text-uppercase">New Customer Application</h6>
+                        <div class="alert alert-info py-2" style="font-size: 0.8rem;">
+                            <strong>Note:</strong> Accounts created here will remain restricted until the Backoffice Team verifies the identity documents.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Customer Type</label>
+                            <select class="form-select form-control-dense fw-bold bg-light" id="ob-type" onchange="toggleObType()">
+                                <option value="RETAIL">Retail (Individual)</option>
+                                <option value="CORPORATE">Corporate (Business)</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-2 mb-3" id="ob-retail-fields">
+                            <div class="col-6"><label class="form-label small fw-bold text-muted text-uppercase mb-1">First Name</label><input type="text" class="form-control form-control-dense" id="ob-first-name" required></div>
+                            <div class="col-6"><label class="form-label small fw-bold text-muted text-uppercase mb-1">Last Name</label><input type="text" class="form-control form-control-dense" id="ob-last-name" required></div>
+                        </div>
+
+                        <div class="mb-3 d-none" id="ob-corporate-fields">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Entity Name (Business)</label>
+                            <input type="text" class="form-control form-control-dense" id="ob-entity-name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">BVN (11 Digits)</label>
+                            <input type="text" class="form-control form-control-dense font-mono text-primary fw-bold" id="ob-bvn" maxlength="11" required>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-size: 0.8rem;">Document Upload (KYC Vault)</h6>
+
+                        <div class="mb-3"><label class="form-label small fw-bold text-muted text-uppercase mb-1">National ID (PDF/JPG)</label><input class="form-control form-control-sm" type="file" id="ob-id-file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                        <div class="mb-4"><label class="form-label small fw-bold text-muted text-uppercase mb-1">Utility Bill (PDF/JPG)</label><input class="form-control form-control-sm" type="file" id="ob-utility-file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" id="btn-submit-onboard">SUBMIT ACCOUNT FOR VERIFICATION</button>
+                    </form>
+                </div>
+
+                <!-- TAB 4: TILL MANAGEMENT & COMMAND CENTER -->
+                <div class="tab-pane fade" id="tab-till">
+                    
+                    <!-- TELLER VIEW -->
+                    <div id="view-teller-till" class="d-none">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body p-4 text-center">
+                                <span class="material-symbols-outlined text-muted mb-2" style="font-size: 40px;">lock_open</span>
+                                <h6 class="fw-bold text-dark mb-1">Session Management</h6>
+                                <button class="btn btn-success w-100 fw-bold mb-2 mt-3" id="btn-open-till" onclick="openTill()">Open Till</button>
+                                <button class="btn btn-outline-danger w-100 fw-bold d-none mt-3" id="btn-close-till" onclick="initiateEOD()">Close & Balance Till (EOD)</button>
+                            </div>
+                        </div>
+                        <div class="card border-0 shadow-sm border-top border-4 border-primary">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-dark mb-3 text-uppercase">Vault Operations (Maker)</h6>
+                                <form id="vault-request-form">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-1">Action</label>
+                                        <select class="form-select form-control-dense fw-bold bg-light" id="vault-action-type">
+                                            <option value="VAULT_IN">Request Cash Float (From Vault)</option>
+                                            <option value="VAULT_OUT">Remit Excess Cash (To Vault)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-1">Amount (NGN)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light fw-bold text-muted">₦</span>
+                                            <input type="number" class="form-control form-control-dense font-mono fw-bold text-dark fs-5" id="vault-amount" required min="1">
                                         </div>
-                                        <div id="source-status-badge"></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" id="btn-submit-vault" disabled>Submit to Manager</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MANAGER VIEW: Command Center -->
+                    <div id="view-manager-till" class="d-none">
+                        <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
+                            <div><h6 class="fw-bold text-dark text-uppercase mb-0">Branch Command Center</h6></div>
+                            <button class="btn btn-sm btn-outline-secondary fw-bold d-flex align-items-center gap-1" onclick="loadManagerDashboards()"><span class="material-symbols-outlined fs-6">refresh</span> Refresh</button>
+                        </div>
+                        
+                        <!-- LIQUIDITY DASHBOARD -->
+                        <div class="row g-3 mb-4 mt-1">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm border-start border-4 border-success h-100">
+                                    <div class="card-body p-3">
+                                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Branch Main Vault (Liquidity)</span>
+                                        <h3 class="fw-bold text-success font-mono mb-0" id="mgr-vault-liquidity">₦ 0.00</h3>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div class="text-muted" style="font-size: 0.7rem;">Reserve Target: ₦150M</div>
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size: 0.6rem;">OPTIMAL</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted uppercase">Destination Account</label>
-                                <button type="button" class="btn btn-white border border-secondary border-opacity-25 shadow-sm w-100 py-3 d-flex justify-content-between align-items-center mb-2" onclick="openTileDirectory('dest')">
-                                    <span id="dest-btn-text" class="fw-bold text-muted">Click to select customer...</span>
-                                    <span class="material-symbols-outlined text-primary fs-5">person_search</span>
-                                </button>
-                                <div id="dest-account-card" class="card border border-secondary border-opacity-25 bg-white d-none">
-                                    <div class="card-body p-3 d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-0" id="dest-name">Loading...</h6>
-                                            <p class="small text-muted mb-0 font-monospace" id="dest-detail">Acct: ...</p>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm border-start border-4 border-primary h-100">
+                                    <div class="card-body p-3">
+                                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Active Tellers & Till Float</span>
+                                        <h3 class="fw-bold text-dark font-mono mb-0" id="mgr-tills-total">₦ 0.00</h3>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div class="text-muted" style="font-size: 0.7rem;">Allocated to Floor</div>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary" style="font-size: 0.6rem;"><span id="mgr-active-tellers">0</span> ONLINE</span>
                                         </div>
-                                        <div id="dest-status-badge"></div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted uppercase">Amount (NGN)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-secondary border-opacity-25 fw-bold">₦</span>
-                                    <input type="number" class="form-control border-secondary border-opacity-25" id="tx-amount" placeholder="50000" required min="1">
+                        <!-- OVERRIDE QUEUE (MAKER-CHECKER) -->
+                        <h6 class="fw-bold text-danger text-uppercase mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                            <span class="material-symbols-outlined fs-5">gavel</span> Pending High-Value Overrides (>₦5M)
+                        </h6>
+                        <div id="manager-override-queue" class="mb-4"></div>
+
+                        <!-- Discrepancy Queue -->
+                        <h6 class="fw-bold text-warning text-dark text-uppercase mt-4 mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                            <span class="material-symbols-outlined fs-5">lock_clock</span> EOD Discrepancy Locks
+                        </h6>
+                        <div id="manager-discrepancy-queue" class="mb-4"></div>
+
+                        <!-- Vault Request Queue -->
+                        <h6 class="fw-bold text-primary text-uppercase mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                            <span class="material-symbols-outlined fs-5">account_balance</span> Vault Cash Float Requests
+                        </h6>
+                        <div id="manager-queue-container"></div>
+
+                        <!-- EOM OPERATIONS (INTEREST ACCRUAL) -->
+                        <h6 class="fw-bold text-success text-uppercase mt-4 mb-2 d-flex align-items-center gap-2" style="font-size: 0.8rem;">
+                            <span class="material-symbols-outlined fs-5">event_note</span> End-of-Month (EOM) Processing
+                        </h6>
+                        <div class="card border-0 shadow-sm border-start border-4 border-success mb-4">
+                            <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold text-dark small">Savings Interest Accrual (4.5% APY)</span>
+                                    <div class="text-muted font-mono mt-1" style="font-size: 0.75rem;">Calculates and bulk-credits monthly yield to all active savings accounts.</div>
+                                </div>
+                                <button class="btn btn-success text-white btn-sm fw-bold px-3 shadow-sm d-flex align-items-center gap-1" id="btn-run-accrual" onclick="runInterestAccrual()">
+                                    <span class="material-symbols-outlined fs-6">play_circle</span> EXECUTE ACCRUAL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TAB 8: LOAN ORIGINATION & AMORTIZATION -->
+                <div class="tab-pane fade" id="tab-loans">
+                    <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-2">
+                        <div>
+                            <h6 class="fw-bold text-dark text-uppercase mb-0">Credit Underwriting Pipeline</h6>
+                            <p class="text-muted small mb-0 mt-1">Review simulated DTI limits and generate visual amortization schedules.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <!-- Loan Applications Queue -->
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm border-start border-4 border-primary">
+                                <div class="card-header bg-white py-3 border-bottom-0">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Pending Applications</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-muted small text-uppercase">
+                                            <tr>
+                                                <th class="py-2 px-3">Applicant</th>
+                                                <th class="py-2">Request</th>
+                                                <th class="py-2">Est. DTI</th>
+                                                <th class="py-2 text-end px-3">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="px-3 py-3"><div class="fw-bold text-dark small">Chukwudi Okafor</div><div class="text-muted font-monospace" style="font-size: 0.7rem;">SME / Tier 2</div></td>
+                                                <td class="py-3 fw-bold text-primary small font-mono">₦15,000,000</td>
+                                                <td class="py-3"><span class="badge bg-success bg-opacity-10 text-success border border-success">28% (LOW)</span></td>
+                                                <td class="px-3 py-3 text-end"><button class="btn btn-sm btn-dark fw-bold" onclick="simulateLoan(15000000, 18, 48)">Underwrite</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-3 py-3"><div class="fw-bold text-dark small">Amina Bello</div><div class="text-muted font-monospace" style="font-size: 0.7rem;">Retail / Tier 1</div></td>
+                                                <td class="py-3 fw-bold text-primary small font-mono">₦2,500,000</td>
+                                                <td class="py-3"><span class="badge bg-danger bg-opacity-10 text-danger border border-danger">52% (HIGH)</span></td>
+                                                <td class="px-3 py-3 text-end"><button class="btn btn-sm btn-outline-danger fw-bold" onclick="alert('Application Rejected: DTI exceeds 40% regulatory threshold.')">Reject</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted uppercase">Narration / Memo</label>
-                                <input type="text" class="form-control border-secondary border-opacity-25" id="tx-narration" placeholder="e.g. Invoice Payment" required>
+                        <!-- Interactive Amortization Simulator -->
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm bg-light mt-2">
+                                <div class="card-header bg-transparent py-3 border-bottom d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-warning fs-5">calculate</span>
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Amortization Simulator</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <form id="loan-calculator" class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Borrower Account Number</label>
+                                            <input type="text" class="form-control font-mono fw-bold text-primary border-secondary border-opacity-25" id="loan-acct-num" placeholder="e.g. 1044593006" maxlength="10">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Principal (₦)</label>
+                                            <input type="number" class="form-control font-mono fw-bold border-secondary border-opacity-25" id="loan-principal" placeholder="0">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Rate (%)</label>
+                                            <input type="number" class="form-control font-mono fw-bold border-secondary border-opacity-25" id="loan-rate" placeholder="0">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Term (Months)</label>
+                                            <input type="number" class="form-control font-mono fw-bold border-secondary border-opacity-25" id="loan-term" placeholder="0">
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <button type="button" class="btn btn-primary w-100 fw-bold shadow-sm" onclick="generateAmortization()">Generate Mathematical Schedule</button>
+                                        </div>
+                                    </form>
+                                    
+                                    <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 row text-center">
+                                        <div class="col-4 border-end border-secondary border-opacity-25">
+                                            <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.65rem;">Monthly Payment</span>
+                                            <h6 class="fw-bold text-danger font-mono mb-0" id="loan-pmt">₦0.00</h6>
+                                        </div>
+                                        <div class="col-4 border-end border-secondary border-opacity-25">
+                                            <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.65rem;">Bank Profit</span>
+                                            <h6 class="fw-bold text-success font-mono mb-0" id="loan-total-interest">₦0.00</h6>
+                                        </div>
+                                        <div class="col-4">
+                                            <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.65rem;">Total Repayment</span>
+                                            <h6 class="fw-bold text-primary font-mono mb-0" id="loan-total-repayment">₦0.00</h6>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <button type="submit" class="btn dynamic-bg text-white w-100 fw-bold py-2 shadow-sm" id="btn-submit-tx" style="background-color: #0f172a;">
-                                Authorize Transfer
+                    <!-- Chart Container -->
+                    <div class="card border-0 shadow-sm d-none" id="chart-container-card">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold uppercase text-dark">Loan Lifespan & Profit Curve</h6>
+                            <button class="btn btn-sm btn-success fw-bold d-flex align-items-center gap-1 shadow-sm" id="btn-disburse" onclick="disburseLoan()">
+                                <span class="material-symbols-outlined fs-6">payments</span> Approve & Disburse
                             </button>
-                        </form>
+                        </div>
+                        <div class="card-body p-4">
+                            <canvas id="amortizationChart" height="80"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Active Loans & Servicing Ledger -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-header bg-dark text-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold uppercase d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined fs-5">account_balance_wallet</span> Active Loans (Servicing Ledger)
+                            </h6>
+                            <button class="btn btn-sm btn-danger fw-bold d-flex align-items-center gap-1 shadow-sm" onclick="runLoanSweeper()" id="btn-sweeper">
+                                <span class="material-symbols-outlined fs-6">update</span> Run Nightly Sweeper (Simulate EOM)
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="py-3 px-4">Loan Ref / Account</th>
+                                        <th class="py-3">Remaining Balance</th>
+                                        <th class="py-3">Monthly PMT</th>
+                                        <th class="py-3">Status</th>
+                                        <th class="py-3 text-end px-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="active-loans-body">
+                                    <tr><td colspan="5" class="text-center py-4 text-muted small">Loading active loans...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-md-7">
-                <div class="card border-0 shadow-sm h-100 d-flex flex-column">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2 uppercase tracking-wide">
-                            <span class="material-symbols-outlined text-secondary fs-5">receipt_long</span> Local Ledger
-                        </h6>
+                <!-- TAB 5: ACCOUNT INQUIRY & MINI-STATEMENT -->
+                <div class="tab-pane fade" id="tab-inquiry">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-1">Look Up Customer Account</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><span class="material-symbols-outlined fs-5 text-primary">search</span></span>
+                            <input type="text" class="form-control form-control-dense font-mono fw-bold fs-6" id="inquiry-acct-num" placeholder="Enter 10-Digit Account Number" maxlength="10">
+                            <button class="btn btn-dark fw-bold px-3" type="button" id="btn-fetch-statement" onclick="fetchAccountStatement()">Search</button>
+                        </div>
                     </div>
-                    <div class="table-responsive flex-grow-1">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light text-muted small text-uppercase sticky-top">
-                                <tr>
-                                    <th class="py-3 px-4 fw-semibold">Timestamp</th>
-                                    <th class="py-3 fw-semibold">TxID / Type</th>
-                                    <th class="py-3 fw-semibold">Amount</th>
-                                    <th class="py-3 text-end px-4 fw-semibold">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ledger-body" class="bg-white">
-                                <tr><td colspan="4" class="text-center py-5 text-muted">No transactions simulated yet.</td></tr>
-                            </tbody>
-                        </table>
+
+                    <!-- Statement Result Card (Hidden Initially) -->
+                    <div id="statement-card" class="d-none">
+                        <div class="card border border-secondary border-opacity-25 bg-light p-3 mb-4 rounded-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0" id="inquiry-entity-name">Customer Name</h6>
+                                    <div class="text-muted small font-monospace" id="inquiry-bvn">BVN: -</div>
+                                    <div class="text-muted small" id="inquiry-tier">TIER: -</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-muted small text-uppercase fw-semibold d-block">Available Ledger Balance</span>
+                                    <h4 class="fw-bold text-primary font-mono mb-0" id="inquiry-balance">₦0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-muted text-uppercase">Recent Statement Transactions</span>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary fw-bold d-flex align-items-center gap-1" onclick="window.print()">
+                                    <span class="material-symbols-outlined fs-6">print</span> Print Screen
+                                </button>
+                                <button class="btn btn-sm btn-primary fw-bold d-flex align-items-center gap-1 shadow-sm" onclick="openStatementModal()">
+                                    <span class="material-symbols-outlined fs-6">picture_as_pdf</span> Official Statement
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card border border-secondary border-opacity-25 rounded-3 overflow-hidden bg-white mb-3">
+                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0 font-inter">
+                                    <thead class="bg-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th class="py-2 px-3">Date</th>
+                                            <th class="py-2">Narration</th>
+                                            <th class="py-2 text-end px-3">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inquiry-statement-body" class="small">
+                                        <tr><td colspan="3" class="text-center py-4 text-muted">No transactions found.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="modal fade" id="tileDirectoryModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-lg bg-light">
-                <div class="modal-header bg-dark text-white border-bottom-0">
-                    <div>
-                        <h5 class="modal-title fw-bold">Customer Directory</h5>
-                        <p class="mb-0 small text-white-50">Select an account from the local ledger.</p>
+                <!-- TAB 6: BRANCH REPORTS -->
+                <div class="tab-pane fade" id="tab-reports">
+                    <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-2">
+                        <h6 class="fw-bold text-dark text-uppercase mb-0">Daily Branch Performance</h6>
+                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="fetchBranchReports()"><span class="material-symbols-outlined fs-6">refresh</span> Sync</button>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm border-start border-4 border-success h-100">
+                                <div class="card-body p-3">
+                                    <span class="text-muted small fw-bold text-uppercase d-block mb-1">Total Inflow (Today)</span>
+                                    <h4 class="fw-bold text-success font-mono mb-0" id="rep-inflow">₦0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm border-start border-4 border-danger h-100">
+                                <div class="card-body p-3">
+                                    <span class="text-muted small fw-bold text-uppercase d-block mb-1">Total Outflow (Today)</span>
+                                    <h4 class="fw-bold text-danger font-mono mb-0" id="rep-outflow">₦0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm border-start border-4 border-primary h-100">
+                                <div class="card-body p-3">
+                                    <span class="text-muted small fw-bold text-uppercase d-block mb-1">Generated NIBSS Fees</span>
+                                    <h4 class="fw-bold text-primary font-mono mb-0" id="rep-fees">₦0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-secondary border-0 small text-center fw-bold">
+                        <span class="material-symbols-outlined fs-6 align-middle me-1">data_usage</span> Live transactional metrics are calculated synchronously from the core ledger.
+                    </div>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="row g-3" id="customer-tile-grid">
-                        <div class="col-12 text-center py-5 text-muted">
-                            <span class="spinner-border spinner-border-sm me-2"></span> Syncing ledger...
+
+                <!-- TAB 7: STAFF AUDIT -->
+                <div class="tab-pane fade" id="tab-audit">
+                    <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold text-dark text-uppercase mb-0">System Security & Audit Trail</h6>
+                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="fetchStaffAudit()"><span class="material-symbols-outlined fs-6">refresh</span> Sync</button>
+                    </div>
+                    
+                    <div class="card border border-secondary border-opacity-25 rounded-3 overflow-hidden bg-white">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm table-hover align-middle mb-0 font-inter">
+                                <thead class="bg-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="py-2 px-3 sticky-top bg-light">Timestamp</th>
+                                        <th class="py-2 sticky-top bg-light">Severity</th>
+                                        <th class="py-2 sticky-top bg-light">Audit Event</th>
+                                        <th class="py-2 sticky-top bg-light">User ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="audit-table-body" class="small">
+                                    <tr><td colspan="4" class="text-center py-4 text-muted">Fetching live audit logs...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4 bg-white border-start h-100 d-flex flex-column z-2 shadow-sm">
+            <div class="bg-light px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-dark text-uppercase d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined text-danger fs-5">history</span> Session Activity Log
+                </h6>
+            </div>
+            <div class="flex-grow-1 overflow-auto">
+                <table class="table table-hover table-blotter mb-0 w-100">
+                    <thead><tr><th class="px-4">Time</th><th>Receipt No.</th><th>Type</th><th class="text-end">Amount</th></tr></thead>
+                    <tbody id="blotter-body"><tr><td colspan="4" class="text-center py-5 text-muted small">Activity log initializing...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
-        <div id="successToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body fw-medium font-inter">
-                    <span class="material-symbols-outlined align-middle fs-5 me-2">check_circle</span>
-                    <span id="toastMessage">Transfer successful!</span>
+    <!-- THE BLIND COUNT EOD MODAL -->
+    <div class="modal fade" id="eodModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title fw-bold text-uppercase fs-6">End of Day (EOD) Physical Count</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <div class="modal-body p-4 bg-light">
+                    <p class="text-muted small fw-bold mb-4">You are about to close this till. Empty your physical cash drawer and input the exact denomination count below.</p>
+                    
+                    <div class="bg-white border rounded p-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-dense matrix-input font-mono eod-denom-qty" data-val="1000" min="0" value="0">
+                                <span class="text-muted fw-bold small">x ₦1,000</span>
+                            </div>
+                            <div class="font-mono fw-bold text-dark eod-denom-row-total">₦ 0</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-dense matrix-input font-mono eod-denom-qty" data-val="500" min="0" value="0">
+                                <span class="text-muted fw-bold small">x ₦500</span>
+                            </div>
+                            <div class="font-mono fw-bold text-dark eod-denom-row-total">₦ 0</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-dense matrix-input font-mono eod-denom-qty" data-val="200" min="0" value="0">
+                                <span class="text-muted fw-bold small">x ₦200</span>
+                            </div>
+                            <div class="font-mono fw-bold text-dark eod-denom-row-total">₦ 0</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center p-3 bg-white border rounded shadow-sm">
+                        <span class="fw-bold text-uppercase" style="font-size: 0.8rem;">Declared Physical Total</span>
+                        <span class="fw-bold fs-5 font-mono text-primary" id="eod-matrix-total">₦ 0.00</span>
+                    </div>
+                    <input type="hidden" id="eod-calculated-amount" value="0">
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 bg-light">
+                    <button type="button" class="btn btn-outline-secondary fw-bold w-100 mb-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger fw-bold w-100 m-0 shadow-sm" onclick="submitEodCount()">SUBMIT BLIND COUNT & CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONLINE DISPUTE RESOLUTION (ODR) MODAL -->
+    <div class="modal fade" id="odrModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold text-uppercase fs-6 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-info">travel_explore</span> ISO 20022 Data Enrichment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 bg-light">
+                    <!-- Raw Ledger Data -->
+                    <div class="p-3 bg-secondary bg-opacity-10 border-bottom">
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Raw Ledger String (ISO 8583)</span>
+                        <div class="font-monospace text-danger small fw-bold p-2 bg-white border rounded" id="odr-raw-string">POS/PUR/FLW*9882/ABJ</div>
+                    </div>
+
+                    <!-- Enriched Data -->
+                    <div class="p-4 bg-white" id="odr-loading" style="display: none;">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <h6 class="fw-bold text-dark mb-0">Querying Merchant Gateway...</h6>
+                            <p class="text-muted small">Parsing terminal ID and geolocation data.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white" id="odr-results">
+                        <span class="text-success small fw-bold text-uppercase d-flex align-items-center gap-1 mb-3">
+                            <span class="material-symbols-outlined fs-6">check_circle</span> Merchant Identified
+                        </span>
+                        
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center border shadow-sm" style="width: 60px; height: 60px;">
+                                <span class="material-symbols-outlined fs-2 text-primary" id="odr-merchant-icon">storefront</span>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0" id="odr-merchant-name">Domino's Pizza</h5>
+                                <p class="text-muted small mb-0" id="odr-merchant-category">Food & Dining</p>
+                            </div>
+                        </div>
+
+                        <div class="card border border-secondary border-opacity-25 shadow-sm rounded-3 overflow-hidden">
+                            <div class="bg-light p-2 border-bottom d-flex align-items-center gap-2">
+                                <span class="material-symbols-outlined text-danger fs-6">location_on</span>
+                                <span class="small fw-bold text-dark" id="odr-location">Wuse 2, Abuja, FCT</span>
+                            </div>
+                            <div class="p-3 bg-white text-center">
+                                <!-- Simulated Map Placeholder -->
+                                <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center" style="height: 100px; border: 1px dashed #cbd5e1;">
+                                    <span class="text-muted small fw-bold font-monospace">GEO-COORDINATES VERIFIED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-danger fw-bold" onclick="alert('Fraud claim initiated. Card blocked.')">Report as Fraud</button>
+                    <button type="button" class="btn btn-success fw-bold px-4" data-bs-dismiss="modal">Customer Recognizes Charge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OFFICIAL STATEMENT GENERATOR MODAL -->
+    <div class="modal fade" id="statementGeneratorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold text-uppercase fs-6 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-danger">picture_as_pdf</span> Generate Official Statement
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <p class="text-muted small fw-bold mb-4">Select the ledger period. The generated PDF will include all cleared transactions, statutory fees, and running balances.</p>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Start Date</label>
+                            <input type="date" class="form-control form-control-dense fw-bold text-dark" id="stmt-start-date">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">End Date</label>
+                            <input type="date" class="form-control form-control-dense fw-bold text-dark" id="stmt-end-date">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-white d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary fw-bold px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger fw-bold shadow-sm" id="btn-generate-pdf" onclick="generateOfficialStatement()">DOWNLOAD PDF STATEMENT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOAN DETAILS & AUDIT TRAIL MODAL -->
+    <div class="modal fade" id="loanDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold text-uppercase fs-6 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-info">receipt_long</span> Loan Servicing Details: <span id="modal-loan-ref-title" class="text-warning"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Date Timelines -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border border-secondary border-opacity-25 rounded shadow-sm text-center">
+                                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Next Deduction Due</span>
+                                <h5 class="fw-bold text-dark font-mono mb-0" id="detail-next-date">N/A</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white border border-secondary border-opacity-25 rounded shadow-sm text-center">
+                                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Last Payment Deducted</span>
+                                <h5 class="fw-bold text-dark font-mono mb-0" id="detail-last-date">Never</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold text-dark text-uppercase mb-2" style="font-size: 0.8rem;">Ledger Repayment History</h6>
+                    
+                    <!-- Repayment Audit Trail -->
+                    <div class="card border border-secondary border-opacity-25 rounded-3 overflow-hidden bg-white">
+                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                            <table class="table table-sm table-hover align-middle mb-0 font-inter">
+                                <thead class="bg-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="py-2 px-3 sticky-top bg-light">Date</th>
+                                        <th class="py-2 sticky-top bg-light">Transaction Record</th>
+                                        <th class="py-2 text-end px-3 sticky-top bg-light">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loan-history-body" class="small">
+                                    <tr><td colspan="3" class="text-center py-4 text-muted">Loading history...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-   <script type="module">
+    <script type="module">
         import { supabase } from './js/config.js';
 
-        let currentBank = null;
-        let cachedBankAccounts = [];
-        let currentSelectionTarget = 'source';
+        let sessionUser = null; let sessionTenantId = null; let userRole = null;
+        let activeTill = null; let eodModalInstance = null;
+        const formatter = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' });
 
-        // 1. Boot up the selector
-        async function initializeSimulator() {
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return window.location.replace('bank-login.html');
+            
+            sessionUser = session.user;
+            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+            sessionTenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
+            
+            document.getElementById('ui-teller-name').innerText = sessionUser.email;
+            document.getElementById('ui-teller-role').innerText = userRole.replace('_', ' ');
+
+            eodModalInstance = new bootstrap.Modal(document.getElementById('eodModal'));
+
+            // FIX: Catch both role naming conventions
+            if (userRole === 'branch_manager' || userRole === 'bankmanager') { 
+                morphToManagerUI(); 
+            } else { 
+                morphToTellerUI(); 
+                await fetchActiveTill(); 
+            }
+            
+            loadBlotter();
+        }
+
+        function morphToTellerUI() {
+            // Restore Teller UI elements
+            document.getElementById('view-teller-till').classList.remove('d-none');
+            document.getElementById('view-manager-till').classList.add('d-none');
+            document.getElementById('global-till-monitor').classList.remove('d-none'); // Ensure header is visible
+        }
+
+        function morphToManagerUI() {
+            // 1. Completely hide the Teller's personal till tracker from the header
+            document.getElementById('global-till-monitor').classList.add('d-none');
+            
+            // 2. Swap sidebar modules cleanly
+            document.getElementById('sidebar-teller-modules').classList.add('d-none');
+            document.getElementById('sidebar-manager-modules').classList.remove('d-none');
+            
+            // 3. Force Bootstrap to drop the Cash tab and active the Command Center tab
+            document.getElementById('nav-cash-tab').classList.remove('active');
+            document.getElementById('tab-cash').classList.remove('show', 'active');
+            document.getElementById('nav-till-tab').classList.add('active');
+            document.getElementById('tab-till').classList.add('show', 'active');
+            
+            // 4. Update text and swap the icon to an executive dashboard symbol
+            document.getElementById('nav-till-text').innerText = 'Command Center';
+            document.getElementById('nav-till-tab').querySelector('.material-symbols-outlined').innerText = 'dashboard';
+            
+            // 5. DYNAMICALLY REORDER: Move the Command Center to the very top of the sidebar
+            const navContainer = document.getElementById('terminalTabs');
+            const commandCenterTab = document.getElementById('nav-till-tab');
+            navContainer.prepend(commandCenterTab);
+            
+            // 6. Reveal Manager Data Views
+            document.getElementById('view-teller-till').classList.add('d-none');
+            document.getElementById('view-manager-till').classList.remove('d-none');
+            
+            loadManagerDashboards();
+        }
+
+        // ==========================================
+        // TILL SESSION MANAGEMENT
+        // ==========================================
+        async function fetchActiveTill() {
+            const { data } = await supabase.from('tills').select('*')
+                .eq('teller_id', sessionUser.id)
+                .in('status', ['OPEN', 'DISCREPANCY'])
+                .order('created_at', { ascending: false }).limit(1).maybeSingle();
+            
+            const btnOpen = document.getElementById('btn-open-till');
+            const btnClose = document.getElementById('btn-close-till');
+            const btnPostCash = document.getElementById('btn-post-tx');
+            const btnPostTransfer = document.getElementById('btn-post-transfer');
+            const btnSubmitVault = document.getElementById('btn-submit-vault');
+            
+            if (data) {
+                activeTill = data;
+                if (data.status === 'DISCREPANCY') {
+                    document.getElementById('till-led').className = 'led-indicator led-warning';
+                    document.getElementById('till-status').innerText = 'TILL: DISCREPANCY LOCKED';
+                    document.getElementById('till-status').style.color = '#f59e0b';
+                    document.getElementById('till-closed-warning').innerHTML = '<span class="material-symbols-outlined align-middle fs-6 me-1">warning</span> Till is locked due to an EOD Discrepancy. Awaiting Manager Override.';
+                    document.getElementById('till-closed-warning').classList.remove('d-none');
+                    btnOpen.classList.add('d-none'); btnClose.classList.add('d-none');
+                    btnPostCash.disabled = true; btnPostTransfer.disabled = true; btnSubmitVault.disabled = true;
+                } else {
+                    document.getElementById('till-led').className = 'led-indicator led-green';
+                    document.getElementById('till-status').innerText = 'TILL: OPEN';
+                    document.getElementById('till-status').style.color = '#10b981';
+                    document.getElementById('till-closed-warning').classList.add('d-none');
+                    btnOpen.classList.add('d-none'); btnClose.classList.remove('d-none');
+                    btnPostCash.disabled = false; btnPostTransfer.disabled = false; btnSubmitVault.disabled = false;
+                }
+            } else {
+                activeTill = null;
+                document.getElementById('till-led').className = 'led-indicator led-red';
+                document.getElementById('till-status').innerText = 'TILL: CLOSED';
+                document.getElementById('till-status').style.color = '#cbd5e1';
+                document.getElementById('till-closed-warning').innerHTML = '<span class="material-symbols-outlined align-middle fs-6 me-1">lock</span> Till is locked/closed. Open till to process transactions.';
+                document.getElementById('till-closed-warning').classList.remove('d-none');
+                btnOpen.classList.remove('d-none'); btnClose.classList.add('d-none');
+                btnPostCash.disabled = true; btnPostTransfer.disabled = true; btnSubmitVault.disabled = true;
+            }
+            document.getElementById('till-balance').innerText = formatter.format(data ? data.current_balance : 0);
+            loadBlotter();
+        }
+
+        window.openTill = async () => {
+            await supabase.from('tills').insert([{ tenant_id: sessionTenantId, teller_id: sessionUser.id, status: 'OPEN' }]);
+            await fetchActiveTill();
+        };
+
+        // ==========================================
+        // EOD BLIND COUNT
+        // ==========================================
+        window.initiateEOD = () => {
+            if(!activeTill) return;
+            document.querySelectorAll('.eod-denom-qty').forEach(input => input.value = 0);
+            calculateEODMatrix();
+            eodModalInstance.show();
+        };
+
+        document.querySelectorAll('.eod-denom-qty').forEach(input => input.addEventListener('input', calculateEODMatrix));
+
+        function calculateEODMatrix() {
+            let total = 0;
+            document.querySelectorAll('.eod-denom-qty').forEach(input => {
+                const val = parseInt(input.getAttribute('data-val'));
+                const qty = parseInt(input.value) || 0;
+                const rowTotal = val * qty;
+                input.parentElement.nextElementSibling.innerText = formatter.format(rowTotal);
+                total += rowTotal;
+            });
+            document.getElementById('eod-matrix-total').innerText = formatter.format(total);
+            document.getElementById('eod-calculated-amount').value = total;
+        }
+
+        window.submitEodCount = async () => {
+            if(!activeTill) return;
+            const declaredAmount = parseFloat(document.getElementById('eod-calculated-amount').value);
+            const systemBalance = parseFloat(activeTill.current_balance);
+            const variance = declaredAmount - systemBalance;
+
+            let updatePayload = { closed_at: new Date().toISOString(), declared_balance: declaredAmount, variance: variance };
+
+            if (variance === 0) {
+                updatePayload.status = 'CLOSED';
+                updatePayload.closing_balance = declaredAmount;
+                await supabase.from('tills').update(updatePayload).eq('id', activeTill.id);
+                alert("Perfect Match! Till successfully closed and balanced.");
+            } else {
+                updatePayload.status = 'DISCREPANCY';
+                await supabase.from('tills').update(updatePayload).eq('id', activeTill.id);
+                alert(`DISCREPANCY DETECTED: Variance of ${formatter.format(variance)}. Till locked pending Manager Override.`);
+            }
+
+            eodModalInstance.hide();
+            await fetchActiveTill();
+        };
+
+        // ==========================================
+        // SMART ACCOUNT LOOKUP & FREEZE ENFORCEMENT
+        // ==========================================
+        async function attachSmartLookup(inputId, cardId, nameId, tierId, hiddenId) {
+            document.getElementById(inputId).addEventListener('input', async (e) => {
+                const acctNum = e.target.value.trim(); const card = document.getElementById(cardId);
+                
+                if (acctNum.length === 9 || acctNum.length === 10) {
+                    const { data } = await supabase
+                        .from('accounts')
+                        .select(`id, status, customers (entity_name, first_name, last_name, risk_tier)`)
+                        .eq('account_number', acctNum)
+                        .maybeSingle();
+                        
+                    if (data && data.customers) {
+                        const cust = data.customers; 
+                        document.getElementById(nameId).innerText = cust.entity_name || `${cust.first_name || ''} ${cust.last_name || ''}`.trim() || 'Unknown';
+                        
+                        // AML ENFORCEMENT INTERCEPT
+                        if (data.status === 'FROZEN') {
+                            document.getElementById(tierId).innerHTML = `<span class="badge bg-danger text-white border border-danger" style="font-size: 0.65rem;">FROZEN (PND)</span>`;
+                            document.getElementById(hiddenId).value = ''; // Clears ID to instantly fail transaction validation
+                        } else {
+                            document.getElementById(tierId).innerHTML = `<span class="badge bg-success bg-opacity-25 text-success border border-success" style="font-size: 0.65rem;">${cust.risk_tier || 'TIER 1'}</span>`;
+                            document.getElementById(hiddenId).value = data.id; 
+                        }
+                        
+                        card.classList.remove('d-none');
+                    } else { 
+                        card.classList.add('d-none'); document.getElementById(hiddenId).value = ''; 
+                    }
+                } else { 
+                    card.classList.add('d-none'); document.getElementById(hiddenId).value = ''; 
+                }
+            });
+        }
+        attachSmartLookup('lookup-acct', 'customer-card', 'cust-name', 'cust-tier', 'verified-account-id');
+        attachSmartLookup('lookup-source-acct', 'source-card', 'source-name', 'source-tier', 'verified-source-id');
+        attachSmartLookup('lookup-dest-acct', 'dest-card', 'dest-name', 'dest-tier', 'verified-dest-id');
+
+        // ==========================================
+        // CASH OPS MATRIX
+        // ==========================================
+        document.querySelectorAll('.denom-qty').forEach(input => input.addEventListener('input', calculateMatrix));
+        function calculateMatrix() {
+            let total = 0;
+            document.querySelectorAll('.denom-qty').forEach(input => {
+                const val = parseInt(input.getAttribute('data-val'));
+                const qty = parseInt(input.value) || 0;
+                const rowTotal = val * qty;
+                input.parentElement.nextElementSibling.innerText = formatter.format(rowTotal);
+                total += rowTotal;
+            });
+            document.getElementById('matrix-total').innerText = formatter.format(total);
+            document.getElementById('calculated-tx-amount').value = total;
+        }
+
+        document.getElementById('tx-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); if (!activeTill) return alert("Open till first.");
+            const acctId = document.getElementById('verified-account-id').value;
+            const amount = parseFloat(document.getElementById('calculated-tx-amount').value);
+            const type = document.getElementById('tx-type').value;
+            const narration = document.getElementById('tx-narration').value;
+
+            if (!acctId) return alert("Valid account required.");
+            if (amount <= 0) return alert("Matrix total must be > 0.");
+            if (type === 'WITHDRAWAL' && amount > activeTill.current_balance) return alert("Insufficient till cash.");
+
+            // --- MAKER-CHECKER INTERCEPT FOR TRANSACTIONS > ₦5,000,000 ---
+            if (amount >= 5000000) {
+                const btn = document.getElementById('btn-post-tx');
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ROUTING TO MANAGER...';
+                btn.disabled = true;
+
+                try {
+                    const { error } = await supabase.from('vault_transfers').insert([{
+                        tenant_id: sessionTenantId, till_id: activeTill.id, teller_id: sessionUser.id,
+                        transfer_type: 'VAULT_OUT', // Changed to pass strict DB constraint
+                        amount: amount, status: 'PENDING', 
+                        reference: `OVR-${crypto.randomUUID().substring(0,6).toUpperCase()}`
+                    }]);
+                    
+                    if (error) throw error;
+                    
+                    alert("Transaction exceeds ₦5,000,000 limit. Routed to Branch Manager Command Center for authorization.");
+                    document.getElementById('tx-form').reset(); document.getElementById('customer-card').classList.add('d-none'); calculateMatrix();
+                } catch (err) {
+                    alert("Failed to route to manager: " + err.message);
+                } finally {
+                    btn.innerHTML = 'PROCESS TRANSACTION';
+                    btn.disabled = false;
+                }
+                return;
+            }
+
+            // Standard Processing (< ₦5M)
+            const { error } = await supabase.from('transactions').insert([{
+                account_id: acctId, amount: amount, transaction_type: type === 'DEPOSIT' ? 'CREDIT' : 'DEBIT',
+                transaction_timestamp: new Date().toISOString(), transaction_reference: `BR-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
+                channel: 'BRANCH_CASH', narration: narration, till_id: activeTill.id
+            }]);
+
+            if (!error) { document.getElementById('tx-form').reset(); document.getElementById('customer-card').classList.add('d-none'); calculateMatrix(); await fetchActiveTill(); }
+        });
+
+       window.toggleTransferNetwork = () => {
+            const network = document.getElementById('trf-network').value;
+            const destBankContainer = document.getElementById('external-bank-container');
+            const destWarning = document.getElementById('external-dest-warning');
+            const destCard = document.getElementById('dest-card');
+            const feeContainer = document.getElementById('fee-disclosure-container');
+            
+            if (network === 'EXTERNAL') {
+                destBankContainer.classList.remove('d-none');
+                destWarning.classList.remove('d-none');
+                destCard.classList.add('d-none');
+                feeContainer.classList.remove('d-none'); // Show NIBSS fees
+                document.getElementById('verified-dest-id').value = 'EXTERNAL_NIP_ROUTE'; 
+                calculateNIBSSFees(); // Trigger initial calculation
+            } else {
+                destBankContainer.classList.add('d-none');
+                destWarning.classList.add('d-none');
+                feeContainer.classList.add('d-none'); // Hide fees for internal transfers
+                document.getElementById('verified-dest-id').value = '';
+                document.getElementById('lookup-dest-acct').value = '';
+            }
+        };
+
+        // --- DYNAMIC NIBSS TARIFF CALCULATOR ---
+        function calculateNIBSSFees() {
+            if (document.getElementById('trf-network').value !== 'EXTERNAL') return;
+            
+            const amountInput = document.getElementById('transfer-amount').value;
+            const amount = parseFloat(amountInput) || 0;
+            let fee = 0;
+
+            // Standard Nigerian Interbank Tariff
+            if (amount > 0 && amount <= 5000) fee = 10.75;
+            else if (amount > 5000 && amount <= 50000) fee = 26.88;
+            else if (amount > 50000) fee = 53.75;
+
+            const total = amount + fee;
+
+            document.getElementById('transfer-fee-display').innerText = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(fee);
+            document.getElementById('total-debit-display').innerText = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(total);
+
+            // CBN ₦20,000 Limit Enforcement Trigger
+            const warningEl = document.getElementById('cbn-limit-warning');
+            const btnSubmit = document.getElementById('btn-post-transfer');
+            const sourceTier = document.getElementById('source-tier').innerText;
+
+            // If the account is explicitly Tier 1 or PENDING KYC, enforce the limit
+            if ((sourceTier.includes('PENDING') || sourceTier.includes('TIER 1')) && amount > 20000) {
+                warningEl.classList.remove('d-none');
+                btnSubmit.disabled = true;
+            } else {
+                warningEl.classList.add('d-none');
+                if (amount > 0) btnSubmit.disabled = false;
+            }
+        }
+
+        // Attach the calculator to the amount input so it updates live as the teller types
+        document.getElementById('transfer-amount').addEventListener('input', calculateNIBSSFees);
+
+        // ==========================================
+        // OMNI-CHANNEL TRANSFERS
+        // ==========================================
+        document.getElementById('transfer-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); if (!activeTill) return alert("Open till first.");
+            
+            const network = document.getElementById('trf-network').value;
+            const sourceId = document.getElementById('verified-source-id').value;
+            let destId = document.getElementById('verified-dest-id').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            const narration = document.getElementById('transfer-narration').value;
+            const externalAccountNum = document.getElementById('lookup-dest-acct').value;
+            const externalBankName = document.getElementById('dest-bank-name').value;
+
+            if (!sourceId || !destId || sourceId === destId || amount <= 0) return alert("Valid source, destination, and amount required.");
+            const txRef = `TRF-${crypto.randomUUID().substring(0,8).toUpperCase()}`; 
+            const ts = new Date().toISOString();
+
             try {
-                const { data: banks, error } = await supabase.from('banks').select('*').order('name');
-                if (error) throw error;
+                let transactionsPayload = [];
 
-                const dropdown = document.getElementById('bank-selector-dropdown');
-                const btn = document.getElementById('btn-enter-bank');
+                if (network === 'INTERNAL') {
+                    // Standard Book-to-Book Ledgering
+                    transactionsPayload = [
+                        { account_id: sourceId, amount: amount, transaction_type: 'DEBIT', transaction_timestamp: ts, transaction_reference: `${txRef}-DR`, channel: 'BRANCH_TRANSFER', narration: narration },
+                        { account_id: destId, amount: amount, transaction_type: 'CREDIT', transaction_timestamp: ts, transaction_reference: `${txRef}-CR`, channel: 'BRANCH_TRANSFER', narration: narration }
+                    ];
+                } else {
+                    // Calculate final fee for ledger
+                    let fee = 0;
+                    if (amount > 0 && amount <= 5000) fee = 10.75;
+                    else if (amount > 5000 && amount <= 50000) fee = 26.88;
+                    else if (amount > 50000) fee = 53.75;
 
-                if (banks.length === 0) {
-                    dropdown.innerHTML = '<option value="">No banks deployed. Check Admin Portal.</option>';
-                    return;
+                    // External NIBSS NIP Route (Debit local, append external metadata)
+                    transactionsPayload = [
+                        { 
+                            account_id: sourceId, 
+                            amount: amount, 
+                            transaction_type: 'DEBIT', 
+                            transaction_timestamp: ts, 
+                            transaction_reference: `${txRef}-NIP`, 
+                            channel: 'BRANCH_TRANSFER', 
+                            narration: narration,
+                            counterparty_account: externalAccountNum,
+                            counterparty_bank: externalBankName,
+                            counterparty_name: 'NIP Beneficiary'
+                        },
+                        // Separate ledger entry for NIBSS VAT & Commission
+                        { 
+                            account_id: sourceId, 
+                            amount: fee, 
+                            transaction_type: 'DEBIT', 
+                            transaction_timestamp: ts, 
+                            transaction_reference: `${txRef}-FEE`, 
+                            channel: 'BRANCH_TRANSFER', // Fixed ENUM value
+                            narration: 'NIBSS Transfer Commission & VAT'
+                        }
+                    ];
                 }
 
-                dropdown.innerHTML = '<option value="" disabled selected>Select an institution...</option>' + 
-                    banks.map(b => `<option value="${b.id}" data-color="${b.primary_color}" data-name="${b.name}">${b.name}</option>`).join('');
-                
-                dropdown.addEventListener('change', (e) => {
-                    const selected = e.target.options[e.target.selectedIndex];
-                    currentBank = {
-                        id: selected.value,
-                        name: selected.getAttribute('data-name'),
-                        color: selected.getAttribute('data-color')
-                    };
-                    btn.disabled = false;
-                });
-
-                btn.addEventListener('click', enterBankPortal);
-            } catch (err) {
-                console.error("Failed to load banks:", err);
-            }
-        }
-
-        // 2. Launch the Bank UI
-        async function enterBankPortal() {
-            if (!currentBank) return;
-
-            document.getElementById('bank-selector-overlay').style.display = 'none';
-
-            // Apply Dynamic Branding
-            document.getElementById('nav-header').style.backgroundColor = currentBank.color;
-            document.getElementById('btn-submit-tx').style.backgroundColor = currentBank.color;
-            document.getElementById('card-edge').style.borderTopColor = `${currentBank.color} !important`;
-            document.getElementById('ui-header-text').style.color = currentBank.color;
-            
-            document.getElementById('ui-bank-name').innerText = currentBank.name;
-            document.getElementById('ui-tenant-id').innerText = currentBank.id;
-
-            // Pre-fetch tiles immediately so they are ready
-            await fetchDirectoryTiles();
-        }
-
-        // 3. Fetch Directory Tiles
-        async function fetchDirectoryTiles() {
-            console.log("Fetching for Bank ID:", currentBank.id); // Debugging
-            try {
-                const { data: accounts, error } = await supabase
-                    .from('accounts')
-                    .select('id, account_number, balance, customers!inner(company_name, entity_name, first_name, last_name, kyc_status, tenant_id)')
-                    .eq('customers.tenant_id', currentBank.id);
-
-                if (error) throw error;
-                console.log("Accounts found:", accounts); // See what comes back
-                cachedBankAccounts = accounts || [];
-            } catch (err) {
-                console.error("Database Error:", err);
-            }
-        }
-
-        // 4. Open the Modal & Render the Tiles
-        window.openTileDirectory = async (target) => {
-            currentSelectionTarget = target;
-            const grid = document.getElementById('customer-tile-grid');
-            
-            if (cachedBankAccounts.length === 0) {
-                // Try fetching one more time just in case
-                await fetchDirectoryTiles();
-            }
-
-            if (cachedBankAccounts.length === 0) {
-                grid.innerHTML = '<div class="col-12 text-center py-5 text-muted fw-bold">No active customers found for this institution.<br><small class="fw-normal">Ensure your Database Customers are assigned to this bank.</small></div>';
-            } else {
-                grid.innerHTML = cachedBankAccounts.map(acc => {
-                    const cust = acc.customers;
-                    // Safe fallback for names
-                    const name = cust.company_name || cust.entity_name || `${cust.first_name || 'Retail'} ${cust.last_name || 'Customer'}`;
-                    const isFrozen = cust.kyc_status === 'FROZEN';
-                    
-                    const borderClass = isFrozen ? 'border-danger' : 'border-success';
-                    const statusBadge = isFrozen 
-                        ? `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger small">FROZEN</span>`
-                        : `<span class="badge bg-success bg-opacity-10 text-success border border-success small">ACTIVE</span>`;
-
-                    const accJson = encodeURIComponent(JSON.stringify(acc));
-
-                    return `
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0 shadow-sm border-start border-4 ${borderClass}" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="selectTile('${accJson}')">
-                            <div class="card-body p-3 d-flex align-items-center gap-3">
-                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center border" style="width: 45px; height: 45px;">
-                                    <span class="material-symbols-outlined text-secondary">corporate_fare</span>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.85rem;">${name}</h6>
-                                    <p class="mb-0 text-muted font-monospace" style="font-size: 0.7rem;">${acc.account_number}</p>
-                                </div>
-                                <div class="text-end">
-                                    ${statusBadge}
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-                }).join('');
-            }
-
-            new bootstrap.Modal(document.getElementById('tileDirectoryModal')).show();
-        };
-
-        // 5. Handle Tile Selection
-        window.selectTile = (encodedAcc) => {
-            const acc = JSON.parse(decodeURIComponent(encodedAcc));
-            const cust = acc.customers;
-            const name = cust.company_name || cust.entity_name || `${cust.first_name || 'Retail'} ${cust.last_name || 'Customer'}`;
-            const isFrozen = cust.kyc_status === 'FROZEN';
-            const type = currentSelectionTarget;
-            
-            bootstrap.Modal.getInstance(document.getElementById('tileDirectoryModal')).hide();
-
-            const cardId = type === 'source' ? 'source-account-card' : 'dest-account-card';
-            const badgeContainer = document.getElementById(`${type}-status-badge`);
-            const transferBtn = document.getElementById('btn-submit-tx');
-
-            document.getElementById(`${type}-name`).innerText = name;
-            document.getElementById(`${type}-btn-text`).innerText = name; 
-            document.getElementById(`${type}-detail`).innerText = `Acct: ${acc.account_number} | Bal: ₦${acc.balance.toLocaleString()}`;
-
-            if (isFrozen) {
-                badgeContainer.innerHTML = '<span class="badge bg-danger fs-6 border border-danger px-3 py-2"><span class="material-symbols-outlined fs-6 align-middle me-1">block</span> BLOCKED BY COMPLIANCE</span>';
-                document.getElementById(cardId).classList.add('border-danger', 'bg-danger', 'bg-opacity-10');
-                if (type === 'source') transferBtn.disabled = true; 
-                window[`verified${type === 'source' ? 'Source' : 'Dest'}Id`] = null;
-            } else {
-                badgeContainer.innerHTML = '<span class="badge bg-success px-3 py-2">ACTIVE</span>';
-                document.getElementById(cardId).classList.remove('border-danger', 'bg-danger', 'bg-opacity-10');
-                transferBtn.disabled = false;
-                window[`verified${type === 'source' ? 'Source' : 'Dest'}Id`] = acc.id;
-            }
-
-            document.getElementById(cardId).classList.remove('d-none');
-        };
-
-        // 6. Handle Transfer Form Submission
-        document.getElementById('transfer-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-tx');
-            
-            const sourceId = window.verifiedSourceId;
-            const destId = window.verifiedDestId;
-            
-            if (!sourceId || !destId) {
-                return alert("You must select both a Source and Destination account before authorizing the transfer.");
-            }
-
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
-            btn.disabled = true;
-
-            try {
-                const amount = parseFloat(document.getElementById('tx-amount').value);
-                const narration = document.getElementById('tx-narration').value;
-
-                if (sourceId === destId) throw new Error("Sender and Destination cannot be the same account.");
-
-                const txRef = `TRF-${crypto.randomUUID().substring(0,8).toUpperCase()}`;
-                const timestamp = new Date().toISOString();
-
-                const debitTxn = {
-                    id: crypto.randomUUID(), account_id: sourceId, amount: amount,
-                    transaction_type: 'DEBIT', 
-                    transaction_reference: `${txRef}-DR`,
-                    transaction_timestamp: timestamp, channel: 'WEB', narration: narration
-                };
-
-                const creditTxn = {
-                    id: crypto.randomUUID(), account_id: destId, amount: amount,
-                    transaction_type: 'CREDIT', 
-                    transaction_reference: `${txRef}-CR`,
-                    transaction_timestamp: timestamp, channel: 'WEB', narration: narration
-                };
-
-                const { error } = await supabase.from('transactions').insert([debitTxn, creditTxn]);
+                const { error } = await supabase.from('transactions').insert(transactionsPayload);
                 if (error) throw error;
 
-                new bootstrap.Toast(document.getElementById('successToast')).show();
-                document.getElementById('transfer-form').reset();
-                
-                document.getElementById('source-account-card').classList.add('d-none');
-                document.getElementById('dest-account-card').classList.add('d-none');
-                document.getElementById('source-btn-text').innerText = 'Click to select customer...';
-                document.getElementById('dest-btn-text').innerText = 'Click to select customer...';
-                
-                window.verifiedSourceId = null;
-                window.verifiedDestId = null;
-                
-                appendLocalLedger(txRef, amount, timestamp);
+                alert(`Transfer Successful via ${network} network.`);
+                document.getElementById('transfer-form').reset(); 
+                document.getElementById('source-card').classList.add('d-none'); 
+                document.getElementById('dest-card').classList.add('d-none'); 
+                toggleTransferNetwork(); // Reset UI state
+                await fetchActiveTill();
 
             } catch (err) {
                 alert(`Transfer Failed: ${err.message}`);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
             }
         });
 
-        // 7. Update Local Ledger UI
-        function appendLocalLedger(txRef, amount, timestamp) {
-            const tbody = document.getElementById('ledger-body');
-            if (tbody.innerHTML.includes('No transactions')) tbody.innerHTML = '';
+        // ==========================================
+        // ONBOARDING (MAKER)
+        // ==========================================
+        window.toggleObType = () => {
+            const type = document.getElementById('ob-type').value;
+            if (type === 'RETAIL') {
+                document.getElementById('ob-retail-fields').classList.remove('d-none'); document.getElementById('ob-corporate-fields').classList.add('d-none');
+                document.getElementById('ob-first-name').required = true; document.getElementById('ob-last-name').required = true; document.getElementById('ob-entity-name').required = false;
+            } else {
+                document.getElementById('ob-retail-fields').classList.add('d-none'); document.getElementById('ob-corporate-fields').classList.remove('d-none');
+                document.getElementById('ob-first-name').required = false; document.getElementById('ob-last-name').required = false; document.getElementById('ob-entity-name').required = true;
+            }
+        };
 
-            const timeStr = new Date(timestamp).toLocaleTimeString();
-            const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+        document.getElementById('onboarding-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-onboard');
+            btn.innerHTML = 'UPLOADING TO VAULT...'; btn.disabled = true;
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="px-4 py-3 text-muted small">${timeStr}</td>
-                <td class="py-3">
-                    <div class="fw-bold text-dark small">${txRef}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">OUTWARD TRANSFER</div>
-                </td>
-                <td class="py-3 fw-bold text-danger small">-${formattedAmount}</td>
-                <td class="px-4 py-3 text-end"><span class="badge bg-success bg-opacity-10 text-success border border-success">CLEARED</span></td>
-            `;
-            tbody.prepend(row);
+            try {
+                const type = document.getElementById('ob-type').value; const bvn = document.getElementById('ob-bvn').value; const customerId = crypto.randomUUID();
+                let firstName = null; let lastName = null; let entityName = null;
+                if (type === 'RETAIL') { firstName = document.getElementById('ob-first-name').value; lastName = document.getElementById('ob-last-name').value; } 
+                else { entityName = document.getElementById('ob-entity-name').value; }
+
+                const idFile = document.getElementById('ob-id-file').files[0]; const utilFile = document.getElementById('ob-utility-file').files[0];
+                const idPath = `${sessionTenantId}/${customerId}/id_document.${idFile.name.split('.').pop()}`;
+                const utilPath = `${sessionTenantId}/${customerId}/utility_bill.${utilFile.name.split('.').pop()}`;
+
+                const { error: err1 } = await supabase.storage.from('kyc-vault').upload(idPath, idFile); if (err1) throw err1;
+                const { error: err2 } = await supabase.storage.from('kyc-vault').upload(utilPath, utilFile); if (err2) throw err2;
+
+                const { error: custErr } = await supabase.from('customers').insert([{
+                    id: customerId, tenant_id: sessionTenantId, customer_type: type, first_name: firstName, last_name: lastName, entity_name: entityName, bvn: bvn,
+                    kyc_status: 'PENDING', id_url: idPath, utility_bill_url: utilPath
+                }]);
+                if (custErr) throw custErr;
+
+                const randomAccountNum = Math.floor(1000000000 + Math.random() * 9000000000).toString().substring(0, 10);
+                await supabase.from('accounts').insert([{ customer_id: customerId, tenant_id: sessionTenantId, account_number: randomAccountNum, account_type: 'SAVINGS', status: 'PENDING', opened_at: new Date().toISOString() }]);
+
+                alert(`Success! Profile routed to CoreAML. Account ${randomAccountNum} generated as PENDING.`);
+                document.getElementById('onboarding-form').reset();
+            } catch (err) { alert(`Onboarding Failed: ${err.message}`); } finally { btn.innerHTML = 'ROUTE TO CENTRAL COMPLIANCE'; btn.disabled = false; }
+        });
+
+        // ==========================================
+        // VAULT OPERATIONS (MAKER)
+        // ==========================================
+        document.getElementById('vault-request-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); if (!activeTill) return alert("Open till first.");
+            const amount = parseFloat(document.getElementById('vault-amount').value);
+            const type = document.getElementById('vault-action-type').value;
+
+            if (amount <= 0 || (type === 'VAULT_OUT' && amount > activeTill.current_balance)) return alert("Invalid amount.");
+            const { error } = await supabase.from('vault_transfers').insert([{
+                tenant_id: sessionTenantId, till_id: activeTill.id, teller_id: sessionUser.id,
+                transfer_type: type, amount: amount, status: 'PENDING', reference: `VLT-${crypto.randomUUID().substring(0,6).toUpperCase()}`
+            }]);
+
+            if (!error) { alert("Float/Remittance request sent to manager."); document.getElementById('vault-request-form').reset(); loadBlotter(); }
+        });
+
+        // ==========================================
+        // MANAGER DASHBOARDS (CHECKER)
+        // ==========================================
+        window.loadManagerDashboards = async () => {
+            // 1. Load Liquidity Metrics
+            const { data: tills } = await supabase.from('tills').select('*').eq('tenant_id', sessionTenantId).eq('status', 'OPEN');
+            let activeCount = 0; let totalTillCash = 0;
+            if (tills) {
+                activeCount = tills.length;
+                totalTillCash = tills.reduce((sum, t) => sum + parseFloat(t.current_balance || 0), 0);
+            }
+            document.getElementById('mgr-active-tellers').innerText = activeCount;
+            document.getElementById('mgr-tills-total').innerText = formatter.format(totalTillCash);
+            
+            // Assume the branch holds ₦150M in the back vault, minus what is deployed to the floor
+            const vaultLiquidity = 150000000 - totalTillCash;
+            document.getElementById('mgr-vault-liquidity').innerText = formatter.format(vaultLiquidity);
+
+            // 2. Load Discrepancies
+            const { data: discData } = await supabase.from('tills').select('*').eq('tenant_id', sessionTenantId).eq('status', 'DISCREPANCY');
+            const discContainer = document.getElementById('manager-discrepancy-queue');
+            if (!discData || discData.length === 0) {
+                discContainer.innerHTML = '<div class="text-center p-3 border border-dashed rounded bg-light text-muted small">No EOD discrepancies detected.</div>';
+            } else {
+                discContainer.innerHTML = discData.map(till => `
+                    <div class="card shadow-sm border-0 mb-2 border-start border-4 border-warning">
+                        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-dark small">EOD VARIANCE: <span class="text-danger">${formatter.format(till.variance)}</span></span>
+                                <div class="text-muted font-mono mt-1" style="font-size: 0.75rem;">Ledger: ${formatter.format(till.current_balance)} | Count: ${formatter.format(till.declared_balance)}</div>
+                            </div>
+                            <button class="btn btn-warning text-dark btn-sm fw-bold px-3 shadow-sm" onclick="overrideDiscrepancy('${till.id}', ${till.declared_balance})">ACCEPT & CLOSE</button>
+                        </div>
+                    </div>`).join('');
+            }
+
+            // 3. Load Vault Requests & Overrides
+            const { data: vaultData } = await supabase.from('vault_transfers').select('*').eq('tenant_id', sessionTenantId).eq('status', 'PENDING');
+            
+            const vaultContainer = document.getElementById('manager-queue-container');
+            const overrideContainer = document.getElementById('manager-override-queue');
+            
+            // Filter by the Reference prefix rather than the restricted ENUM type
+            const standardRequests = vaultData?.filter(r => !r.reference.startsWith('OVR-')) || [];
+            const overrideRequests = vaultData?.filter(r => r.reference.startsWith('OVR-')) || [];
+
+            if (standardRequests.length === 0) {
+                vaultContainer.innerHTML = '<div class="text-center p-3 border border-dashed rounded bg-light text-muted small">No pending vault requests.</div>';
+            } else {
+                vaultContainer.innerHTML = standardRequests.map(req => `
+                    <div class="card shadow-sm border-0 mb-2 border-start border-4 border-primary">
+                        <div class="card-body p-2 px-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-primary small">${req.transfer_type.replace('_', ' ')}</span> <span class="badge bg-light text-dark border font-mono">${req.reference}</span>
+                                <div class="fw-bold font-mono text-dark mt-1">${formatter.format(req.amount)}</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm fw-bold shadow-sm px-3" onclick="processVault('${req.id}', 'APPROVED')">GRANT</button>
+                                <button class="btn btn-outline-danger btn-sm fw-bold px-3" onclick="processVault('${req.id}', 'REJECTED')">DENY</button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            if (overrideRequests.length === 0) {
+                overrideContainer.innerHTML = '<div class="text-center p-3 border border-dashed rounded bg-light text-muted small">No high-value overrides pending.</div>';
+            } else {
+                overrideContainer.innerHTML = overrideRequests.map(req => `
+                    <div class="card shadow-sm border-0 mb-2 border-start border-4 border-danger bg-danger bg-opacity-10">
+                        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-danger small d-flex align-items-center gap-1"><span class="material-symbols-outlined fs-6">warning</span> HIGH VALUE LIMIT BREACH</span>
+                                <div class="fw-bold font-mono text-dark fs-5 mt-1">${formatter.format(req.amount)}</div>
+                                <div class="text-muted font-mono mt-1" style="font-size: 0.7rem;">Ref: ${req.reference} | Teller ID: ${req.teller_id.substring(0,8)}</div>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <button class="btn btn-danger btn-sm fw-bold shadow-sm px-4" onclick="processOverride('${req.id}', ${req.amount}, 'APPROVED')">AUTHORIZE</button>
+                                <button class="btn btn-outline-dark btn-sm fw-bold px-4" onclick="processOverride('${req.id}', ${req.amount}, 'REJECTED')">REJECT</button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+        };
+
+        window.processOverride = async (id, amount, status) => {
+            if(!confirm(`Are you sure you want to ${status} this transaction?`)) return;
+            
+            await supabase.from('vault_transfers').update({ status: status, manager_id: sessionUser.id, updated_at: new Date().toISOString() }).eq('id', id);
+            
+            if(status === 'APPROVED') {
+                await supabase.from('system_events').insert([{
+                    event_type: 'MANAGER_TX_OVERRIDE',
+                    severity: 'CRITICAL',
+                    user_id: sessionUser.id,
+                    message: `Branch Manager authorized a blocked high-value cash transaction of ${formatter.format(amount)}.`,
+                    metadata: { override_id: id }
+                }]);
+                alert("High-value transaction successfully authorized.");
+            } else {
+                alert("Transaction override rejected. Funds have not been moved.");
+            }
+            
+            loadManagerDashboards();
+            loadBlotter();
+        };
+
+        window.overrideDiscrepancy = async (tillId, declaredBalance) => {
+            if(!confirm("Authorize discrepancy closure?")) return;
+            await supabase.from('tills').update({ status: 'CLOSED', closing_balance: declaredBalance, manager_override_id: sessionUser.id }).eq('id', tillId);
+            loadManagerDashboards();
+        };
+
+        window.processVault = async (id, newStatus) => {
+            await supabase.from('vault_transfers').update({ status: newStatus, manager_id: sessionUser.id, updated_at: new Date().toISOString() }).eq('id', id);
+            loadManagerDashboards();
+            loadBlotter();
+        };
+
+        // ==========================================
+        // BRANCH REPORTS & STAFF AUDIT ENGINE
+        // ==========================================
+        window.fetchBranchReports = async () => {
+            // Get today's start and end timestamps for accurate daily reporting
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isoStart = today.toISOString();
+
+            try {
+                // Fetch all transactions that occurred today across the entire branch
+                const { data: txs, error } = await supabase
+                    .from('transactions')
+                    .select('amount, transaction_type, narration')
+                    .gte('transaction_timestamp', isoStart);
+                    
+                if (error) throw error;
+
+                let inflow = 0; let outflow = 0; let fees = 0;
+
+                if (txs && txs.length > 0) {
+                    txs.forEach(tx => {
+                        const amt = parseFloat(tx.amount);
+                        if (tx.transaction_type === 'CREDIT') {
+                            inflow += amt;
+                        } else if (tx.transaction_type === 'DEBIT') {
+                            // Identify system fees by checking the narration we set earlier
+                            if (tx.narration && tx.narration.includes('NIBSS Transfer Commission')) {
+                                fees += amt;
+                            } else {
+                                outflow += amt; // Standard withdrawals or outward transfers
+                            }
+                        }
+                    });
+                }
+
+                document.getElementById('rep-inflow').innerText = formatter.format(inflow);
+                document.getElementById('rep-outflow').innerText = formatter.format(outflow);
+                document.getElementById('rep-fees').innerText = formatter.format(fees);
+            } catch (err) {
+                console.error("Failed to sync reports:", err);
+            }
+        };
+
+        window.fetchStaffAudit = async () => {
+            try {
+                // Fetch the 50 most recent security events
+                const { data: events, error } = await supabase
+                    .from('system_events')
+                    .select('created_at, severity, message, user_id')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                const tbody = document.getElementById('audit-table-body');
+                
+                if (error || !events || events.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No security events found in ledger.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = events.map(ev => {
+                    const badgeColor = ev.severity === 'CRITICAL' ? 'danger' : (ev.severity === 'WARNING' ? 'warning' : 'info');
+                    const date = new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const safeUserId = ev.user_id ? ev.user_id.substring(0, 8) : 'SYSTEM'; // Mask long UUIDs
+                    
+                    return `
+                    <tr>
+                        <td class="text-muted font-mono py-2 px-3" style="font-size: 0.75rem;">${date}</td>
+                        <td class="py-2"><span class="badge bg-${badgeColor} bg-opacity-10 text-${badgeColor} border border-${badgeColor} px-2 py-1">${ev.severity}</span></td>
+                        <td class="fw-bold text-dark py-2">${ev.message}</td>
+                        <td class="font-mono text-muted py-2" style="font-size: 0.75rem;">UID-${safeUserId}</td>
+                    </tr>`;
+                }).join('');
+                
+            } catch (err) {
+                console.error("Failed to fetch audit log:", err);
+                document.getElementById('audit-table-body').innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Error loading audit trail.</td></tr>`;
+            }
+        };
+
+        // ==========================================
+        // LIVE BLOTTER
+        // ==========================================
+        async function loadBlotter() {
+            const tbody = document.getElementById('blotter-body');
+            
+            // FIX: Catch both role naming conventions here as well
+            if (userRole === 'branch_manager' || userRole === 'bankmanager') {
+                const { data } = await supabase.from('vault_transfers').select('*').eq('tenant_id', sessionTenantId).order('created_at', { ascending: false }).limit(20);
+                if (data && data.length > 0) {
+                    tbody.innerHTML = data.map(tx => `<tr><td class="px-4 text-muted font-mono" style="font-size: 0.75rem;">${new Date(tx.created_at).toLocaleTimeString()}</td><td class="fw-bold text-dark font-mono" style="font-size: 0.8rem;">${tx.reference}</td><td><span class="badge bg-secondary bg-opacity-10 text-secondary border">${tx.transfer_type} | ${tx.status}</span></td><td class="text-end font-mono fw-bold">${formatter.format(tx.amount)}</td></tr>`).join('');
+                } else { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted small">No vault history found.</td></tr>'; }
+            } else {
+                if(!activeTill) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted small">No transactions in current session.</td></tr>'; return; }
+                const { data } = await supabase.from('transactions').select('*').gte('transaction_timestamp', activeTill.opened_at).in('channel', ['BRANCH_CASH', 'BRANCH_TRANSFER']).order('transaction_timestamp', { ascending: false });
+                if (data && data.length > 0) {
+                    tbody.innerHTML = data.map(tx => `<tr><td class="px-4 text-muted font-mono" style="font-size: 0.75rem;">${new Date(tx.transaction_timestamp).toLocaleTimeString()}</td><td class="fw-bold text-dark font-mono" style="font-size: 0.8rem;">${tx.transaction_reference}</td><td><span class="badge bg-secondary bg-opacity-10 text-secondary border">${tx.channel}</span></td><td class="text-end font-mono fw-bold ${tx.transaction_type === 'CREDIT' ? 'text-success' : 'text-danger'}">${tx.transaction_type === 'CREDIT' ? '+' : '-'}${formatter.format(tx.amount)}</td></tr>`).join('');
+                } else { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted small">No transactions in current session.</td></tr>'; }
+            }
         }
 
-        // Start
-        initializeSimulator();
+        // ==========================================
+        // CUSTOMER INQUIRY & MINI-STATEMENT ENGINE
+        // ==========================================
+        window.fetchAccountStatement = async () => {
+            const acctNum = document.getElementById('inquiry-acct-num').value.trim();
+            if (!acctNum || acctNum.length !== 9) return alert("Please enter a valid 10-digit account number.");
+
+            const btn = document.getElementById('btn-fetch-statement');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            try {
+                // 1. Fetch account and linked customer details
+                const { data: account, error: accErr } = await supabase
+                    .from('accounts')
+                    .select(`
+                        id, account_number, balance, status,
+                        customers ( entity_name, first_name, last_name, bvn, registration_number, kyc_status )
+                    `)
+                    .eq('account_number', acctNum)
+                    .maybeSingle();
+
+                if (accErr) throw accErr;
+                if (!account) return alert(`No account record found for number: ${acctNum}`);
+
+                const cust = account.customers || {};
+                const entityName = cust.entity_name || (cust.first_name ? `${cust.first_name} ${cust.last_name}` : 'Retail Account');
+                const bvnOrRc = cust.registration_number ? `RC: ${cust.registration_number}` : (cust.bvn ? `BVN: ${cust.bvn}` : 'ID Unlinked');
+
+                document.getElementById('inquiry-entity-name').innerText = entityName;
+                document.getElementById('inquiry-bvn').innerText = bvnOrRc;
+                document.getElementById('inquiry-bvn').innerText = bvnOrRc;
+                
+                // --- UPGRADE: Display Compliance Freezes ---
+                if (account.status === 'FROZEN') {
+                    document.getElementById('inquiry-tier').innerHTML = `KYC: ${cust.kyc_status || 'PENDING'} | <span class="badge bg-danger ms-2 shadow-sm">⚠️ ACCOUNT FROZEN (POST NO DEBIT)</span>`;
+                } else {
+                    document.getElementById('inquiry-tier').innerHTML = `KYC: ${cust.kyc_status || 'PENDING'} | <span class="badge bg-success bg-opacity-10 text-success border border-success ms-2">ACTIVE</span>`;
+                }
+                
+                document.getElementById('inquiry-balance').innerText = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(account.balance || 0);
+                document.getElementById('inquiry-balance').innerText = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(account.balance || 0);
+
+                // 2. Fetch the last 15 ledger entries for the mini-statement
+                const { data: transactions, error: txErr } = await supabase
+                    .from('transactions')
+                    .select('amount, transaction_type, transaction_timestamp, narration, counterparty_bank')
+                    .eq('account_id', account.id)
+                    .order('transaction_timestamp', { ascending: false })
+                    .limit(15);
+
+                if (txErr) throw txErr;
+
+                const tbody = document.getElementById('inquiry-statement-body');
+                tbody.innerHTML = '';
+
+                if (!transactions || transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">No historical transactions logged for this account.</td></tr>';
+                } else {
+                    transactions.forEach(tx => {
+                        const row = document.createElement('tr');
+                        const isCredit = tx.transaction_type === 'CREDIT';
+                        const sign = isCredit ? '+' : '-';
+                        const colorClass = isCredit ? 'text-success' : 'text-dark';
+                        const formattedDate = new Date(tx.transaction_timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        const formattedAmount = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(tx.amount);
+                        
+                        // Keep your original logic for NIBSS external transfers
+                        let rawNarration = tx.counterparty_bank ? `${tx.narration} (${tx.counterparty_bank})` : (tx.narration || tx.transaction_type);
+
+                        // Simulate a messy raw ledger string for presentation purposes (only for non-transfers)
+                        if (!isCredit && !tx.counterparty_bank && rawNarration.length < 15) {
+                            rawNarration = `POS/PUR/FLW*${Math.floor(1000+Math.random()*9000)}/ABJ`;
+                        }
+
+                        // Add the Dispute button only to outgoing debits
+                        const odrButton = !isCredit 
+                            ? `<button class="btn btn-sm btn-light border text-primary fw-bold p-1 ms-2 d-inline-flex align-items-center" onclick="resolveDispute('${rawNarration}')" title="Resolve Dispute"><span class="material-symbols-outlined" style="font-size: 14px;">travel_explore</span></button>` 
+                            : '';
+
+                        row.innerHTML = `
+                            <td class="py-2 px-3 text-muted text-nowrap font-monospace" style="font-size: 0.75rem;">${formattedDate}</td>
+                            <td class="py-2 text-dark font-monospace" style="font-size: 0.8rem;">${rawNarration} ${odrButton}</td>
+                            <td class="py-2 text-end px-3 fw-bold ${colorClass} font-mono">${sign} ${formattedAmount}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                document.getElementById('statement-card').classList.remove('d-none');
+
+            } catch (err) {
+                console.error("Statement Inquiry Error:", err);
+                alert(`Inquiry Failed: ${err.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Search';
+            }
+        };
+
+        // ==========================================
+        // ODR: ISO 20022 DATA ENRICHMENT ENGINE
+        // ==========================================
+        window.resolveDispute = (rawString) => {
+            const modal = new bootstrap.Modal(document.getElementById('odrModal'));
+            
+            document.getElementById('odr-raw-string').innerText = rawString;
+            document.getElementById('odr-results').style.display = 'none';
+            document.getElementById('odr-loading').style.display = 'block';
+            
+            modal.show();
+
+            // Simulate Edge Function / API latency
+            setTimeout(() => {
+                let cleanName = "Unknown Retailer";
+                let category = "General Merchandise";
+                let icon = "storefront";
+                let location = "Abuja, FCT";
+
+                // Simulated Enrichment Logic (Regex/Keyword matching)
+                const upperStr = rawString.toUpperCase();
+                if (upperStr.includes('FLW') || upperStr.includes('POS')) {
+                    cleanName = "Domino's Pizza";
+                    category = "Food & Dining";
+                    icon = "local_pizza";
+                    location = "Wuse 2, Abuja";
+                } else if (upperStr.includes('NIP') || upperStr.includes('TRF')) {
+                    cleanName = "Interbank Transfer";
+                    category = "Financial Services";
+                    icon = "account_balance";
+                } else if (upperStr.includes('WEB') || upperStr.includes('PAYSTACK')) {
+                    cleanName = "Netflix Subscription";
+                    category = "Entertainment";
+                    icon = "live_tv";
+                    location = "Online / Web";
+                }
+
+                document.getElementById('odr-merchant-name').innerText = cleanName;
+                document.getElementById('odr-merchant-category').innerText = category;
+                document.getElementById('odr-merchant-icon').innerText = icon;
+                document.getElementById('odr-location').innerText = location;
+
+                document.getElementById('odr-loading').style.display = 'none';
+                document.getElementById('odr-results').style.display = 'block';
+            }, 1500); // 1.5 second simulated delay
+        };
+
+        // ==========================================
+        // LOAN ORIGINATION & AMORTIZATION ENGINE
+        // ==========================================
+        let amortizationChartInstance = null;
+
+        window.currentLoanPMT = 0;
+        window.currentLoanTotal = 0;
+
+        window.simulateLoan = (principal, rate, term) => {
+            document.getElementById('loan-principal').value = principal;
+            document.getElementById('loan-rate').value = rate;
+            document.getElementById('loan-term').value = term;
+            generateAmortization();
+        };
+
+        window.generateAmortization = () => {
+            const P = parseFloat(document.getElementById('loan-principal').value);
+            const annualRate = parseFloat(document.getElementById('loan-rate').value);
+            const months = parseInt(document.getElementById('loan-term').value);
+
+            if (!P || !annualRate || !months) return alert("Please fill all loan parameters.");
+
+            // Standard PMT Financial Formula Math
+            const r = (annualRate / 100) / 12; // Monthly interest rate
+            const n = months;
+            const PMT = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            
+            // SAVE TO GLOBAL STATE FOR DISBURSEMENT
+            window.currentLoanPMT = PMT;
+
+            document.getElementById('loan-pmt').innerText = formatter.format(PMT);
+            document.getElementById('chart-container-card').classList.remove('d-none');
+
+            let balance = P;
+            let totalInterest = 0;
+            const labels = [];
+            const principalData = [];
+            const interestData = [];
+            const balanceData = [];
+
+            for (let i = 1; i <= n; i++) {
+                const interestPayment = balance * r;
+                const principalPayment = PMT - interestPayment;
+                
+                balance -= principalPayment;
+                totalInterest += interestPayment;
+
+                labels.push(`M${i}`);
+                principalData.push(principalPayment);
+                interestData.push(interestPayment);
+                balanceData.push(Math.max(0, balance));
+            }
+
+            window.currentLoanTotal = P + totalInterest;
+            document.getElementById('loan-total-interest').innerText = formatter.format(totalInterest);
+            document.getElementById('loan-total-repayment').innerText = formatter.format(window.currentLoanTotal);
+            renderAmortizationChart(labels, balanceData, principalData, interestData);
+        };
+
+        function renderAmortizationChart(labels, balanceData, principalData, interestData) {
+            const ctx = document.getElementById('amortizationChart');
+            if (!ctx) return;
+
+            if (amortizationChartInstance) amortizationChartInstance.destroy();
+
+            amortizationChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Remaining Principal (Debt)',
+                            data: balanceData,
+                            borderColor: '#0f172a',
+                            borderWidth: 2,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Principal Paid',
+                            data: principalData,
+                            backgroundColor: '#10b981', // Green
+                            stacked: true,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Bank Interest (Profit)',
+                            data: interestData,
+                            backgroundColor: '#ef4444', // Red
+                            stacked: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { stacked: true },
+                        y: { 
+                            type: 'linear', display: true, position: 'left',
+                            title: { display: true, text: 'Remaining Debt (₦)' }
+                        },
+                        y1: { 
+                            type: 'linear', display: false, position: 'right', stacked: true,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // LOAN SERVICING & DISBURSEMENT ENGINE
+        // ==========================================
+        window.disburseLoan = async () => {
+            const acctNum = document.getElementById('loan-acct-num').value.trim();
+            const principal = parseFloat(document.getElementById('loan-principal').value);
+            const rate = parseFloat(document.getElementById('loan-rate').value);
+            const term = parseInt(document.getElementById('loan-term').value);
+            const pmt = window.currentLoanPMT;
+            const totalRepayment = window.currentLoanTotal;
+
+            if (!acctNum || !principal || !pmt) return alert("Please enter a valid account number and generate a schedule first.");
+
+            const btn = document.getElementById('btn-disburse');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Disbursing...';
+            btn.disabled = true;
+
+            try {
+                const { data: account } = await supabase.from('accounts').select('id').eq('account_number', acctNum).maybeSingle();
+                if (!account) throw new Error("Account number not found in database.");
+
+                const loanRef = `LND-${crypto.randomUUID().substring(0,6).toUpperCase()}`;
+                
+                // Calculate First Payment Date (30 Days from today)
+                const firstDueDate = new Date();
+                firstDueDate.setDate(firstDueDate.getDate() + 30);
+
+                const { error: loanErr } = await supabase.from('loans').insert([{
+                    tenant_id: sessionTenantId,
+                    account_id: account.id,
+                    loan_reference: loanRef,
+                    principal: principal,
+                    interest_rate: rate,
+                    term_months: term,
+                    monthly_pmt: pmt,
+                    remaining_balance: totalRepayment,
+                    next_payment_date: firstDueDate.toISOString().split('T')[0], // YYYY-MM-DD
+                    status: 'ACTIVE'
+                }]);
+                if (loanErr) throw loanErr;
+
+                const { error: txErr } = await supabase.from('transactions').insert([{
+                    account_id: account.id,
+                    amount: principal,
+                    transaction_type: 'CREDIT',
+                    transaction_timestamp: new Date().toISOString(),
+                    transaction_reference: `DISB-${loanRef}`,
+                    channel: 'BRANCH_TRANSFER', // Fixed strict ENUM
+                    narration: 'Loan Principal Disbursement'
+                }]);
+                if (txErr) throw txErr;
+
+                alert(`Success! ₦${principal.toLocaleString()} has been credited. Next payment due on ${firstDueDate.toLocaleDateString()}.`);
+                
+                // Reset UI to prevent double-clicks
+                document.getElementById('loan-calculator').reset();
+                document.getElementById('chart-container-card').classList.add('d-none');
+                window.currentLoanPMT = 0; window.currentLoanTotal = 0;
+                
+                loadActiveLoans();
+
+            } catch (err) {
+                alert(`Disbursement Failed: ${err.message}`);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined fs-6">payments</span> Approve & Disburse';
+                btn.disabled = false;
+            }
+        };
+
+        window.loadActiveLoans = async () => {
+            const tbody = document.getElementById('active-loans-body');
+            if (!tbody) return;
+
+            const { data: loans, error } = await supabase
+                .from('loans')
+                .select('*, accounts(account_number)')
+                .eq('tenant_id', sessionTenantId)
+                .order('created_at', { ascending: false });
+
+            if (error || !loans) return;
+
+            if (loans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted small">No active loans in portfolio.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = loans.map(loan => {
+                const statusBadge = loan.status === 'ARREARS' ? 'bg-danger' : (loan.status === 'CLOSED' ? 'bg-secondary' : 'bg-success');
+                const isClosed = loan.status === 'CLOSED';
+                
+                return `
+                <tr>
+                    <td class="px-4 py-3">
+                        <div class="fw-bold text-dark small">${loan.loan_reference}</div>
+                        <div class="text-muted font-mono" style="font-size: 0.7rem;">ACCT: ${loan.accounts.account_number}</div>
+                    </td>
+                    <td class="py-3 fw-bold text-dark font-mono">${formatter.format(loan.remaining_balance)}</td>
+                    <td class="py-3 text-danger fw-bold font-mono" style="font-size: 0.8rem;">${formatter.format(loan.monthly_pmt)}</td>
+                    <td class="py-3"><span class="badge ${statusBadge} bg-opacity-10 text-${statusBadge.replace('bg-', '')} border border-${statusBadge.replace('bg-', '')}">${loan.status}</span></td>
+                    <td class="px-4 py-3 text-end">
+                        <div class="btn-group shadow-sm">
+                            <button class="btn btn-sm btn-outline-primary fw-bold" onclick="viewLoanDetails('${loan.id}', '${loan.loan_reference}')">Details</button>
+                            <button class="btn btn-sm btn-outline-dark fw-bold" ${isClosed ? 'disabled' : ''} onclick="liquidateLoan('${loan.id}', ${loan.remaining_balance})">Liquidate</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        };
+
+        // NEW: Fetch and display exact payment history for a specific loan
+        window.viewLoanDetails = async (loanId, loanRef) => {
+            const modal = new bootstrap.Modal(document.getElementById('loanDetailsModal'));
+            modal.show();
+
+            document.getElementById('loan-history-body').innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span> Fetching audit trail...</td></tr>';
+            document.getElementById('modal-loan-ref-title').innerText = loanRef;
+            
+            try {
+                // 1. Get fresh dates from the loan table
+                const { data: loan } = await supabase.from('loans').select('next_payment_date, last_payment_date').eq('id', loanId).single();
+                
+                document.getElementById('detail-next-date').innerText = loan?.next_payment_date ? new Date(loan.next_payment_date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+                document.getElementById('detail-last-date').innerText = loan?.last_payment_date ? new Date(loan.last_payment_date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never';
+
+                // 2. Fetch every transaction from the ledger where the narration or reference mentions this loan
+                const { data: txs, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .or(`narration.ilike.%${loanRef}%,transaction_reference.ilike.%${loanRef}%`)
+                    .order('transaction_timestamp', { ascending: false });
+                
+                if (error) throw error;
+
+                const tbody = document.getElementById('loan-history-body');
+                if (!txs || txs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">No repayment history found.</td></tr>';
+                    return;
+                }
+
+                // Render the mini-ledger
+                tbody.innerHTML = txs.map(tx => {
+                    const date = new Date(tx.transaction_timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const isCredit = tx.transaction_type === 'CREDIT'; 
+                    const color = isCredit ? 'text-dark' : 'text-success'; // Debits are success (customer paid us)
+                    const prefix = isCredit ? 'Disbursed:' : 'Paid:';
+                    
+                    return `
+                    <tr>
+                        <td class="py-2 px-3 text-muted font-mono" style="font-size: 0.75rem;">${date}</td>
+                        <td class="py-2 fw-bold text-dark font-mono" style="font-size: 0.8rem;">
+                            ${tx.transaction_reference} <br><span class="text-muted fw-normal font-inter" style="font-size: 0.7rem;">${tx.narration}</span>
+                        </td>
+                        <td class="py-2 text-end px-3 fw-bold ${color} font-mono">${prefix} ${formatter.format(tx.amount)}</td>
+                    </tr>`;
+                }).join('');
+
+            } catch (err) {
+                document.getElementById('loan-history-body').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger">Failed to load history: ${err.message}</td></tr>`;
+            }
+        };
+
+        // UPGRADED: Strict Date-Guarded Sweeper
+        window.runLoanSweeper = async () => {
+            const btn = document.getElementById('btn-sweeper');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sweeping Accounts...';
+            btn.disabled = true;
+
+            try {
+                const { data: loans } = await supabase.from('loans').select('*, accounts(id, balance)').eq('status', 'ACTIVE');
+                if (!loans || loans.length === 0) return alert("No active loans to sweep.");
+
+                let successCount = 0; let arrearsCount = 0; let notDueCount = 0;
+
+                // Set today's date to midnight for strict mathematical comparison
+                const today = new Date();
+                today.setHours(0,0,0,0);
+
+                for (const loan of loans) {
+                    
+                    // --- THE CORE GUARDRAIL ---
+                    // If the loan has a due date, check if today has reached it. If not, SKIP IT.
+                    if (loan.next_payment_date) {
+                        const nextPaymentDate = new Date(loan.next_payment_date);
+                        nextPaymentDate.setHours(0,0,0,0);
+                        
+                        if (today < nextPaymentDate) {
+                            notDueCount++;
+                            continue; // Skip to the next loan in the loop
+                        }
+                    }
+                    // ---------------------------
+
+                    const customerBalance = parseFloat(loan.accounts.balance || 0);
+                    const pmt = parseFloat(loan.monthly_pmt);
+
+                    if (customerBalance >= pmt) {
+                        // Customer has funds. Deduct PMT.
+                        await supabase.from('transactions').insert([{
+                            account_id: loan.account_id,
+                            amount: pmt,
+                            transaction_type: 'DEBIT',
+                            transaction_timestamp: new Date().toISOString(),
+                            transaction_reference: `PMT-${crypto.randomUUID().substring(0,6).toUpperCase()}`,
+                            channel: 'BRANCH_TRANSFER', 
+                            narration: `Automated Loan Repayment (${loan.loan_reference})`
+                        }]);
+
+                        const newBalance = Math.max(0, loan.remaining_balance - pmt);
+                        const newStatus = newBalance <= 0 ? 'CLOSED' : 'ACTIVE';
+                        
+                        // Advance the next due date by 30 days
+                        const nextDate = new Date(loan.next_payment_date || new Date());
+                        nextDate.setDate(nextDate.getDate() + 30);
+                        const todayStr = new Date().toISOString().split('T')[0];
+
+                        await supabase.from('loans').update({ 
+                            remaining_balance: newBalance, 
+                            status: newStatus,
+                            last_payment_date: todayStr,
+                            next_payment_date: nextDate.toISOString().split('T')[0]
+                        }).eq('id', loan.id);
+                        
+                        successCount++;
+                    } else {
+                        // Insufficient funds.
+                        await supabase.from('loans').update({ status: 'ARREARS' }).eq('id', loan.id);
+                        arrearsCount++;
+                    }
+                }
+
+                alert(`Nightly Sweep Complete.\n✅ ${successCount} payments collected.\n🚨 ${arrearsCount} accounts flagged for arrears.\n⏩ ${notDueCount} accounts skipped (Not Due Yet).`);
+                loadActiveLoans();
+
+            } catch (err) {
+                alert(`Sweeper failed: ${err.message}`);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined fs-6">update</span> Run Nightly Sweeper (Simulate EOM)';
+                btn.disabled = false;
+            }
+        };
+
+        window.liquidateLoan = async (loanId, balance) => {
+            if(!confirm(`Force early liquidation of ₦${balance.toLocaleString()}? This simulates a manual bulk cash payment.`)) return;
+            await supabase.from('loans').update({ remaining_balance: 0, status: 'CLOSED' }).eq('id', loanId);
+            loadActiveLoans();
+        };
+
+        // Add loadActiveLoans() to the morphToManagerUI startup
+        const originalMorphToManager = morphToManagerUI;
+        morphToManagerUI = function() {
+            originalMorphToManager();
+            loadActiveLoans();
+        };
+
+        // ==========================================
+        // OFFICIAL PDF STATEMENT GENERATOR
+        // ==========================================
+        window.openStatementModal = () => {
+            // Ensure an account is loaded in the Inquiry tab first
+            const acctNum = document.getElementById('inquiry-acct-num').value.trim();
+            if (!acctNum || acctNum.length < 9) return alert("Please look up a valid customer account in the Inquiry tab first.");
+
+            // Default the date range to the last 30 days
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setMonth(today.getMonth() - 1);
+            
+            document.getElementById('stmt-end-date').value = today.toISOString().split('T')[0];
+            document.getElementById('stmt-start-date').value = lastMonth.toISOString().split('T')[0];
+            
+            new bootstrap.Modal(document.getElementById('statementGeneratorModal')).show();
+        };
+
+        window.generateOfficialStatement = async () => {
+            const btn = document.getElementById('btn-generate-pdf');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Compiling Ledger...';
+            btn.disabled = true;
+
+            try {
+                const acctNum = document.getElementById('inquiry-acct-num').value.trim();
+                const startDate = document.getElementById('stmt-start-date').value;
+                const endDate = document.getElementById('stmt-end-date').value;
+                
+                // Adjust end date to capture up to 11:59 PM
+                const endOfDay = new Date(endDate);
+                endOfDay.setHours(23, 59, 59, 999);
+
+                // 1. Fetch Account & KYC Context
+                const { data: account } = await supabase.from('accounts')
+                    .select('id, balance, account_type, customers(entity_name, first_name, last_name, bvn)')
+                    .eq('account_number', acctNum).single();
+                    
+                if (!account) throw new Error("Database validation failed for this account.");
+
+                // 2. Fetch all chronological transactions in the date range
+                const { data: txs, error } = await supabase.from('transactions')
+                    .select('*')
+                    .eq('account_id', account.id)
+                    .gte('transaction_timestamp', new Date(startDate).toISOString())
+                    .lte('transaction_timestamp', endOfDay.toISOString())
+                    .order('transaction_timestamp', { ascending: true });
+                    
+                if (error) throw error;
+
+                const custName = account.customers.entity_name || `${account.customers.first_name} ${account.customers.last_name}`;
+                const accountType = account.account_type === 'SAVINGS' ? 'Savings Account' : 'Current Account';
+
+                // 3. Mathematical Pre-Processing (Running Balances & Summaries)
+                let totalCredits = 0;
+                let totalDebits = 0;
+                let creditCount = 0;
+                let debitCount = 0;
+
+                txs.forEach(tx => {
+                    const amt = parseFloat(tx.amount);
+                    if (tx.transaction_type === 'CREDIT') { 
+                        totalCredits += amt; 
+                        creditCount++; 
+                    } else { 
+                        totalDebits += amt; 
+                        debitCount++; 
+                    }
+                });
+
+                // Calculate accurate opening balance by working backwards from current balance
+                const closingBalance = parseFloat(account.balance);
+                const openingBalance = closingBalance - totalCredits + totalDebits;
+                let runningBalance = openingBalance;
+
+                // 4. Initialize PDF Canvas (A4 Portrait)
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // --- HEADER SECTION ---
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(15, 23, 42); 
+                doc.text("Account Statement", 14, 20);
+                
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(100, 100, 100);
+                
+                const formattedDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const formattedTime = new Date().toLocaleTimeString('en-GB');
+                doc.text(`Generated on ${formattedDate} ${formattedTime}`, 14, 25);
+
+                // Top Right Branding (Microfinance Removed)
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(220, 38, 38); // Brand Red
+                doc.text("BexAML", pageWidth - 14, 20, { align: 'right' });
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("...Beyond Banking", pageWidth - 14, 25, { align: 'right' });
+
+                // Account Information Block
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(100, 100, 100);
+                doc.text("Account Name", 14, 35);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(custName.toUpperCase(), 14, 40);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("Account Number", 14, 48);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(acctNum, 14, 53);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("Account Type", 100, 35);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(accountType, 100, 40);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("Period", 100, 48);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
+                const startFmt = new Date(startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const endFmt = new Date(endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                doc.text(`${startFmt} - ${endFmt}`, 100, 53);
+
+                // --- SUMMARY TABLES ---
+                doc.autoTable({
+                    startY: 60,
+                    theme: 'grid',
+                    head: [['Opening Balance', 'Total Debit', 'Debit Count']],
+                    body: [[
+                        `N${openingBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 
+                        `N${totalDebits.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 
+                        debitCount.toString()
+                    ]],
+                    headStyles: { fillColor: [248, 250, 252], textColor: [100, 100, 100], fontSize: 8, halign: 'center', lineWidth: 0.1 },
+                    bodyStyles: { fontSize: 9, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] },
+                    margin: { left: 14, right: 14 }
+                });
+
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 3,
+                    theme: 'grid',
+                    head: [['Closing Balance', 'Total Credit', 'Credit Count']],
+                    body: [[
+                        `N${closingBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 
+                        `N${totalCredits.toLocaleString('en-US', {minimumFractionDigits: 2})}`, 
+                        creditCount.toString()
+                    ]],
+                    headStyles: { fillColor: [248, 250, 252], textColor: [100, 100, 100], fontSize: 8, halign: 'center', lineWidth: 0.1 },
+                    bodyStyles: { fontSize: 9, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] },
+                    margin: { left: 14, right: 14 }
+                });
+
+                // --- 5. LEDGER TRANSACTIONS TABLE ---
+                const tableRows = txs.map(tx => {
+                    const txDate = new Date(tx.transaction_timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const txTime = new Date(tx.transaction_timestamp).toLocaleTimeString('en-GB');
+                    const amt = parseFloat(tx.amount);
+                    
+                    let credit = '';
+                    let debit = '';
+
+                    if (tx.transaction_type === 'CREDIT') {
+                        credit = amt.toLocaleString('en-US', {minimumFractionDigits: 2});
+                        runningBalance += amt;
+                    } else {
+                        debit = amt.toLocaleString('en-US', {minimumFractionDigits: 2});
+                        runningBalance -= amt;
+                    }
+                    
+                    return [
+                        `${txDate}\n${txTime}`,
+                        tx.narration || 'Electronic Transfer',
+                        txDate, 
+                        debit,
+                        credit,
+                        runningBalance.toLocaleString('en-US', {minimumFractionDigits: 2}),
+                        (tx.channel || 'Mobile').replace('_', ' '),
+                        tx.transaction_reference
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 10,
+                    head: [['Trans. Time', 'Description', 'Value Date', 'Debit(N)', 'Credit(N)', 'Balance After', 'Channel', 'Transaction Reference']],
+                    body: tableRows.length ? tableRows : [['-', 'No financial activity in this period', '-', '-', '-', '-', '-', '-']],
+                    theme: 'plain',
+                    headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold', fontSize: 7, lineWidth: 0.1, lineColor: [226, 232, 240], cellPadding: 1.5 },
+                    bodyStyles: { fontSize: 7, textColor: [30, 41, 59], borderBottom: '1px solid #f1f5f9', cellPadding: 1.5 },
+                    columnStyles: {
+                        0: { cellWidth: 18 }, // Trans Time
+                        1: { cellWidth: 39 }, // Description (Reduced to make room)
+                        2: { cellWidth: 18 }, // Value Date
+                        3: { halign: 'right', textColor: [220, 38, 38], cellWidth: 21 }, // Debit
+                        4: { halign: 'right', textColor: [16, 185, 129], cellWidth: 21 }, // Credit
+                        5: { halign: 'right', fontStyle: 'bold', cellWidth: 22 }, // Balance
+                        6: { cellWidth: 19 }, // Channel (Expanded from 13 to 19 to fit BRANCH TRANSFER)
+                        7: { font: 'courier', cellWidth: 24, overflow: 'linebreak' } // Tx Ref
+                    },
+                    margin: { left: 14, right: 14 }
+                });
+
+                // --- 6. SIGNATURE BLOCK ---
+                let finalY = doc.lastAutoTable.finalY + 15;
+                
+                // If the signature block falls too close to the bottom, bump it to the next page
+                if (finalY > pageHeight - 40) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+
+                // Official Signature Line
+                doc.setDrawColor(0);
+                doc.line(pageWidth - 60, finalY + 15, pageWidth - 14, finalY + 15);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.text("AUTHORIZED SIGNATORY", pageWidth - 37, finalY + 20, { align: 'center' });
+                doc.text("BexAML Bank", pageWidth - 37, finalY + 24, { align: 'center' }); 
+
+                // --- 7. FOOTER LOOP (BRAND IDENTITY) ---
+                const pageCount = doc.internal.getNumberOfPages();
+                for(let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    
+                    // Brand Footer Text (Spacing expanded to prevent overlap)
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(10);
+                    doc.setTextColor(15, 23, 42);
+                    doc.text("BexAML ...Beyond Banking", 14, pageHeight - 24);
+                    
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("Address: Head Office, Central Business District, Kaduna", 14, pageHeight - 16);
+                    
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(15, 23, 42);
+                    doc.text("Insured by NDIC", 14, pageHeight - 8);
+                    
+                    // Pagination
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageHeight - 10, { align: 'right' });
+                }
+
+                // 8. Execute File Download
+                doc.save(`Statement_${acctNum}_${startDate}.pdf`);
+                bootstrap.Modal.getInstance(document.getElementById('statementGeneratorModal')).hide();
+
+            } catch (err) {
+                console.error("PDF Engine Error:", err);
+                alert(`Statement Generation Failed: ${err.message}`);
+            } finally {
+                btn.innerHTML = 'DOWNLOAD PDF STATEMENT';
+                btn.disabled = false;
+            }
+        };
+
+        // ==========================================
+        // EOM INTEREST ACCRUAL ENGINE (YIELD)
+        // ==========================================
+        window.runInterestAccrual = async () => {
+            if(!confirm("AUTHORIZATION REQUIRED: Are you sure you want to execute the End-of-Month interest accrual? This will bulk-credit all eligible savings accounts.")) return;
+
+            const btn = document.getElementById('btn-run-accrual');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+            btn.disabled = true;
+
+            try {
+                // 1. Fetch all SAVINGS accounts
+                const { data: accounts, error: accErr } = await supabase
+                    .from('accounts')
+                    .select('id, account_number, balance')
+                    .eq('account_type', 'SAVINGS');
+
+                if (accErr) throw accErr;
+                if (!accounts || accounts.length === 0) return alert("No active savings accounts found.");
+
+                // 2. Setup Yield Math (4.5% APY -> Monthly Rate)
+                const APY = 0.045; 
+                const monthlyRate = APY / 12;
+                
+                let totalInterestPaid = 0;
+                let accountsCredited = 0;
+                const transactionsPayload = [];
+
+                // 3. Loop the accounts and calculate yield
+                for (const acc of accounts) {
+                    const balance = parseFloat(acc.balance || 0);
+                    
+                    if (balance > 0) {
+                        const interest = +(balance * monthlyRate).toFixed(2); // Round to 2 decimal places
+                        
+                        // Only generate a transaction if the interest is at least 1 Kobo
+                        if (interest > 0.01) {
+                            transactionsPayload.push({
+                                account_id: acc.id,
+                                amount: interest,
+                                transaction_type: 'CREDIT',
+                                transaction_timestamp: new Date().toISOString(),
+                                transaction_reference: `INT-${acc.account_number}-${crypto.randomUUID().substring(0,4).toUpperCase()}`,
+                                channel: 'BRANCH_TRANSFER', // Safe ENUM bypass
+                                narration: `EOM Interest Accrual (4.5% APY)`
+                            });
+                            totalInterestPaid += interest;
+                            accountsCredited++;
+                        }
+                    }
+                }
+
+                if (transactionsPayload.length === 0) {
+                    alert("No accounts eligible for interest this cycle (Zero balances).");
+                    return;
+                }
+
+                // 4. Fire the Bulk-Insert
+                const { error: txErr } = await supabase.from('transactions').insert(transactionsPayload);
+                if (txErr) throw txErr;
+
+                // 5. Log the massive operation to the Audit Trail
+                await supabase.from('system_events').insert([{
+                    event_type: 'EOM_INTEREST_ACCRUAL',
+                    severity: 'INFO',
+                    user_id: sessionUser.id,
+                    message: `Manager executed EOM Accrual. Credited ₦${totalInterestPaid.toLocaleString()} across ${accountsCredited} accounts.`,
+                    metadata: { total_accounts: accountsCredited, total_payout: totalInterestPaid }
+                }]);
+
+                alert(`EOM Processing Complete!\n✅ ${accountsCredited} accounts credited.\n💰 Total Yield Paid: ₦${totalInterestPaid.toLocaleString()}`);
+                
+                // Refresh dashboards if needed
+                loadManagerDashboards();
+
+            } catch (err) {
+                alert(`Accrual failed: ${err.message}`);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined fs-6">play_circle</span> EXECUTE ACCRUAL';
+                btn.disabled = false;
+            }
+        };
+
+        window.logout = async () => { await supabase.auth.signOut(); window.location.replace('bank-login.html'); };
+        init();
     </script>
 </body>
 </html>

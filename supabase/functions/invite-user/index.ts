@@ -1,13 +1,16 @@
 // deno-lint-ignore-file no-import-prefix
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders, errorResponse, jsonResponse, requireUser } from "../_shared/auth.ts";
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } })
+    return new Response('ok', { headers: corsHeaders(req) });
   }
 
   try {
+    await requireUser(req, ['it_admin', 'head_of_compliance']);
+
     const { email, role, tenantId } = await req.json()
 
     const supabaseAdmin = createClient(
@@ -33,16 +36,9 @@ serve(async (req: Request) => {
         role: role
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      status: 200,
-    })
+    return jsonResponse(req, { success: true });
     
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      status: 400,
-    })
+    return errorResponse(req, error);
   }
 })

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bank Portal | Secure Login</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card login-card bg-white">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <span class="material-symbols-outlined text-primary" style="font-size: 48px;">account_balance</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1">Teller Workspace</h4>
+                <p class="text-muted small">Authorized Frontline Personnel Only</p>
+            </div>
+
+            <form id="teller-login-form">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Staff Email</label>
+                    <input type="email" class="form-control bg-light" id="teller-email" placeholder="teller@bank.com" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Password</label>
+                    <input type="password" class="form-control bg-light" id="teller-password" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 d-flex justify-content-center align-items-center gap-2" id="btn-teller-login">
+                    Authenticate <span class="material-symbols-outlined fs-6">login</span>
+                </button>
+            </form>
+            
+            <div class="text-center mt-4 pt-3 border-top">
+                <a href="index.html" class="text-muted small text-decoration-none d-flex justify-content-center align-items-center gap-1">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">shield</span> Return to AML Compliance
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/config.js';
+
+        // 1. Session Check: If already logged in as a teller, bypass login
+        async function checkExistingSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+                const role = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+                if (['sales_rep', 'teller', 'branch_manager'].includes(role)) {
+                    window.location.replace('core-banking.html');
+                }
+            }
+        }
+        checkExistingSession();
+
+        // 2. Authentication Engine
+        document.getElementById('teller-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-teller-login');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Authenticating...';
+            btn.disabled = true;
+
+            try {
+                const email = document.getElementById('teller-email').value;
+                const password = document.getElementById('teller-password').value;
+
+                // Attempt Supabase Login
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                // Extract JWT to check role constraints
+                const jwtPayload = JSON.parse(atob(data.session.access_token.split('.')[1]));
+                const userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
+
+                // STRICT GATEKEEPER: Reject AML/IT staff from the banking portal
+                const allowedBankingRoles = ['sales_rep', 'teller', 'branch_manager'];
+                
+                if (!allowedBankingRoles.includes(userRole)) {
+                    await supabase.auth.signOut();
+                    throw new Error("Access Denied. Your role does not permit access to the Core Banking Ledger.");
+                }
+
+                // If authorized, route to the core banking application
+                window.location.replace('core-banking.html');
+
+            } catch (err) {
+                alert(err.message);
+                btn.innerHTML = 'Authenticate <span class="material-symbols-outlined fs-6">login</span>';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
