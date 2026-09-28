@@ -12,6 +12,7 @@
 import * as customers from "./customers.service.js";
 import * as risk from "./risk.service.js";
 import * as alerts from "./alerts.service.js";
+import * as transactions from "./transactions.service.js";
 
 /**
  * Open an investigation context.
@@ -38,21 +39,23 @@ export async function open(customerId) {
     // ==================================================
 
     const [
-        customer,
-        riskProfile,
-        customerAlerts
-    ] = await Promise.all([
-        customers.getById(customerId),
-        risk.getInvestigationProfile(customerId),
-        alerts.getByCustomer(customerId)
-    ]);
+    customer,
+    riskProfile,
+    customerAlerts,
+    customerTransactions
+] = await Promise.all([
+    customers.getById(customerId),
+    risk.getInvestigationProfile(customerId),
+    alerts.getByCustomer(customerId),
+    transactions.getByCustomer(customerId)
+]);
 
     // ==================================================
     // 2. Compute investigation metrics
     // ==================================================
 
     const metrics = 
-    buildMetrics(customerAlerts);
+    buildMetrics(customerAlerts, customerTransactions);
 
     // ==================================================
     // 3. Compute investigation assessment
@@ -66,7 +69,7 @@ export async function open(customerId) {
     // ==================================================
 
     const timeline =
-    buildTimeline(customerAlerts);
+    buildTimeline(customerAlerts, customerTransactions);
 
     // ==================================================
     // 5. Return investigation model
@@ -80,7 +83,9 @@ export async function open(customerId) {
 
             risk: riskProfile,
 
-            alerts: customerAlerts
+            alerts: customerAlerts,
+
+            transactions: customerTransactions
 
         },
 
@@ -94,7 +99,7 @@ export async function open(customerId) {
 
 }
 
-function buildMetrics(customerAlerts) {
+function buildMetrics(customerAlerts, customerTransactions) {
 
     return {
 
@@ -118,8 +123,23 @@ function buildMetrics(customerAlerts) {
         highSeverityAlerts:
             customerAlerts.filter(alert =>
                 alert.severity === "HIGH"
-            ).length
+            ).length,
+        
+        totalTransactions:
+            customerTransactions.length,
 
+        transactionVolume:
+            customerTransactions.reduce(
+                (total, tx) => total + Number(tx.amount || 0),
+                0
+            ),
+
+        largestTransaction:
+            customerTransactions.reduce(
+                (largest, tx) =>
+                    Math.max(largest, Number(tx.amount || 0)),
+                0
+            )
     };
 
 }
@@ -146,9 +166,9 @@ function buildAssessment(riskProfile, customerAlerts) {
 
 }
 
-function buildTimeline(customerAlerts) {
+function buildTimeline(customerAlerts, customerTransactions) {
 
-    return customerAlerts.map(alert => ({
+    const alertEvents = customerAlerts.map(alert => ({
 
         type: "ALERT",
 
@@ -163,5 +183,33 @@ function buildTimeline(customerAlerts) {
         data: alert
 
     }));
+
+    const transactionEvents = customerTransactions.map(tx => ({
+
+        type: "TRANSACTION",
+
+        timestamp: tx.transaction_timestamp,
+
+        title: tx.transaction_reference,
+
+        severity: null,
+
+        status: tx.transaction_type,
+
+        data: tx
+
+    }));
+
+    return [
+
+        ...alertEvents,
+
+        ...transactionEvents
+
+    ].sort((a, b) =>
+
+        new Date(b.timestamp) - new Date(a.timestamp)
+
+    );
 
 }

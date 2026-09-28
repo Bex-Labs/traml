@@ -1,31 +1,26 @@
 // ======================================================
 // CoreAML Risk Service
-//
-// Investigation-oriented risk capabilities.
-//
-// This service exposes investigator-ready
-// risk information rather than raw database tables.
 // ======================================================
 
 import { supabase } from "../config.js";
 import { execute } from "../utils/apiExecutor.js";
 
-/**
- * Retrieve the customer's current risk profile.
- *
- * NOTE:
- * This is intentionally a small first capability.
- * It will later expand into a full investigation
- * profile as more data sources are integrated.
- */
 export async function getInvestigationProfile(customerId) {
-
-    return execute(() =>
+    // Upgraded to use the Unified Risk Engine (Phase 3)
+    const data = await execute(() =>
         supabase
-            .from("customer_risk_profiles")
-            .select("*")
-            .eq("customer_id", customerId)
+            .from("customers")
+            .select("risk_score, risk_tier")
+            .eq("id", customerId)
             .maybeSingle()
     );
-
+    
+    // Map it to the structure expected by investigations.service.js
+    if (data) {
+        return {
+            risk_level: data.risk_tier,
+            total_score: data.risk_score
+        };
+    }
+    return null;
 }

@@ -31,10 +31,10 @@ export async function getDirectory(filter = "ALL") {
     let query = supabase
         .from("customers")
         .select("*")
-        .order("risk_score", {
+        .order("created_at", {
             ascending: false
         })
-        .limit(50);
+        .limit(2500);
 
     if (filter === "PENDING") {
         query = query.eq("kyc_status", "PENDING");

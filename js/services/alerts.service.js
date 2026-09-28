@@ -20,26 +20,23 @@ import { supabase } from "../config.js";
 import { execute } from "../utils/apiExecutor.js";
 
 /**
- * Standardised execution wrapper.
- */
-
-/**
  * Load alerts by workflow status.
  *
  * @param {string} status
  * @returns {Promise<Array>}
  */
 export async function getByStatus(status) {
-
     return execute(() =>
         supabase
             .from("alerts")
             .select(`
                 id,
                 alert_ref,
+                customer_id,
                 rule_triggered,
                 severity,
                 status,
+                details,
                 created_at,
                 customers (
                     entity_name,
@@ -52,7 +49,6 @@ export async function getByStatus(status) {
                 ascending: false
             })
     );
-
 }
 
 /**
@@ -62,7 +58,6 @@ export async function getByStatus(status) {
  * implementation.
  */
 export async function claim(alertId, userId) {
-
     return execute(() =>
         supabase
             .from("alerts")
@@ -74,7 +69,6 @@ export async function claim(alertId, userId) {
             .eq("status", "UNASSIGNED")
             .select()
     );
-
 }
 
 /**
@@ -84,7 +78,6 @@ export async function claim(alertId, userId) {
  * @returns {Promise<Array>}
  */
 export async function getByCustomer(customerId) {
-
     return execute(() =>
         supabase
             .from("alerts")
@@ -101,5 +94,4 @@ export async function getByCustomer(customerId) {
                 ascending: false
             })
     );
-
 }

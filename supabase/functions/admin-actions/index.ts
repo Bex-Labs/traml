@@ -1,38 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders, errorResponse, jsonResponse, requireUser } from "../_shared/auth.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    )
-
-    // 1. Verify the token is mathematically valid and not expired
-    const { data: { user: executingUser }, error: userError } = await supabaseClient.auth.getUser()
-    if (userError || !executingUser) throw new Error('Unauthorized executing user')
-
-    // 2. Extract the exact role directly from the secure JWT
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const jwtPayload = JSON.parse(atob(token.split('.')[1]))
-    
-    // Fallback checks both app_metadata and user_metadata just in case
-    const role = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-
-    if (role !== 'it_admin' && role !== 'head_of_compliance') {
-        throw new Error(`Insufficient privileges. Role detected: ${role}`)
-    }
+    const { user: executingUser, role } = await requireUser(req, ['it_admin', 'head_of_compliance']);
 
     const { action, targetUserId } = await req.json()
     if (!action || !targetUserId) throw new Error('Missing action or target parameter')
@@ -41,6 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+    let targetEmail: string | undefined;
 
     // 1. EXECUTE THE ACTION
     if (action === 'deactivate') {
@@ -58,9 +35,15 @@ serve(async (req) => {
       if (updateError) throw new Error(`Profile update failed: ${updateError.message}`)
 
     } else if (action === 'reset') {
+      const { data: targetUser, error: targetUserError } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+      if (targetUserError || !targetUser.user?.email) {
+        throw new Error('Unable to find an email address for the selected user.');
+      }
+      targetEmail = targetUser.user.email;
+
       const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'recovery',
-        email: targetUserId, // Assuming targetUserId is passed as email for reset
+        email: targetEmail,
       })
       if (resetError) throw new Error(`Reset failed: ${resetError.message}`)
     } else {
@@ -71,10 +54,10 @@ serve(async (req) => {
     const { error: auditError } = await supabaseAdmin.from('audit_logs').insert({
         event_type: `admin_action_${action}`,
         actor_id: executingUser.id,
-        target_id: action === 'reset' ? null : targetUserId, // We don't have target UUID on reset, just email
+        target_id: targetUserId,
         details: { 
             action: action,
-            target_email: action === 'reset' ? targetUserId : "ID provided",
+            target_email: targetEmail ?? "ID provided",
             executed_by_role: role
         }
     })
@@ -84,18 +67,9 @@ serve(async (req) => {
         // We don't throw here because the main action succeeded, but we log the failure.
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    return jsonResponse(req, { success: true });
 
   } catch (error) {
-    // Type-check to satisfy strict TypeScript environments
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return errorResponse(req, error);
   }
 })

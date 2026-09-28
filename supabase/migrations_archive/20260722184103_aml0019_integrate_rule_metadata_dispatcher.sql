@@ -47,12 +47,12 @@ BEGIN
 
         -- Skip rules whose metadata does not match this transaction
 
-            IF NOT evaluate_rule_metadata(
+        IF NOT evaluate_rule_metadata(
 
             active_rule.rule_metadata,
-            NEW.transaction_type::TEXT,
-            NEW.channel::TEXT,
-            NEW.currency::TEXT
+            NEW.transaction_type,
+            NEW.channel,
+            NEW.currency
 
         ) THEN
 

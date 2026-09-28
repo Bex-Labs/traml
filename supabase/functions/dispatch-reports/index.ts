@@ -1,12 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders, errorResponse, jsonResponse, requireSharedSecret } from "../_shared/auth.ts";
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+
   try {
+    requireSharedSecret(req, 'x-cron-secret', 'REPORT_DISPATCH_CRON_SECRET');
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     
     const { data: schedules, error: scheduleError } = await supabase
@@ -15,7 +19,7 @@ serve(async (req) => {
         .eq('is_active', true);
 
     if (scheduleError) throw scheduleError;
-    if (!schedules || schedules.length === 0) return new Response("No active schedules.", { status: 200 });
+    if (!schedules || schedules.length === 0) return jsonResponse(req, { status: 'No active schedules.' });
 
     for (const schedule of schedules) {
         const { count: totalAlerts } = await supabase.from('alerts').select('*', { count: 'exact', head: true });
@@ -68,8 +72,8 @@ serve(async (req) => {
         if (!emailRes.ok) console.error(`Failed to send to ${schedule.recipient_emails}`);
     }
 
-    return new Response(JSON.stringify({ status: "Success" }), { headers: { "Content-Type": "application/json" } });
+    return jsonResponse(req, { status: "Success" });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return errorResponse(req, error);
   }
 });
