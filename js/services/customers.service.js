@@ -1,3 +1,5 @@
+import {getVerifiedSession} from './auth.service.js';
+import {createIntelligenceService} from './intelligence.service.js';
 // ======================================================
 // CoreAML Customer Service
 //
@@ -26,27 +28,12 @@ import { execute } from "../utils/apiExecutor.js";
  * @param {string} filter
  * @returns {Promise<Array>}
  */
-export async function getDirectory(filter = "ALL") {
-
-    let query = supabase
-        .from("customers")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        })
-        .limit(2500);
-
-    if (filter === "PENDING") {
-        query = query.eq("kyc_status", "PENDING");
-    }
-
-    if (filter === "COMPLETED") {
-        query = query.eq("kyc_status", "COMPLETED");
-    }
-
-    return execute(() => query);
-
+export async function getDirectoryPage(filter='ALL',search='',offset=0){
+    const service=createIntelligenceService(supabase,getVerifiedSession);
+    if(!['ALL','PENDING','COMPLETED'].includes(filter))throw Error('Invalid directory filter.');
+    return service.customers({kyc:filter==='ALL'?'':filter,search,offset});
 }
+export async function getDirectory(filter='ALL'){return (await getDirectoryPage(filter)).rows;}
 
 /**
  * Retrieve a single customer by ID.

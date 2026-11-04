@@ -69,7 +69,7 @@
             if (session) {
                 const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
                 const role = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-                if (['sales_rep', 'teller', 'branch_manager'].includes(role)) {
+                if (['sales_rep', 'teller', 'branch_manager', 'bankmanager'].includes(role)) {
                     window.location.replace('core-banking.html');
                 }
             }
@@ -96,7 +96,7 @@
                 const userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
 
                 // STRICT GATEKEEPER: Reject AML/IT staff from the banking portal
-                const allowedBankingRoles = ['sales_rep', 'teller', 'branch_manager'];
+                const allowedBankingRoles = ['sales_rep', 'teller', 'branch_manager', 'bankmanager'];
                 
                 if (!allowedBankingRoles.includes(userRole)) {
                     await supabase.auth.signOut();

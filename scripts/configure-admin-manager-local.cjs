@@ -1,0 +1,7 @@
+'use strict';const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+function configure(file,frontend='http://127.0.0.1:5520'){
+ const url=new URL(frontend);assert(url.protocol==='http:'&&['127.0.0.1','localhost'].includes(url.hostname)&&url.port&&url.pathname==='/'&&!url.search&&!url.hash&&!url.username&&!url.password,'Use the local frontend origin, for example http://127.0.0.1:5520');
+ let source=fs.readFileSync(file,'utf8');const newline=source.includes('\r\n')?'\r\n':'\n';source=source.split(/\r?\n/).filter(line=>!/^\s*(?:export\s+)?COREAML_APP_(?:URL|ORIGINS)\s*=/.test(line)).join(newline).replace(/[\r\n]*$/,'');
+ const origins=[url.origin,url.origin.replace(url.hostname,url.hostname==='localhost'?'127.0.0.1':'localhost')];fs.writeFileSync(file,source+newline+'COREAML_APP_URL='+url.origin+newline+'COREAML_APP_ORIGINS='+origins.join(',')+newline);}
+if(require.main===module)try{const root=path.resolve(__dirname,'..');assert(/project_id\s*=\s*"sentinel-aml"/.test(fs.readFileSync(path.join(root,'supabase/config.toml'),'utf8')),'Expected local sentinel-aml project');configure(path.join(root,'supabase/functions/.env'),process.argv[2]||undefined);console.log('Configured local administration redirect and allowed frontend origins. Existing environment entries preserved; values not printed.');}catch(e){console.error(e.message);process.exitCode=1;}
+module.exports={configure};

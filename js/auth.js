@@ -91,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (userRole === 'it_admin') {
             window.location.href = 'admin-dashboard.html';
+        } else if(userRole==='bank_manager'){
+            window.location.href='manager-dashboard.html';
+        } else if(['branch_manager','bankmanager','teller','sales_rep'].includes(userRole)){
+            window.location.href='core-banking.html';
         } else {
             window.location.href = 'dashboard.html';
         }

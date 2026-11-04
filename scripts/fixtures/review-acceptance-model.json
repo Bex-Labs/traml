@@ -1,0 +1,1416 @@
+{
+  "scope": "Synthetic isolated PostgreSQL rows only; no user database data",
+  "f": {
+    "run_id": "d89a400e-2e28-4ed9-90ad-73634d13d23c",
+    "bank": "a1000000-0000-4000-8000-000000000001",
+    "maker": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+    "head": "dce910dc-853b-4513-918e-1caaf09b9332",
+    "foreign": "599a2e5b-5ede-4d6d-8d92-9eeb422c7388",
+    "qa": "408bd606-5cc5-464e-9659-05b062b03084",
+    "qaMember": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+    "executive": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+    "execMember": "b34155b9-8bc6-4b45-8edb-8ea6189bb09b",
+    "qaDraft": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+    "execDraft": "2fe50c6f-7807-486e-82c2-80bce0980316",
+    "qaClaim": "eb286f90-6269-4144-9224-c111a5b864e4",
+    "execClaim": "30d1baf4-b7bf-4ed2-ac2f-a297e058b2ab",
+    "qaRef": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+    "execRef": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC"
+  },
+  "before": {
+    "fixture": {
+      "alerts": [],
+      "system_events": [],
+      "coreaml_case_claims": [],
+      "coreaml_case_actions": [],
+      "investigation_drafts": [],
+      "coreaml_review_actions": [],
+      "coreaml_review_submissions": [],
+      "suspicious_transaction_reports": []
+    },
+    "original": {
+      "tills": "37a6259cc0c1dae299a7866489dff0bd",
+      "alerts": "37a6259cc0c1dae299a7866489dff0bd",
+      "accounts": "37a6259cc0c1dae299a7866489dff0bd",
+      "customers": "37a6259cc0c1dae299a7866489dff0bd",
+      "transactions": "37a6259cc0c1dae299a7866489dff0bd",
+      "system_events": "37a6259cc0c1dae299a7866489dff0bd",
+      "user_profiles": "1c52b6d17934c531da6827dd335f8ffe",
+      "report_archives": "37a6259cc0c1dae299a7866489dff0bd",
+      "risk_score_history": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_claims": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "investigation_drafts": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_runs": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_sets": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_results": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_submissions": "37a6259cc0c1dae299a7866489dff0bd",
+      "suspicious_transaction_reports": "37a6259cc0c1dae299a7866489dff0bd"
+    }
+  },
+  "seed": {
+    "fixture": {
+      "alerts": [
+        {
+          "id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "status": "INVESTIGATING",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-408bd606-5cc5-464e-9659-05b062b03084",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "status": "INVESTIGATING",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "status": "INVESTIGATING",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "b34155b9-8bc6-4b45-8edb-8ea6189bb09b",
+          "status": "INVESTIGATING",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-b34155b9-8bc6-4b45-8edb-8ea6189bb09b",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        }
+      ],
+      "system_events": [],
+      "coreaml_case_claims": [
+        {
+          "id": "30d1baf4-b7bf-4ed2-ac2f-a297e058b2ab",
+          "alert_ids": [
+            "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+          ],
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "claimed_at": "2026-10-31T07:52:28.885+00:00",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "anchor_alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "eb286f90-6269-4144-9224-c111a5b864e4",
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "claimed_at": "2026-10-31T07:52:28.885+00:00",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "anchor_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        }
+      ],
+      "coreaml_case_actions": [],
+      "investigation_drafts": [
+        {
+          "id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+          "status": "IN_PROGRESS",
+          "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "revision": 1,
+          "closed_at": null,
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "updated_at": "2026-10-31T07:52:28.885+00:00",
+          "ai_explanation": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "draft_narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        },
+        {
+          "id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+          "status": "IN_PROGRESS",
+          "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "revision": 1,
+          "closed_at": null,
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "updated_at": "2026-10-31T07:52:28.885+00:00",
+          "ai_explanation": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "draft_narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        }
+      ],
+      "coreaml_review_actions": [],
+      "coreaml_review_submissions": [],
+      "suspicious_transaction_reports": []
+    },
+    "original": {
+      "tills": "37a6259cc0c1dae299a7866489dff0bd",
+      "alerts": "37a6259cc0c1dae299a7866489dff0bd",
+      "accounts": "37a6259cc0c1dae299a7866489dff0bd",
+      "customers": "37a6259cc0c1dae299a7866489dff0bd",
+      "transactions": "37a6259cc0c1dae299a7866489dff0bd",
+      "system_events": "37a6259cc0c1dae299a7866489dff0bd",
+      "user_profiles": "1c52b6d17934c531da6827dd335f8ffe",
+      "report_archives": "37a6259cc0c1dae299a7866489dff0bd",
+      "risk_score_history": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_claims": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "investigation_drafts": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_runs": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_sets": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_results": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_submissions": "37a6259cc0c1dae299a7866489dff0bd",
+      "suspicious_transaction_reports": "37a6259cc0c1dae299a7866489dff0bd"
+    }
+  },
+  "final": {
+    "fixture": {
+      "alerts": [
+        {
+          "id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "status": "CLOSED",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-408bd606-5cc5-464e-9659-05b062b03084",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "qa_reviewed_at": "2026-10-31T07:52:28.956+00:00",
+          "qa_reviewed_by": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "status": "CLOSED",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "qa_reviewed_at": "2026-10-31T07:52:28.956+00:00",
+          "qa_reviewed_by": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "status": "ESCALATED",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "b34155b9-8bc6-4b45-8edb-8ea6189bb09b",
+          "status": "ESCALATED",
+          "details": null,
+          "evidence": {
+            "synthetic": true,
+            "review_acceptance_run": "d89a400e-2e28-4ed9-90ad-73634d13d23c"
+          },
+          "severity": "MEDIUM",
+          "alert_ref": "ReviewAcceptance-b34155b9-8bc6-4b45-8edb-8ea6189bb09b",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "customer_id": null,
+          "rule_version": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "qa_reviewed_at": null,
+          "qa_reviewed_by": null,
+          "rule_triggered": "Synthetic review acceptance",
+          "transaction_id": null,
+          "idempotency_key": null,
+          "qa_review_notes": null,
+          "assigned_user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        }
+      ],
+      "system_events": [
+        {
+          "id": "22bf513f-32d5-4b45-8ef5-b4133f10dcb4",
+          "message": "Server-confirmed review decision; no regulatory submission",
+          "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "metadata": {
+            "kind": "QA",
+            "decision": "APPROVE",
+            "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+            "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.956+00:00",
+          "event_type": "QA_REVIEW_CONFIRMED"
+        },
+        {
+          "id": "7ed303f8-d096-419c-83e4-7a41fbccf7c6",
+          "message": "Case draft saved",
+          "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "metadata": {
+            "case_ref": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "revision": 4,
+            "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+            "anchor_alert_id": "408bd606-5cc5-464e-9659-05b062b03084"
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.942+00:00",
+          "event_type": "CASE_DRAFT_SAVED"
+        },
+        {
+          "id": "babe5fc4-951b-4b5a-9218-fd399a288951",
+          "message": "Saved canonical case submitted for independent review; no regulatory submission",
+          "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "metadata": {
+            "kind": "QA",
+            "revision": 5,
+            "report_id": null,
+            "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.948+00:00",
+          "event_type": "CASE_REVIEW_SUBMITTED"
+        },
+        {
+          "id": "be640612-bb97-42b4-8e2b-76c3fe33aabd",
+          "message": "Server-confirmed review decision; no regulatory submission",
+          "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "metadata": {
+            "kind": "EXECUTIVE",
+            "decision": "APPROVE",
+            "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+            "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.975+00:00",
+          "event_type": "EXECUTIVE_REVIEW_CONFIRMED"
+        },
+        {
+          "id": "e64ee5c9-951c-42b3-a5cc-570d0d169132",
+          "message": "Server-confirmed review decision; no regulatory submission",
+          "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "metadata": {
+            "kind": "QA",
+            "decision": "REJECT",
+            "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+            "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.929+00:00",
+          "event_type": "QA_REVIEW_CONFIRMED"
+        },
+        {
+          "id": "f0c7400e-31ea-4790-a49c-b44e7f2762d9",
+          "message": "Saved canonical case submitted for independent review; no regulatory submission",
+          "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "metadata": {
+            "kind": "QA",
+            "revision": 2,
+            "report_id": null,
+            "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.91+00:00",
+          "event_type": "CASE_REVIEW_SUBMITTED"
+        },
+        {
+          "id": "f2f19c03-c448-48ad-b16e-3f9f1c32617d",
+          "message": "Saved canonical case submitted for independent review; no regulatory submission",
+          "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "metadata": {
+            "kind": "EXECUTIVE",
+            "revision": 2,
+            "report_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+            "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+            "regulatory_submission": false
+          },
+          "severity": "INFO",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.965+00:00",
+          "event_type": "CASE_REVIEW_SUBMITTED"
+        }
+      ],
+      "coreaml_case_claims": [
+        {
+          "id": "30d1baf4-b7bf-4ed2-ac2f-a297e058b2ab",
+          "alert_ids": [
+            "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+          ],
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "claimed_at": "2026-10-31T07:52:28.885+00:00",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "anchor_alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        },
+        {
+          "id": "eb286f90-6269-4144-9224-c111a5b864e4",
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "claimed_at": "2026-10-31T07:52:28.885+00:00",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "anchor_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6"
+        }
+      ],
+      "coreaml_case_actions": [
+        {
+          "action": "SAVE",
+          "result": {
+            "id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+            "status": "IN_PROGRESS",
+            "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+            "replayed": false,
+            "revision": 4,
+            "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA"
+          },
+          "payload": {
+            "revision": 3,
+            "snapshot": {
+              "entity_ids": [],
+              "transaction_refs": []
+            },
+            "narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing."
+          },
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.941+00:00",
+          "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA"
+        }
+      ],
+      "investigation_drafts": [
+        {
+          "id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+          "status": "SUBMITTED",
+          "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "revision": 2,
+          "closed_at": null,
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "updated_at": "2026-10-31T07:52:28.963+00:00",
+          "ai_explanation": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "draft_narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        },
+        {
+          "id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+          "status": "CLOSED",
+          "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "revision": 6,
+          "closed_at": "2026-10-31T07:52:28.956+00:00",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.885+00:00",
+          "updated_at": "2026-10-31T07:52:28.956+00:00",
+          "ai_explanation": null,
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "draft_narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing.",
+          "investigator_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        }
+      ],
+      "coreaml_review_actions": [
+        {
+          "kind": "EXECUTIVE",
+          "notes": "Approved for internal report preparation only. No filing or account action.",
+          "result": {
+            "kind": "EXECUTIVE",
+            "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+            "decision": "APPROVE",
+            "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "replayed": false,
+            "alert_ids": [
+              "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+              "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+            ],
+            "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+            "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+            "regulatory_submission": false
+          },
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "APPROVE",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.975+00:00",
+          "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "expected_token": "74239f9285bb95aa127e70f83f75d59818e266af6a06279545ac4b977fb98403"
+        },
+        {
+          "kind": "QA",
+          "notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+          "result": {
+            "kind": "QA",
+            "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+            "decision": "APPROVE",
+            "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "replayed": false,
+            "alert_ids": [
+              "408bd606-5cc5-464e-9659-05b062b03084",
+              "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+            ],
+            "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+            "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "APPROVE",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.956+00:00",
+          "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "expected_token": "79e618439a993e7c66c2b00d21e6a001283b2efa6aa5a7b7447f97d6e8adc965"
+        },
+        {
+          "kind": "QA",
+          "notes": "Please clarify the recorded detection context before dismissal.",
+          "result": {
+            "kind": "QA",
+            "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+            "decision": "REJECT",
+            "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "replayed": false,
+            "alert_ids": [
+              "408bd606-5cc5-464e-9659-05b062b03084",
+              "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+            ],
+            "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+            "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "regulatory_submission": false
+          },
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "REJECT",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.929+00:00",
+          "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "expected_token": "988db3ecdf99e14635ad71011ea097fd23fb8254477fa859fcb006082cb06419"
+        }
+      ],
+      "coreaml_review_submissions": [
+        {
+          "kind": "EXECUTIVE",
+          "result": {
+            "kind": "EXECUTIVE",
+            "status": "SUBMITTED",
+            "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "draft_id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+            "replayed": false,
+            "revision": 2,
+            "alert_ids": [
+              "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+              "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+            ],
+            "report_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+            "tenant_id": "a1000000-0000-4000-8000-000000000001",
+            "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+            "source_revision": 1,
+            "regulatory_submission": false
+          },
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "snapshot": {
+            "narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+            "source_revision": 1,
+            "evidence_snapshot": {
+              "txs": [],
+              "entities": []
+            }
+          },
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.964+00:00",
+          "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "expected_revision": 1
+        },
+        {
+          "kind": "QA",
+          "result": {
+            "kind": "QA",
+            "status": "SUBMITTED",
+            "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+            "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+            "replayed": false,
+            "revision": 2,
+            "alert_ids": [
+              "408bd606-5cc5-464e-9659-05b062b03084",
+              "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+            ],
+            "report_id": null,
+            "tenant_id": "a1000000-0000-4000-8000-000000000001",
+            "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "source_revision": 1,
+            "regulatory_submission": false
+          },
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "snapshot": {
+            "narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+            "source_revision": 1,
+            "evidence_snapshot": {
+              "txs": [],
+              "entities": []
+            }
+          },
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.908+00:00",
+          "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "expected_revision": 1
+        },
+        {
+          "kind": "QA",
+          "result": {
+            "kind": "QA",
+            "status": "SUBMITTED",
+            "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+            "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+            "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+            "replayed": false,
+            "revision": 5,
+            "alert_ids": [
+              "408bd606-5cc5-464e-9659-05b062b03084",
+              "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+            ],
+            "report_id": null,
+            "tenant_id": "a1000000-0000-4000-8000-000000000001",
+            "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+            "source_revision": 4,
+            "regulatory_submission": false
+          },
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "snapshot": {
+            "narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing.",
+            "source_revision": 4,
+            "evidence_snapshot": {
+              "txs": [],
+              "entities": []
+            }
+          },
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.948+00:00",
+          "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "expected_revision": 4
+        }
+      ],
+      "suspicious_transaction_reports": [
+        {
+          "id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "status": "APPROVED",
+          "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "locked_at": "2026-10-31T07:52:28.975+00:00",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "created_at": "2026-10-31T07:52:28.964+00:00",
+          "created_by": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "updated_at": "2026-10-31T07:52:28.964+00:00",
+          "report_data": {
+            "purpose": "EXECUTIVE_REVIEW_NOT_FILING",
+            "draft_id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+            "alert_ids": [
+              "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+              "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+            ],
+            "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+            "draft_revision": 2,
+            "evidence_snapshot": {
+              "txs": [],
+              "entities": []
+            },
+            "submission_request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7"
+          },
+          "reviewed_by": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "generated_by": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "pdf_archive_url": null,
+          "investigator_notes": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "executive_justification": "Approved for internal report preparation only. No filing or account action."
+        }
+      ]
+    },
+    "original": {
+      "tills": "37a6259cc0c1dae299a7866489dff0bd",
+      "alerts": "37a6259cc0c1dae299a7866489dff0bd",
+      "accounts": "37a6259cc0c1dae299a7866489dff0bd",
+      "customers": "37a6259cc0c1dae299a7866489dff0bd",
+      "transactions": "37a6259cc0c1dae299a7866489dff0bd",
+      "system_events": "37a6259cc0c1dae299a7866489dff0bd",
+      "user_profiles": "1c52b6d17934c531da6827dd335f8ffe",
+      "report_archives": "37a6259cc0c1dae299a7866489dff0bd",
+      "risk_score_history": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_claims": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_case_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "investigation_drafts": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_actions": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_runs": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_sets": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_compatible_results": "37a6259cc0c1dae299a7866489dff0bd",
+      "coreaml_review_submissions": "37a6259cc0c1dae299a7866489dff0bd",
+      "suspicious_transaction_reports": "37a6259cc0c1dae299a7866489dff0bd"
+    }
+  },
+  "plans": [
+    {
+      "name": "qa-submit",
+      "rpc": "coreaml_submit_case_review",
+      "expected": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_kind": "QA",
+        "p_expected_revision": 1
+      },
+      "drop": true,
+      "max": 2,
+      "body": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_kind": "QA",
+        "p_expected_revision": 1,
+        "p_request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f"
+      },
+      "count": 2,
+      "ack": {
+        "kind": "QA",
+        "status": "SUBMITTED",
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+        "replayed": true,
+        "revision": 2,
+        "alert_ids": [
+          "408bd606-5cc5-464e-9659-05b062b03084",
+          "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+        ],
+        "report_id": null,
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "source_revision": 1,
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "QA",
+        "result": {
+          "kind": "QA",
+          "status": "SUBMITTED",
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+          "replayed": false,
+          "revision": 2,
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "report_id": null,
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "source_revision": 1,
+          "regulatory_submission": false
+        },
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "snapshot": {
+          "narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "source_revision": 1,
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        },
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.908+00:00",
+        "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "expected_revision": 1
+      },
+      "audit": {
+        "id": "f0c7400e-31ea-4790-a49c-b44e7f2762d9",
+        "message": "Saved canonical case submitted for independent review; no regulatory submission",
+        "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "metadata": {
+          "kind": "QA",
+          "revision": 2,
+          "report_id": null,
+          "request_id": "f82e1a36-ffe6-404a-901a-370877e72e8f",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.91+00:00",
+        "event_type": "CASE_REVIEW_SUBMITTED"
+      }
+    },
+    {
+      "name": "qa-reject",
+      "rpc": "coreaml_review_decision",
+      "expected": {
+        "p_kind": "QA",
+        "p_target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "p_expected_token": "988db3ecdf99e14635ad71011ea097fd23fb8254477fa859fcb006082cb06419",
+        "p_decision": "REJECT",
+        "p_notes": "Please clarify the recorded detection context before dismissal."
+      },
+      "drop": false,
+      "max": 1,
+      "body": {
+        "p_kind": "QA",
+        "p_target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "p_expected_token": "988db3ecdf99e14635ad71011ea097fd23fb8254477fa859fcb006082cb06419",
+        "p_decision": "REJECT",
+        "p_notes": "Please clarify the recorded detection context before dismissal.",
+        "p_request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919"
+      },
+      "count": 1,
+      "ack": {
+        "kind": "QA",
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "REJECT",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "replayed": false,
+        "alert_ids": [
+          "408bd606-5cc5-464e-9659-05b062b03084",
+          "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+        ],
+        "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "QA",
+        "notes": "Please clarify the recorded detection context before dismissal.",
+        "result": {
+          "kind": "QA",
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "REJECT",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "replayed": false,
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "REJECT",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.929+00:00",
+        "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "expected_token": "988db3ecdf99e14635ad71011ea097fd23fb8254477fa859fcb006082cb06419"
+      },
+      "audit": {
+        "id": "e64ee5c9-951c-42b3-a5cc-570d0d169132",
+        "message": "Server-confirmed review decision; no regulatory submission",
+        "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "metadata": {
+          "kind": "QA",
+          "decision": "REJECT",
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "request_id": "6a4be7bc-d1da-4953-a958-8ac6663e9919",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.929+00:00",
+        "event_type": "QA_REVIEW_CONFIRMED"
+      }
+    },
+    {
+      "name": "qa-save",
+      "rpc": "coreaml_case_action",
+      "expected": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_action": "SAVE",
+        "p_expected_revision": 3,
+        "p_narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing.",
+        "p_snapshot": {
+          "entity_ids": [],
+          "transaction_refs": []
+        }
+      },
+      "drop": false,
+      "max": 1,
+      "body": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_action": "SAVE",
+        "p_expected_revision": 3,
+        "p_narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing.",
+        "p_snapshot": {
+          "entity_ids": [],
+          "transaction_refs": []
+        },
+        "p_request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2"
+      },
+      "count": 1,
+      "ack": {
+        "id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+        "status": "IN_PROGRESS",
+        "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "replayed": false,
+        "revision": 4,
+        "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA"
+      },
+      "persisted": {
+        "action": "SAVE",
+        "result": {
+          "id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+          "status": "IN_PROGRESS",
+          "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "replayed": false,
+          "revision": 4,
+          "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA"
+        },
+        "payload": {
+          "revision": 3,
+          "snapshot": {
+            "entity_ids": [],
+            "transaction_refs": []
+          },
+          "narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing."
+        },
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.941+00:00",
+        "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA"
+      },
+      "audit": {
+        "id": "7ed303f8-d096-419c-83e4-7a41fbccf7c6",
+        "message": "Case draft saved",
+        "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "metadata": {
+          "case_ref": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "revision": 4,
+          "request_id": "0ea5eeac-1846-40b8-b2d0-a15f8a01e1b2",
+          "anchor_alert_id": "408bd606-5cc5-464e-9659-05b062b03084"
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.942+00:00",
+        "event_type": "CASE_DRAFT_SAVED"
+      }
+    },
+    {
+      "name": "qa-resubmit",
+      "rpc": "coreaml_submit_case_review",
+      "expected": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_kind": "QA",
+        "p_expected_revision": 4
+      },
+      "drop": false,
+      "max": 1,
+      "body": {
+        "p_alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "p_kind": "QA",
+        "p_expected_revision": 4,
+        "p_request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6"
+      },
+      "count": 1,
+      "ack": {
+        "kind": "QA",
+        "status": "SUBMITTED",
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+        "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+        "replayed": false,
+        "revision": 5,
+        "alert_ids": [
+          "408bd606-5cc5-464e-9659-05b062b03084",
+          "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+        ],
+        "report_id": null,
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "source_revision": 4,
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "QA",
+        "result": {
+          "kind": "QA",
+          "status": "SUBMITTED",
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "alert_id": "408bd606-5cc5-464e-9659-05b062b03084",
+          "draft_id": "944bf580-36c1-42ae-aab3-b901d864b6eb",
+          "replayed": false,
+          "revision": 5,
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "report_id": null,
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "source_revision": 4,
+          "regulatory_submission": false
+        },
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "snapshot": {
+          "narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing.",
+          "source_revision": 4,
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        },
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.948+00:00",
+        "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "expected_revision": 4
+      },
+      "audit": {
+        "id": "babe5fc4-951b-4b5a-9218-fd399a288951",
+        "message": "Saved canonical case submitted for independent review; no regulatory submission",
+        "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "metadata": {
+          "kind": "QA",
+          "revision": 5,
+          "report_id": null,
+          "request_id": "c4a999ec-76f5-493a-92d5-182d0f54cda6",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.948+00:00",
+        "event_type": "CASE_REVIEW_SUBMITTED"
+      }
+    },
+    {
+      "name": "qa-approve",
+      "rpc": "coreaml_review_decision",
+      "expected": {
+        "p_kind": "QA",
+        "p_target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "p_expected_token": "79e618439a993e7c66c2b00d21e6a001283b2efa6aa5a7b7447f97d6e8adc965",
+        "p_decision": "APPROVE",
+        "p_notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only."
+      },
+      "drop": true,
+      "max": 2,
+      "body": {
+        "p_kind": "QA",
+        "p_target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "p_expected_token": "79e618439a993e7c66c2b00d21e6a001283b2efa6aa5a7b7447f97d6e8adc965",
+        "p_decision": "APPROVE",
+        "p_notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+        "p_request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85"
+      },
+      "count": 2,
+      "ack": {
+        "kind": "QA",
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "APPROVE",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "replayed": true,
+        "alert_ids": [
+          "408bd606-5cc5-464e-9659-05b062b03084",
+          "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+        ],
+        "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "QA",
+        "notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+        "result": {
+          "kind": "QA",
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "APPROVE",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "replayed": false,
+          "alert_ids": [
+            "408bd606-5cc5-464e-9659-05b062b03084",
+            "8e160cf4-c97e-4319-be2d-a1b456637b1c"
+          ],
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "APPROVE",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.956+00:00",
+        "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+        "expected_token": "79e618439a993e7c66c2b00d21e6a001283b2efa6aa5a7b7447f97d6e8adc965"
+      },
+      "audit": {
+        "id": "22bf513f-32d5-4b45-8ef5-b4133f10dcb4",
+        "message": "Server-confirmed review decision; no regulatory submission",
+        "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "metadata": {
+          "kind": "QA",
+          "decision": "APPROVE",
+          "target_id": "8e160cf4-c97e-4319-be2d-a1b456637b1c",
+          "request_id": "f50df59a-e4ec-47fc-b44f-43adbe980a85",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-QA",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.956+00:00",
+        "event_type": "QA_REVIEW_CONFIRMED"
+      }
+    },
+    {
+      "name": "exec-submit",
+      "rpc": "coreaml_submit_case_review",
+      "expected": {
+        "p_alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+        "p_kind": "EXECUTIVE",
+        "p_expected_revision": 1
+      },
+      "drop": false,
+      "max": 1,
+      "body": {
+        "p_alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+        "p_kind": "EXECUTIVE",
+        "p_expected_revision": 1,
+        "p_request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7"
+      },
+      "count": 1,
+      "ack": {
+        "kind": "EXECUTIVE",
+        "status": "SUBMITTED",
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+        "draft_id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+        "replayed": false,
+        "revision": 2,
+        "alert_ids": [
+          "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+        ],
+        "report_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+        "source_revision": 1,
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "EXECUTIVE",
+        "result": {
+          "kind": "EXECUTIVE",
+          "status": "SUBMITTED",
+          "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "draft_id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+          "replayed": false,
+          "revision": 2,
+          "alert_ids": [
+            "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+          ],
+          "report_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "tenant_id": "a1000000-0000-4000-8000-000000000001",
+          "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "source_revision": 1,
+          "regulatory_submission": false
+        },
+        "actor_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "snapshot": {
+          "narrative": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing.",
+          "source_revision": 1,
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          }
+        },
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.964+00:00",
+        "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+        "expected_revision": 1
+      },
+      "audit": {
+        "id": "f2f19c03-c448-48ad-b16e-3f9f1c32617d",
+        "message": "Saved canonical case submitted for independent review; no regulatory submission",
+        "user_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "metadata": {
+          "kind": "EXECUTIVE",
+          "revision": 2,
+          "report_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.965+00:00",
+        "event_type": "CASE_REVIEW_SUBMITTED"
+      },
+      "reportSnapshot": {
+        "id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "alert_id": "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.964+00:00",
+        "created_by": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "updated_at": "2026-10-31T07:52:28.964+00:00",
+        "report_data": {
+          "purpose": "EXECUTIVE_REVIEW_NOT_FILING",
+          "draft_id": "2fe50c6f-7807-486e-82c2-80bce0980316",
+          "alert_ids": [
+            "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+          ],
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "draft_revision": 2,
+          "evidence_snapshot": {
+            "txs": [],
+            "entities": []
+          },
+          "submission_request_id": "38532ab0-02aa-4d8d-b057-fe15281bf3b7"
+        },
+        "generated_by": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "pdf_archive_url": null,
+        "investigator_notes": "Synthetic review acceptance: recorded detection evidence reviewed. Independent decision requested; no financial action or regulatory filing."
+      }
+    },
+    {
+      "name": "exec-approve",
+      "rpc": "coreaml_review_decision",
+      "expected": {
+        "p_kind": "EXECUTIVE",
+        "p_target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "p_expected_token": "74239f9285bb95aa127e70f83f75d59818e266af6a06279545ac4b977fb98403",
+        "p_decision": "APPROVE",
+        "p_notes": "Approved for internal report preparation only. No filing or account action."
+      },
+      "drop": false,
+      "max": 1,
+      "body": {
+        "p_kind": "EXECUTIVE",
+        "p_target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "p_expected_token": "74239f9285bb95aa127e70f83f75d59818e266af6a06279545ac4b977fb98403",
+        "p_decision": "APPROVE",
+        "p_notes": "Approved for internal report preparation only. No filing or account action.",
+        "p_request_id": "9e91691b-f835-478b-adb2-8f646311c83a"
+      },
+      "count": 1,
+      "ack": {
+        "kind": "EXECUTIVE",
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "APPROVE",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "replayed": false,
+        "alert_ids": [
+          "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+          "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+        ],
+        "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+        "regulatory_submission": false
+      },
+      "persisted": {
+        "kind": "EXECUTIVE",
+        "notes": "Approved for internal report preparation only. No filing or account action.",
+        "result": {
+          "kind": "EXECUTIVE",
+          "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+          "decision": "APPROVE",
+          "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+          "replayed": false,
+          "alert_ids": [
+            "b08a3fa3-7bfd-4206-ba34-d619832b4f9b",
+            "b34155b9-8bc6-4b45-8edb-8ea6189bb09b"
+          ],
+          "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "regulatory_submission": false
+        },
+        "actor_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "decision": "APPROVE",
+        "maker_id": "cb20ffb6-d1a6-4ca8-8189-e065b7228cc6",
+        "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.975+00:00",
+        "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+        "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+        "expected_token": "74239f9285bb95aa127e70f83f75d59818e266af6a06279545ac4b977fb98403"
+      },
+      "audit": {
+        "id": "be640612-bb97-42b4-8e2b-76c3fe33aabd",
+        "message": "Server-confirmed review decision; no regulatory submission",
+        "user_id": "dce910dc-853b-4513-918e-1caaf09b9332",
+        "metadata": {
+          "kind": "EXECUTIVE",
+          "decision": "APPROVE",
+          "target_id": "01783eb7-9c22-4cae-b237-0608f7f76b37",
+          "request_id": "9e91691b-f835-478b-adb2-8f646311c83a",
+          "case_reference": "CASE-ReviewAcceptance-d89a400e-2e28-4ed9-90ad-73634d13d23c-EXEC",
+          "regulatory_submission": false
+        },
+        "severity": "INFO",
+        "tenant_id": "a1000000-0000-4000-8000-000000000001",
+        "created_at": "2026-10-31T07:52:28.975+00:00",
+        "event_type": "EXECUTIVE_REVIEW_CONFIRMED"
+      }
+    }
+  ]
+}

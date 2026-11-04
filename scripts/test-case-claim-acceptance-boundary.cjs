@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {requestDecision,assertReceipt,raceSql}=require('./verify-case-claim-acceptance-local.cjs');
+const {API,BANK}=require('./aml-compatible-db.cjs');
+const id='00000000-0000-4000-8000-000000000201',actor='00000000-0000-4000-8000-000000000001';
+const decision=(path,method,body)=>requestDecision(new URL(path,API),method,body,id);
+assert.equal(decision('/rest/v1/rpc/coreaml_claim_case','POST',{p_alert_id:id}),null);
+assert.equal(decision('/rest/v1/rpc/coreaml_claim_case','OPTIONS'),null);
+console.log('PASS Only the isolated fixture claim and its CORS preflight are allowed');
+for(const [method,body] of [['GET',undefined],['POST',{p_alert_id:'other-alert'}],['POST',{p_alert_id:id,user_id:actor}],['POST',null]])assert.equal(decision('/rest/v1/rpc/coreaml_claim_case',method,body),'mutation');
+console.log('PASS Existing-alert references, forged fields and GET RPC calls are blocked');
+for(const p of ['/rest/v1/rpc/other','/functions/v1/verify-kyc','/rest/v1/alerts','/rest/v1/transactions'])assert.equal(decision(p,'POST',{}),'mutation');
+assert.equal(requestDecision(new URL('https://example.com/collect'),'POST',{},id),'destination');
+console.log('PASS Other RPCs, direct database writes, functions and external uploads are blocked');
+for(const p of ['/auth/v1/token','/auth/v1/logout'])assert.equal(decision(p,'POST',{}),null);
+assert.equal(decision('/rest/v1/alerts','GET'),null);
+console.log('PASS Required local authentication and read requests remain allowed');
+const state={alert:{id,status:'INVESTIGATING',assigned_user_id:actor,case_reference:'CASE-test',customer_id:null,transaction_id:null,evidence:{},details:'Synthetic claim acceptance; no customer or financial event.'},receipts:[{case_reference:'CASE-test',investigator_id:actor,alert_ids:[id]}],audit_count:1};
+assertReceipt(state,id,actor);
+for(const change of [s=>s.audit_count=2,s=>s.alert.evidence={changed:true},s=>s.alert.assigned_user_id='other',s=>s.receipts[0].alert_ids.push('another')]){const copy=structuredClone(state);change(copy);assert.throws(()=>assertReceipt(copy,id,actor));}
+console.log('PASS Receipt checks reject duplicate audit, changed evidence, wrong ownership and alert sweeps');
+const sql=raceSql(actor,id,'CaseRaceTest');assert(sql.includes('SET LOCAL ROLE authenticated'));assert(sql.includes(BANK));assert(sql.includes('COMMIT;'));assert(!sql.includes('UPDATE public.alerts'));assert(sql.includes('coreaml_claim_case'));
+console.log('PASS Race sessions use authenticated roles and the installed claim function');
+console.log('6 acceptance-boundary checks passed; native browser and concurrency execution remain separate.');

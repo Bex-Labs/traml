@@ -1,0 +1,119 @@
+{
+  "as_of": "2026-10-31T09:34:10.043+00:00",
+  "draft": {
+    "id": "0757cbd9-feba-472e-93c1-9454fd635cd9",
+    "pins": {
+      "txs": [],
+      "entities": []
+    },
+    "status": "CLOSED",
+    "revision": 6,
+    "saved_at": "2026-10-31T09:34:10.175+00:00",
+    "narrative": "Synthetic review acceptance: the recorded detection context has been checked again and the returned findings clarified. No financial action or regulatory filing."
+  },
+  "alerts": [
+    {
+      "id": "67c497a3-e4d8-4478-b70f-a2070159b67e",
+      "rule": "Synthetic review acceptance",
+      "status": "CLOSED",
+      "severity": "MEDIUM",
+      "reference": "ReviewAcceptance-67c497a3-e4d8-4478-b70f-a2070159b67e",
+      "created_at": "2026-10-31T09:34:10.019+00:00",
+      "transaction_id": null,
+      "recorded_evidence_available": true
+    },
+    {
+      "id": "78810e6a-f7a1-4f36-b8bb-ebec25da3989",
+      "rule": "Synthetic review acceptance",
+      "status": "CLOSED",
+      "severity": "MEDIUM",
+      "reference": "ReviewAcceptance-78810e6a-f7a1-4f36-b8bb-ebec25da3989",
+      "created_at": "2026-10-31T09:34:10.02+00:00",
+      "transaction_id": null,
+      "recorded_evidence_available": true
+    }
+  ],
+  "history": [
+    {
+      "kind": "QA_APPROVED",
+      "notes": "Clarified evidence reviewed. Concur with dismissal of this synthetic group only.",
+      "source": "review_receipt",
+      "actor_id": "864c2af1-3e2b-4bec-bbce-f05913b17ee6",
+      "revision": null,
+      "event_key": "review:d339b24f-82fc-4cd4-b52b-b0bed33c6ea4",
+      "actor_name": null,
+      "request_id": "d339b24f-82fc-4cd4-b52b-b0bed33c6ea4",
+      "occurred_at": "2026-10-31T09:34:10.175+00:00"
+    },
+    {
+      "kind": "QA_SUBMITTED",
+      "notes": null,
+      "source": "submission_receipt",
+      "actor_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+      "revision": 5,
+      "event_key": "submission:fb722659-b9e7-4042-943d-5c849e0955e8",
+      "actor_name": null,
+      "request_id": "fb722659-b9e7-4042-943d-5c849e0955e8",
+      "occurred_at": "2026-10-31T09:34:10.137+00:00"
+    },
+    {
+      "kind": "DRAFT_SAVED",
+      "notes": null,
+      "source": "action_receipt",
+      "actor_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+      "revision": 4,
+      "event_key": "action:a0c9c0c6-ce20-4639-98f3-ef9bf970fd4c",
+      "actor_name": null,
+      "request_id": "a0c9c0c6-ce20-4639-98f3-ef9bf970fd4c",
+      "occurred_at": "2026-10-31T09:34:10.127+00:00"
+    },
+    {
+      "kind": "QA_RETURNED",
+      "notes": "Please clarify the recorded detection context before dismissal.",
+      "source": "review_receipt",
+      "actor_id": "864c2af1-3e2b-4bec-bbce-f05913b17ee6",
+      "revision": null,
+      "event_key": "review:bd7e96b3-523d-4e45-8db9-fb6653ad508c",
+      "actor_name": null,
+      "request_id": "bd7e96b3-523d-4e45-8db9-fb6653ad508c",
+      "occurred_at": "2026-10-31T09:34:10.105+00:00"
+    },
+    {
+      "kind": "QA_SUBMITTED",
+      "notes": null,
+      "source": "submission_receipt",
+      "actor_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+      "revision": 2,
+      "event_key": "submission:5b318254-9816-44ec-a178-d89565a9b933",
+      "actor_name": null,
+      "request_id": "5b318254-9816-44ec-a178-d89565a9b933",
+      "occurred_at": "2026-10-31T09:34:10.064+00:00"
+    },
+    {
+      "kind": "CLAIMED",
+      "notes": null,
+      "source": "claim",
+      "actor_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+      "revision": null,
+      "event_key": "claim:b4bf1da0-e66f-41a2-872c-5c4fb8e33d5b",
+      "actor_name": null,
+      "request_id": null,
+      "occurred_at": "2026-10-31T09:34:10.02+00:00"
+    }
+  ],
+  "subject": null,
+  "actor_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+  "alert_id": "67c497a3-e4d8-4478-b70f-a2070159b67e",
+  "owner_id": "8c3a4bec-08eb-4df4-bfc9-0f6369fcbd06",
+  "alert_ids": [
+    "67c497a3-e4d8-4478-b70f-a2070159b67e",
+    "78810e6a-f7a1-4f36-b8bb-ebec25da3989"
+  ],
+  "tenant_id": "a1000000-0000-4000-8000-000000000001",
+  "owner_name": null,
+  "document_type": "INTERNAL_INVESTIGATION_SUMMARY",
+  "case_reference": "CASE-ReviewAcceptance-a737f942-0a89-4039-8080-1ebe11d0a1db-QA",
+  "report_packages": [],
+  "history_complete": true,
+  "regulatory_submission": false
+}
