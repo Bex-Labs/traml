@@ -1,189 +1,43 @@
-// ======================================================
-// CoreAML Customers Controller
-//
-// Owns the DOM manipulation for Customer 360 profiles, 
-// risk overrides, and risk history ledgers.
-// ======================================================
-
-import { supabase } from "../config.js";
-import API from "../api.js";
-import * as alertsController from "./alerts.controller.js";
-import * as kycController from "./kyc.controller.js";
-
-export async function loadCustomerProfile(customerId, caseStatus = 'NONE') {
-    if (!customerId || customerId === 'null' || customerId === 'undefined') {
-        alert("System Notice: This case is not linked to a valid customer identity.");
-        return;
-    }
-
-    try {
-        const investigation = await API.investigations.open(customerId);
-        const { customer, profile, metrics, assessment } = investigation;
-
-        window.currentViewedCustomer = customer;
-
-        if (!customer) {
-            alert(`System Error: Customer record [${customerId.substring(0,8)}] has been archived or deleted.`);
-            return;
-        }
-
-        const entityName = customer.entity_name || (customer.first_name ? `${customer.first_name} ${customer.last_name}` : 'Retail Customer');
-        document.getElementById('panel-entity-name').innerText = entityName;
-        document.getElementById('panel-entity-id').innerText = `Customer Ref: ${customer.id.split('-')[0]}`;
-        
-        const currentTier = profile.risk?.risk_level ?? customer.risk_tier ?? "UNKNOWN";
-        const currentScore = profile.risk?.total_score ?? customer.risk_score ?? 0;
-
-        let badgeClass = currentTier === "HIGH" ? "bg-danger" : currentTier === "MEDIUM" ? "bg-warning text-dark" : "bg-success";
-
-        document.getElementById("panel-risk-badge").innerHTML = `<span class="badge ${badgeClass}">${currentTier} RISK (${currentScore}/100)</span>`;
-        
-        document.getElementById('panel-total-alerts').innerText = metrics.totalAlerts || 0;
-        document.getElementById('panel-industry').innerText = customer.industry || (customer.customer_type === 'Individual' ? 'Retail / Personal' : 'Not Provided');
-        document.getElementById('panel-geography').innerText = customer.geography || 'NG (Domestic)';
-        document.getElementById('panel-account-type').innerText = customer.customer_type || 'Standard';
-
-        const dateOnboarded = customer.created_at ? new Date(customer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '14 Jan 2025';
-        document.getElementById('panel-onboarded').innerText = dateOnboarded;
-
-        const generatedBvn = customer.customer_type === 'Corporate' ? `RC-${Math.floor(100000 + Math.random() * 900000)}` : `22${Math.floor(100000000 + Math.random() * 900000000)}`;
-        document.getElementById('panel-bvn').innerText = customer.bvn || generatedBvn;
-
-        const generatedPhone = `080${Math.floor(10000000 + Math.random() * 90000000)}`;
-        document.getElementById('panel-phone').innerText = customer.phone || generatedPhone;
-        
-        const uboName = customer.ubo_name || 'Not Disclosed';
-        let maskedUbo = '*** ***';
-        if (uboName !== 'Not Disclosed' && uboName.length > 3) {
-            maskedUbo = uboName.substring(0, 3) + '*** ' + (uboName.split(' ')[1] ? '***' : '');
-        }
-
-        window.currentRawUBO = uboName;
-        window.currentMaskedUBO = maskedUbo;
-
-        document.getElementById('panel-ubo').innerText = maskedUbo;
-        document.getElementById('panel-ubo').setAttribute('data-masked', 'true');
-        
-        const uboIcon = document.getElementById('icon-panel-ubo');
-        if (uboIcon) {
-            uboIcon.innerText = 'visibility';
-            uboIcon.classList.remove('text-danger');
-            uboIcon.classList.add('text-muted');
-        }
-
-        if (customer.iei_exposure) {
-            document.getElementById('panel-iei').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">IEI DETECTED</span>';
-        } else {
-            document.getElementById('panel-iei').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
-        }
-
-        const isPep = customer.pep_status === true || (customer.risk_tier === 'HIGH' && Math.random() > 0.6);
-        if (isPep) {
-            document.getElementById('panel-pep').innerHTML = '<span class="badge bg-danger border border-danger bg-opacity-10 text-danger">PEP IDENTIFIED</span>';
-        } else {
-            document.getElementById('panel-pep').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
-        }
-
-        try {
-            const { data: sanctionMatch, error: sanctionError } = await supabase
-                .from('sanctions_watchlist')
-                .select('id')
-                .ilike('entity_name', `%${uboName}%`)
-                .limit(1);
-
-            if (!sanctionError && sanctionMatch && sanctionMatch.length > 0) {
-                document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-dark text-danger border border-danger">UBO SANCTIONED</span>';
-            } else {
-                document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
-            }
-        } catch (e) {
-            document.getElementById('panel-sanctions').innerHTML = '<span class="badge bg-success border border-success bg-opacity-10 text-success">CLEAR</span>';
-        }
-
-        const manualSarBtn = document.getElementById('btn-manual-sar');
-        if (manualSarBtn) {
-            if (caseStatus === 'CLOSED') {
-                manualSarBtn.className = "btn btn-success w-100 fw-bold uppercase mt-2 disabled";
-                manualSarBtn.innerHTML = "<span class='material-symbols-outlined align-middle fs-6 me-1'>lock</span> Case Closed & SAR Dispatched";
-            } else if (caseStatus === 'ESCALATED' || caseStatus === 'PENDING_APPROVAL') {
-                manualSarBtn.className = "btn btn-warning text-dark w-100 fw-bold uppercase mt-2 disabled";
-                manualSarBtn.innerHTML = "<span class='material-symbols-outlined align-middle fs-6 me-1'>hourglass_empty</span> Awaiting Head of Compliance Review";
-            } else {
-                manualSarBtn.className = "btn btn-danger w-100 fw-bold uppercase mt-2";
-                manualSarBtn.innerHTML = "File Suspicious Activity Report (SAR)";
-                manualSarBtn.setAttribute('data-customer-id', customerId);
-            }
-        }
-
-        const panelElement = document.getElementById('customer360Panel');
-        let bsOffcanvas = bootstrap.Offcanvas.getInstance(panelElement);
-        if (!bsOffcanvas) {
-            bsOffcanvas = new bootstrap.Offcanvas(panelElement);
-        }
-        bsOffcanvas.show();
-
-    } catch (err) {
-        console.error("CRITICAL ERROR in loadCustomerProfile:", err);
-        alert("Failed to load customer profile.");
-    }
+// One canonical Customer 360 panel for every entry point.
+import {supabase} from '../config.js';
+import {getVerifiedSession} from '../services/auth.service.js';
+import {createIntelligenceService} from '../services/intelligence.service.js';
+import {customerName,isUUID} from '../services/intelligence.model.js';
+import {renderCustomerConnections,escapeRecord as e} from './customer-records.controller.js';
+const records=createIntelligenceService(supabase,getVerifiedSession);
+let generation=0,historyGeneration=0,bound=false;
+const text=(id,value)=>{document.getElementById(id).innerText=value;};
+const fields=['panel-entity-name','panel-entity-id','panel-total-alerts','panel-industry','panel-geography','panel-account-type','panel-onboarded','panel-bvn','panel-phone','panel-ubo'];
+function reset(){window.currentViewedCustomer=null;window.currentRawUBO=null;window.currentMaskedUBO=null;fields.forEach(id=>text(id,'—'));for(const id of ['panel-risk-badge','panel-iei','panel-pep','panel-sanctions','customer-related-records'])document.getElementById(id).replaceChildren();const sar=document.getElementById('btn-manual-sar');sar.classList.add('disabled');sar.removeAttribute('data-customer-id');}
+function badge(id,label,kind='secondary'){document.getElementById(id).innerHTML=`<span class="badge bg-${kind}">${e(label)}</span>`;}
+export async function loadCustomerProfile(customerId,caseStatus='NONE'){
+    const ticket=++generation;historyGeneration++;reset();
+    const panel=document.getElementById('customer360Panel');
+    if(!bound){panel.addEventListener('hide.bs.offcanvas',()=>{generation++;historyGeneration++;reset();});bound=true;}
+    let bs=bootstrap.Offcanvas.getInstance(panel);if(!bs)bs=new bootstrap.Offcanvas(panel);bs.show();text('panel-entity-name','Loading customer…');
+    try{
+        if(!isUUID(customerId))throw Error('A valid linked customer reference is required.');
+        const data=await records.customer(customerId);if(ticket!==generation)return;const c=data.customer;window.currentViewedCustomer=c;
+        text('panel-entity-name',customerName(c));text('panel-entity-id','Customer Ref: '+c.id.slice(0,8));
+        const tier=c.risk_tier||'UNKNOWN';badge('panel-risk-badge',`${tier} RISK (${c.risk_score??'unavailable'}/100)`,['HIGH','VERY_HIGH'].includes(tier)?'danger':tier==='MEDIUM'?'warning text-dark':tier==='LOW'?'success':'secondary');
+        text('panel-total-alerts',data.alerts.error?'Unavailable':String(data.alerts.total??data.alerts.rows.length));
+        text('panel-industry',c.industry||'Not recorded');text('panel-geography',c.geography||c.country||'Not recorded');
+        text('panel-account-type',data.accounts.error?'Unavailable':[...new Set(data.accounts.rows.map(a=>a.account_type).filter(Boolean))].join(', ')||'Not recorded');
+        text('panel-onboarded',c.created_at&&Number.isFinite(Date.parse(c.created_at))?new Date(c.created_at).toLocaleDateString('en-GB'):'Not recorded');
+        text('panel-bvn',c.registration_number||c.bvn||'Not recorded');text('panel-phone',c.phone_number||'Not recorded');
+        const ubo=c.ubo_name||'Not recorded',masked=c.ubo_name?c.ubo_name.slice(0,3)+'***':'Not recorded';window.currentRawUBO=ubo;window.currentMaskedUBO=masked;text('panel-ubo',masked);document.getElementById('panel-ubo').setAttribute('data-masked','true');text('icon-panel-ubo','visibility');
+        badge('panel-iei',c.iei_exposure===true?'IEI RECORDED':c.iei_exposure===false?'NOT FLAGGED':'NOT RECORDED',c.iei_exposure===true?'danger':'secondary');
+        badge('panel-pep',c.is_pep===true?'RECORDED PEP':c.is_pep===false?'NOT FLAGGED':'NOT RECORDED',c.is_pep===true?'danger':'secondary');
+        badge('panel-sanctions','NOT VERIFIED IN THIS VIEW');
+        renderCustomerConnections(document.getElementById('customer-related-records'),data);
+        const sar=document.getElementById('btn-manual-sar');sar.disabled=true;sar.className='btn btn-outline-secondary w-100 mt-2';sar.innerText='Report preparation unavailable';sar.title='Report preparation and regulatory submission require a separately verified workflow.';
+    }catch(error){if(ticket!==generation)return;reset();text('panel-entity-name','Customer unavailable');document.getElementById('customer-related-records').innerHTML=`<p class="text-danger small" role="alert">${e(error.message)}</p>`;}
 }
-
-export function openRiskOverrideModal() {
-    if (!window.currentViewedCustomer) return;
-    document.getElementById('override-customer-id').value = window.currentViewedCustomer.id;
-    const currentTier = window.currentViewedCustomer.risk_tier || 'LOW';
-    document.getElementById('override-tier').value = currentTier;
-    new bootstrap.Modal(document.getElementById('riskOverrideModal')).show();
-}
-
-export async function viewRiskHistory() {
-    if (!window.currentViewedCustomer) return;
-    const customerId = window.currentViewedCustomer.id;
-    
-    try {
-        const tbody = document.getElementById('risk-history-body');
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Fetching ledger...</td></tr>';
-        new bootstrap.Modal(document.getElementById('riskHistoryModal')).show();
-
-        const { data: history, error } = await supabase
-            .from('risk_score_history')
-            .select('*')
-            .eq('customer_id', customerId)
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        tbody.innerHTML = '';
-
-        if (history.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted fw-bold">No risk score changes recorded for this customer.</td></tr>';
-            return;
-        }
-
-        history.forEach(record => {
-            const row = document.createElement('tr');
-            const timeStr = new Date(record.created_at).toLocaleDateString() + ' ' + new Date(record.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            let changeHtml = '';
-            if (record.new_score > record.previous_score) {
-                changeHtml = `<span class="text-danger fw-bold"><span class="material-symbols-outlined fs-6 align-middle">trending_up</span> ${record.previous_tier} &rarr; ${record.new_tier}</span>`;
-            } else if (record.new_score < record.previous_score) {
-                changeHtml = `<span class="text-success fw-bold"><span class="material-symbols-outlined fs-6 align-middle">trending_down</span> ${record.previous_tier} &rarr; ${record.new_tier}</span>`;
-            } else {
-                changeHtml = `<span class="text-secondary fw-bold">- ${record.new_tier}</span>`;
-            }
-
-            const author = record.changed_by ? `Officer ${record.changed_by.substring(0,8)}` : '<span class="text-primary fw-bold font-monospace">SYSTEM ENGINE</span>';
-
-            row.innerHTML = `
-                <td class="px-4 py-3 text-muted small">${timeStr}</td>
-                <td class="py-3 small">${changeHtml}</td>
-                <td class="py-3 text-muted small fst-italic">"${record.change_reason}"</td>
-                <td class="px-4 py-3 text-end small">${author}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    } catch (err) {
-        console.error("Error loading history:", err);
-        document.getElementById('risk-history-body').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Failed to load history ledger.</td></tr>';
-    }
+export function openRiskOverrideModal(){if(!window.currentViewedCustomer)return;document.getElementById('override-customer-id').value=window.currentViewedCustomer.id;document.getElementById('override-tier').value=window.currentViewedCustomer.risk_tier||'LOW';new bootstrap.Modal(document.getElementById('riskOverrideModal')).show();}
+export async function viewRiskHistory(){
+    if(!window.currentViewedCustomer)return;const id=window.currentViewedCustomer.id,ticket=++historyGeneration,profileTicket=generation,tbody=document.getElementById('risk-history-body');
+    tbody.innerHTML='<tr><td colspan="4">Loading recorded risk movements…</td></tr>';new bootstrap.Modal(document.getElementById('riskHistoryModal')).show();
+    try{const data=await records.customer(id);if(ticket!==historyGeneration||profileTicket!==generation||window.currentViewedCustomer?.id!==id)return;if(data.risk.error)throw Error(data.risk.error);
+        tbody.innerHTML=data.risk.rows.length?data.risk.rows.map(r=>`<tr><td class="small">ID ${e(r.id)}<br>Chronology unavailable</td><td class="small">${e(r.previous_score??'—')} → ${e(r.new_score??'—')}<br>${e(r.previous_tier)} → ${e(r.new_tier)}</td><td class="small">${e(r.change_reason||'Not recorded')}</td><td class="small">Not recorded</td></tr>`).join(''):'<tr><td colspan="4">No visible risk-change records.</td></tr>';
+    }catch(error){if(ticket===historyGeneration&&profileTicket===generation)tbody.innerHTML=`<tr><td colspan="4" class="text-danger" role="alert">Risk history unavailable: ${e(error.message)}</td></tr>`;}
 }

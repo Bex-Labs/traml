@@ -16,6 +16,7 @@ import * as customers from "./services/customers.service.js";
 import * as risk from "./services/risk.service.js";
 import * as transactions from "./services/transactions.service.js";
 import * as investigations from "./services/investigations.service.js";
+import * as caseWorkflow from "./services/case-workflow.service.js";
 
 /**
  * Executes a Supabase operation and standardises
@@ -52,6 +53,8 @@ const API = {
     transactions,
 
     investigations,
+
+    caseWorkflow,
 
     risk,
 

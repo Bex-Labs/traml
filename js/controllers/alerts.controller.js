@@ -6,14 +6,17 @@
 // ======================================================
 
 import * as alertsService from "../services/alerts.service.js";
+import { openAlertEvidence } from "./alert-evidence.controller.js";
 
 // Encapsulated State
 let allAlerts = [];
 let currentAlertsPage = 1;
 const ALERTS_PER_PAGE = 6;
 let currentAlertFilter = 'UNASSIGNED';
+let alertsLoadGeneration = 0;
 
 export async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
+    const generation = ++alertsLoadGeneration;
     try {
         currentAlertFilter = filterStatus;
         const tbody = document.getElementById('alerts-table-body');
@@ -23,6 +26,7 @@ export async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
 
         // Fetch ALL alerts matching the status
         const alerts = await alertsService.getByStatus(filterStatus);
+        if (generation !== alertsLoadGeneration) return;
         
         allAlerts = alerts || [];
         currentAlertsPage = 1; // Reset to page 1 on new filter
@@ -30,6 +34,7 @@ export async function loadAlertsQueue(filterStatus = 'UNASSIGNED') {
         renderAlertsTable(); 
 
     } catch (err) {
+        if (generation !== alertsLoadGeneration) return;
         console.error("Critical Error loading alerts:", err);
         document.getElementById('alerts-table-body').innerHTML = 
             '<tr><td colspan="6" class="text-center py-4 text-danger small">Failed to load alerts from database.</td></tr>';
@@ -179,6 +184,7 @@ export function previewUnassignedAlert(alertId, alertRef, entityName, ruleTrigge
     document.getElementById('preview-entity').innerText = entityName;
     document.getElementById('preview-rule').innerText = ruleTriggered;
     
+    void openAlertEvidence(alertId);
     const alertData = allAlerts.find(a => a.id === alertId);
     let coreDetail = alertData?.details || "No contextual details provided by the rules engine.";
     let shapText = null;

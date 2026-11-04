@@ -1,0 +1,16 @@
+{
+  "profiles": [
+    {
+      "tenant_id": "a1000000-0000-4000-8000-000000000001",
+      "mode": "TEST",
+      "authority": "DEMO_ONLY",
+      "label": "Fictional CoreAML lifecycle demo \u2014 NOT NFIU schema",
+      "entry": "demo.xsd",
+      "files": {
+        "demo.xsd": "fb617b0775c7efcba5cd1cf6b62f925f792026114a25924f4097c3ef5a4e64ee"
+      },
+      "rentity_id": "1",
+      "currency": "NGN"
+    }
+  ]
+}

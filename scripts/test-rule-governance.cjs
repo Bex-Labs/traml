@@ -1,0 +1,5 @@
+'use strict';const path=require('node:path'),fs=require('node:fs'),{spawnSync}=require('node:child_process');
+if(!process.env.COREAML_PG_TEST_LIBRARY&&!fs.existsSync(path.join(__dirname,'filing-tests/node_modules/@electric-sql/pglite/dist/index.js')))throw Error('Install existing isolated test dependencies: npm ci --prefix scripts/filing-tests --ignore-scripts');
+const library=process.env.COREAML_PG_TEST_LIBRARY||require('node:url').pathToFileURL(path.join(__dirname,'filing-tests/node_modules/@electric-sql/pglite/dist/index.js')).href;
+for(const file of ['test-rule-governance-database.mjs','test-rule-governance-client.cjs','test-streamlined-submission.cjs']){const p=spawnSync(process.execPath,[path.join(__dirname,file)],{encoding:'utf8',timeout:180000,maxBuffer:4*1024*1024,env:{...process.env,COREAML_PG_TEST_LIBRARY:library}});process.stdout.write(p.stdout||'');if(p.error||p.status!==0){process.stderr.write(p.stderr||p.error?.message||'Checks failed');process.exitCode=1;break;}}
+if(!process.exitCode)console.log('Rule governance database and client checks passed. Signed-in local verification remains separate.');

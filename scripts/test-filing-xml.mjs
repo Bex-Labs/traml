@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';
+import {starterXml,validateXmlAgainstSource,validateOperation,sha256} from '../supabase/functions/filing-workspace/core.mjs';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const lib=await import(process.env.COREAML_XML_TEST_LIBRARY||new URL('./filing-tests/node_modules/libxml2-wasm/lib/index.mjs',import.meta.url).href);
+const base=path.join(root,'supabase/functions/filing-workspace/schema'),profile=JSON.parse(fs.readFileSync(path.join(base,'profiles.json'))).profiles[0];const files={'demo.xsd':fs.readFileSync(path.join(base,'demo.xsd'),'utf8').replace(/\r/g,'')};
+assert.equal(await sha256(files['demo.xsd']),profile.files['demo.xsd']);
+const source={synthetic:true,narrative:'Saved findings <unchanged> & reviewed evidence.',transactions:[{reference:'DEMO-ONE',amount:'250000.00',currency:'NGN',timestamp:'2026-10-31T08:30:00+00:00'}]},draft={mode:'TEST',report_type:'STR',reference:'CASE-DEMO'};
+const xml=starterXml(source,{entityId:'1',reference:draft.reference,date:'2026-11-02T12:00:00Z'});validateXmlAgainstSource(xml,draft,source,profile,lib,files);
+console.log('PASS Actual WASM XSD engine validates fictional demo XML and preserves escaped approved findings');
+for(const modified of [xml.replace('250000.00','249999.00'),xml.replace('DEMO-ONE','UNLINKED'),xml.replace('2026-10-31T08:30:00+00:00','2026-10-30T08:30:00Z'),xml.replace('Saved findings','Changed findings'),xml.replace('<rentity_id>1','<rentity_id>2'),xml.replace('<report_code>STR','<report_code>SAR'),xml.replace('<reason>','<unrecognized/>\n<reason>'),xml.replace('<report>','<!DOCTYPE report [<!ENTITY x SYSTEM "file:///etc/passwd">]><report>')])assert.throws(()=>validateXmlAgainstSource(modified,draft,source,profile,lib,files));
+console.log('PASS Changed ledger facts, findings, report identity, invalid schema fields and external entities are rejected');
+assert.throws(()=>validateXmlAgainstSource(xml,{...draft,mode:'LIVE'},source,{...profile,mode:'LIVE'},lib,files));assert.throws(()=>validateXmlAgainstSource(xml,draft,{...source,transactions:[{...source.transactions[0],currency:'USD'}]},profile,lib,files));
+assert.throws(()=>validateXmlAgainstSource(xml,draft,source,null,lib,files));
+console.log('PASS Demo source cannot become a live export; missing schema and implicit currency conversions fail closed');
+const valid={action:'SAVE',report_id:'11111111-1111-4111-8111-111111111111',request_id:'22222222-2222-4222-8222-222222222222',revision:0,source_hash:'a'.repeat(64),payload:{mode:'TEST',report_type:'STR',reference:'CASE-DEMO',xml}};validateOperation(valid);assert.throws(()=>validateOperation({...valid,actor_id:'forged'}));assert.throws(()=>validateOperation({...valid,payload:{...valid.payload,validated:true}}));assert.throws(()=>validateOperation({...valid,action:'EXPORT',payload:{schema_hash:'a'.repeat(64)}}));
+console.log('PASS Client-supplied authority and validation certifications are not accepted');
+console.log('4 XML/request groups passed with the real parser and XSD validator. NFIU institution schema verification remains separate.');

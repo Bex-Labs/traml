@@ -1,0 +1,94 @@
+{
+  "triggers": [
+    {
+      "table": "accounts",
+      "enabled": "O",
+      "trigger": "coreaml_guard_account_activation",
+      "function": "coreaml_guard_kyc_transition",
+      "type_bits": 19,
+      "function_schema": "public",
+      "function_body_md5": "c82c934e1f602e9b994521125b4c7688"
+    },
+    {
+      "table": "alerts",
+      "enabled": "O",
+      "trigger": "compatible_alert_guard",
+      "function": "compatible_alert_guard",
+      "type_bits": 23,
+      "function_schema": "coreaml_private",
+      "function_body_md5": "ea370b90e729b7f9a2d76572198c2b28"
+    },
+    {
+      "table": "alerts",
+      "enabled": "O",
+      "trigger": "coreaml_guard_case_ownership",
+      "function": "guard_case_ownership",
+      "type_bits": 27,
+      "function_schema": "coreaml_private",
+      "function_body_md5": "8b2688bb9b9a9fc28216bb4bb7a8e37e"
+    },
+    {
+      "table": "alerts",
+      "enabled": "O",
+      "trigger": "trigger_unified_risk_scoring",
+      "function": "unified_risk_scoring",
+      "type_bits": 21,
+      "function_schema": "public",
+      "function_body_md5": "17eb59c3602a03f31e133b0e7ab955ef"
+    },
+    {
+      "table": "customers",
+      "enabled": "O",
+      "trigger": "coreaml_guard_customer_kyc",
+      "function": "coreaml_guard_kyc_transition",
+      "type_bits": 23,
+      "function_schema": "public",
+      "function_body_md5": "c82c934e1f602e9b994521125b4c7688"
+    },
+    {
+      "table": "customers",
+      "enabled": "O",
+      "trigger": "match_entity_webhook",
+      "function": "enqueue_match_entity_webhook",
+      "type_bits": 21,
+      "function_schema": "public",
+      "function_body_md5": "472c869741c637173733133ceb7cbdfc"
+    },
+    {
+      "table": "investigation_drafts",
+      "enabled": "O",
+      "trigger": "coreaml_guard_managed_draft",
+      "function": "guard_managed_draft",
+      "type_bits": 31,
+      "function_schema": "coreaml_private",
+      "function_body_md5": "ca89cb1b2941af535aeffb2064c31926"
+    },
+    {
+      "table": "investigation_drafts",
+      "enabled": "O",
+      "trigger": "trigger_update_investigation_drafts_timestamp",
+      "function": "update_str_timestamp",
+      "type_bits": 19,
+      "function_schema": "public",
+      "function_body_md5": "1489083fd9d99d4554c8e29b3e9a7ad3"
+    },
+    {
+      "table": "suspicious_transaction_reports",
+      "enabled": "O",
+      "trigger": "str_update_timestamp",
+      "function": "update_str_timestamp",
+      "type_bits": 19,
+      "function_schema": "public",
+      "function_body_md5": "1489083fd9d99d4554c8e29b3e9a7ad3"
+    },
+    {
+      "table": "suspicious_transaction_reports",
+      "enabled": "O",
+      "trigger": "trg_network_contagion",
+      "function": "propagate_network_contagion",
+      "type_bits": 21,
+      "function_schema": "public",
+      "function_body_md5": "30dd775e66c84360d03e2766ab475928"
+    }
+  ]
+}

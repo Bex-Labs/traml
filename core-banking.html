@@ -915,20 +915,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { supabase } from './js/config.js';
+        import {getVerifiedSession} from './js/services/auth.service.js?v=admin-manager-1';
+        import { createOnboardingAttempt, submitOnboardingAttempt } from './js/services/onboarding.service.js';
 
         let sessionUser = null; let sessionTenantId = null; let userRole = null;
         let activeTill = null; let eodModalInstance = null;
         const formatter = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' });
 
         async function init() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return window.location.replace('bank-login.html');
-            
-            sessionUser = session.user;
-            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
-            userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-            sessionTenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
-            
+            let context;try{context=await getVerifiedSession();}catch{document.body.textContent='Active bank staff access could not be verified. Sign in again.';return;}
+            if(!context)return window.location.replace('bank-login.html');
+            if(context.role==='it_admin')return window.location.replace('admin-dashboard.html');
+            if(context.role==='bank_manager')return window.location.replace('manager-dashboard.html');
+            if(!['branch_manager','bankmanager','teller','sales_rep'].includes(context.role))return window.location.replace('dashboard.html');
+            sessionUser=context.user;userRole=context.role;sessionTenantId=context.tenantId;
             document.getElementById('ui-teller-name').innerText = sessionUser.email;
             document.getElementById('ui-teller-role').innerText = userRole.replace('_', ' ');
 
@@ -943,6 +943,7 @@
             }
             
             loadBlotter();
+            if (['teller','sales_rep'].includes(userRole)) restoreCashAttempt();
         }
 
         function morphToTellerUI() {
@@ -1101,8 +1102,8 @@
                         document.getElementById(nameId).innerText = cust.entity_name || `${cust.first_name || ''} ${cust.last_name || ''}`.trim() || 'Unknown';
                         
                         // AML ENFORCEMENT INTERCEPT
-                        if (data.status === 'FROZEN') {
-                            document.getElementById(tierId).innerHTML = `<span class="badge bg-danger text-white border border-danger" style="font-size: 0.65rem;">FROZEN (PND)</span>`;
+                        if (data.status === 'FROZEN' || data.status === 'PENDING') {
+                            document.getElementById(tierId).innerHTML = `<span class="badge bg-danger text-white border border-danger" style="font-size: 0.65rem;">${data.status === 'PENDING' ? 'PENDING KYC APPROVAL' : 'FROZEN (PND)'}</span>`;
                             document.getElementById(hiddenId).value = ''; // Clears ID to instantly fail transaction validation
                         } else {
                             document.getElementById(tierId).innerHTML = `<span class="badge bg-success bg-opacity-25 text-success border border-success" style="font-size: 0.65rem;">${cust.risk_tier || 'TIER 1'}</span>`;
@@ -1139,52 +1140,98 @@
             document.getElementById('calculated-tx-amount').value = total;
         }
 
-        document.getElementById('tx-form').addEventListener('submit', async (e) => {
-            e.preventDefault(); if (!activeTill) return alert("Open till first.");
-            const acctId = document.getElementById('verified-account-id').value;
-            const amount = parseFloat(document.getElementById('calculated-tx-amount').value);
-            const type = document.getElementById('tx-type').value;
-            const narration = document.getElementById('tx-narration').value;
-
-            if (!acctId) return alert("Valid account required.");
-            if (amount <= 0) return alert("Matrix total must be > 0.");
-            if (type === 'WITHDRAWAL' && amount > activeTill.current_balance) return alert("Insufficient till cash.");
-
-            // --- MAKER-CHECKER INTERCEPT FOR TRANSACTIONS > ₦5,000,000 ---
-            if (amount >= 5000000) {
-                const btn = document.getElementById('btn-post-tx');
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ROUTING TO MANAGER...';
-                btn.disabled = true;
-
-                try {
-                    const { error } = await supabase.from('vault_transfers').insert([{
-                        tenant_id: sessionTenantId, till_id: activeTill.id, teller_id: sessionUser.id,
-                        transfer_type: 'VAULT_OUT', // Changed to pass strict DB constraint
-                        amount: amount, status: 'PENDING', 
-                        reference: `OVR-${crypto.randomUUID().substring(0,6).toUpperCase()}`
-                    }]);
-                    
-                    if (error) throw error;
-                    
-                    alert("Transaction exceeds ₦5,000,000 limit. Routed to Branch Manager Command Center for authorization.");
-                    document.getElementById('tx-form').reset(); document.getElementById('customer-card').classList.add('d-none'); calculateMatrix();
-                } catch (err) {
-                    alert("Failed to route to manager: " + err.message);
-                } finally {
-                    btn.innerHTML = 'PROCESS TRANSACTION';
-                    btn.disabled = false;
+        // COREAML_CASH_ATTEMPT_V1: persist before sending; reuse until confirmed.
+        let cashAttempt = null;
+        let cashBusy = false;
+        let cashRestoreBlocked = false;
+        const cashStorageKey = () => `coreaml.cash.${sessionTenantId}.${sessionUser.id}`;
+        function renderCashAttempt() {
+            const form = document.getElementById('tx-form');
+            form.querySelectorAll('input, select').forEach(el => { el.disabled = !!cashAttempt || cashBusy; });
+            const total = document.getElementById('matrix-total');
+            if (cashAttempt && total) total.innerText = formatter.format(cashAttempt.payload.p_amount);
+            const btn = document.getElementById('btn-post-tx');
+            btn.disabled = cashRestoreBlocked || cashBusy || (!cashAttempt && !activeTill);
+            btn.innerText = cashAttempt ? 'CONFIRM PREVIOUS CASH REQUEST' : 'PROCESS TRANSACTION';
+        }
+        function restoreCashAttempt() {
+            try {
+            const saved = sessionStorage.getItem(cashStorageKey());
+            if (saved) {
+                cashAttempt = JSON.parse(saved);
+                if (!cashAttempt?.payload?.p_request_reference || !cashAttempt.payload.p_account_id || !cashAttempt.payload.p_till_id)
+                    throw new Error('Stored cash attempt is invalid; preserve it for reconciliation.');
+                cashAttempt.uncertain = true;
+                Object.freeze(cashAttempt.payload);
+                for (const input of document.querySelectorAll('.denom-qty')) {
+                    const note = cashAttempt.breakdown?.find(n => n.denomination === Number(input.getAttribute('data-val')));
+                    input.value = note?.quantity || '0';
                 }
-                return;
+                calculateMatrix();
+                document.getElementById('lookup-acct').value = cashAttempt.accountNumber;
+                document.getElementById('verified-account-id').value = cashAttempt.payload.p_account_id;
+                document.getElementById('calculated-tx-amount').value = cashAttempt.payload.p_amount;
+                document.getElementById('tx-type').value = cashAttempt.payload.p_direction;
+                document.getElementById('tx-narration').value = cashAttempt.payload.p_narration;
             }
-
-            // Standard Processing (< ₦5M)
-            const { error } = await supabase.from('transactions').insert([{
-                account_id: acctId, amount: amount, transaction_type: type === 'DEPOSIT' ? 'CREDIT' : 'DEBIT',
-                transaction_timestamp: new Date().toISOString(), transaction_reference: `BR-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
-                channel: 'BRANCH_CASH', narration: narration, till_id: activeTill.id
-            }]);
-
-            if (!error) { document.getElementById('tx-form').reset(); document.getElementById('customer-card').classList.add('d-none'); calculateMatrix(); await fetchActiveTill(); }
+            } catch(error) {cashRestoreBlocked=true;alert('Stored cash attempt cannot be restored. Posting is locked; preserve this tab for reconciliation.');}
+            renderCashAttempt();
+        }
+        document.getElementById('tx-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (cashBusy || cashRestoreBlocked) return;
+            const btn = document.getElementById('btn-post-tx');
+            cashBusy = true;
+            try {
+                if (!cashAttempt) {
+                    if (!activeTill) throw new Error('Open till first.');
+                    const accountId = document.getElementById('verified-account-id').value;
+                    const amount = Number(document.getElementById('calculated-tx-amount').value);
+                    const direction = document.getElementById('tx-type').value;
+                    if (!accountId || !Number.isFinite(amount) || amount <= 0 || !['DEPOSIT','WITHDRAWAL'].includes(direction)) throw new Error('Valid account, direction and cash amount required.');
+                    if (direction === 'WITHDRAWAL' && amount > activeTill.current_balance) throw new Error('Insufficient till cash.');
+                    const attempt = {payload:Object.freeze({p_account_id:accountId,p_till_id:activeTill.id,p_amount:amount,p_direction:direction,
+                        p_narration:document.getElementById('tx-narration').value,p_request_reference:`BR-${crypto.randomUUID().toUpperCase()}`}),
+                        accountNumber:document.getElementById('lookup-acct').value,breakdown:[...document.querySelectorAll('.denom-qty')].map(el=>({denomination:Number(el.getAttribute('data-val')),quantity:el.value})),uncertain:false};
+                    // Persist a conservative unknown outcome before the network call.
+                    sessionStorage.setItem(cashStorageKey(),JSON.stringify({...attempt,uncertain:true}));
+                    cashAttempt = attempt;
+                }
+                renderCashAttempt();
+                const payload = cashAttempt.payload;
+                const {data,error} = await supabase.rpc('post_cash_transaction',payload);
+                if (error) {
+                    const failure = new Error(error.message || 'Cash request failed.');
+                    failure.definiteRejection = ['22023','23514','42501','P0001'].includes(error.code);
+                    throw failure;
+                }
+                if (data?.request_reference !== payload.p_request_reference ||
+                    !((data.status === 'POSTED' && data.transaction_id) || (data.status === 'PENDING' && data.approval_id && ['PENDING','APPROVED','REJECTED'].includes(data.approval_status))))
+                    throw new Error('Cash response is incomplete.');
+                // Clear persisted state only after an authoritative confirmation.
+                sessionStorage.removeItem(cashStorageKey());
+                cashAttempt = null;
+                alert(data.status === 'POSTED' ? `Cash transaction posted. Reference: ${data.transaction_id}`
+                    : data.approval_status === 'APPROVED' ? `Cash request already approved and posted. Reference: ${data.transaction_id}`
+                    : data.approval_status === 'REJECTED' ? 'Cash request was rejected. No customer posting occurred.'
+                    : 'Cash transaction sent to the branch manager. No customer posting has occurred yet.');
+                document.getElementById('tx-form').reset();
+                document.getElementById('customer-card').classList.add('d-none');
+                calculateMatrix();
+                try { await fetchActiveTill(); } catch(refreshError) { alert('Cash request confirmed, but the till display could not refresh. Reload to view its balance.'); }
+            } catch (err) {
+                if (cashAttempt && (!err.definiteRejection || cashAttempt.uncertain)) {
+                    cashAttempt.uncertain = true;
+                    alert(`Cash outcome is uncertain. Fields remain locked. Confirm the previous cash request using the same reference. ${err.message}`);
+                } else {
+                    if (cashAttempt) sessionStorage.removeItem(cashStorageKey());
+                    cashAttempt = null;
+                    alert(`Cash transaction rejected before posting: ${err.message}`);
+                }
+            } finally {
+                cashBusy = false;
+                renderCashAttempt();
+            }
         });
 
        window.toggleTransferNetwork = () => {
@@ -1336,36 +1383,40 @@
             }
         };
 
+        // COREAML_ATOMIC_ONBOARDING_V1
+        let onboardingAttempt = null;
         document.getElementById('onboarding-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const form = e.currentTarget;
             const btn = document.getElementById('btn-submit-onboard');
-            btn.innerHTML = 'UPLOADING TO VAULT...'; btn.disabled = true;
-
+            btn.innerHTML = 'SUBMITTING APPLICATION...'; btn.disabled = true;
             try {
-                const type = document.getElementById('ob-type').value; const bvn = document.getElementById('ob-bvn').value; const customerId = crypto.randomUUID();
-                let firstName = null; let lastName = null; let entityName = null;
-                if (type === 'RETAIL') { firstName = document.getElementById('ob-first-name').value; lastName = document.getElementById('ob-last-name').value; } 
-                else { entityName = document.getElementById('ob-entity-name').value; }
-
-                const idFile = document.getElementById('ob-id-file').files[0]; const utilFile = document.getElementById('ob-utility-file').files[0];
-                const idPath = `${sessionTenantId}/${customerId}/id_document.${idFile.name.split('.').pop()}`;
-                const utilPath = `${sessionTenantId}/${customerId}/utility_bill.${utilFile.name.split('.').pop()}`;
-
-                const { error: err1 } = await supabase.storage.from('kyc-vault').upload(idPath, idFile); if (err1) throw err1;
-                const { error: err2 } = await supabase.storage.from('kyc-vault').upload(utilPath, utilFile); if (err2) throw err2;
-
-                const { error: custErr } = await supabase.from('customers').insert([{
-                    id: customerId, tenant_id: sessionTenantId, customer_type: type, first_name: firstName, last_name: lastName, entity_name: entityName, bvn: bvn,
-                    kyc_status: 'PENDING', id_url: idPath, utility_bill_url: utilPath
-                }]);
-                if (custErr) throw custErr;
-
-                const randomAccountNum = Math.floor(1000000000 + Math.random() * 9000000000).toString().substring(0, 10);
-                await supabase.from('accounts').insert([{ customer_id: customerId, tenant_id: sessionTenantId, account_number: randomAccountNum, account_type: 'SAVINGS', status: 'PENDING', opened_at: new Date().toISOString() }]);
-
-                alert(`Success! Profile routed to CoreAML. Account ${randomAccountNum} generated as PENDING.`);
-                document.getElementById('onboarding-form').reset();
-            } catch (err) { alert(`Onboarding Failed: ${err.message}`); } finally { btn.innerHTML = 'ROUTE TO CENTRAL COMPLIANCE'; btn.disabled = false; }
+                if (!onboardingAttempt) {
+                    onboardingAttempt = createOnboardingAttempt({
+                        customerType: document.getElementById('ob-type').value,
+                        firstName: document.getElementById('ob-first-name').value,
+                        lastName: document.getElementById('ob-last-name').value,
+                        entityName: document.getElementById('ob-entity-name').value,
+                        bvn: document.getElementById('ob-bvn').value,
+                        idFile: document.getElementById('ob-id-file').files[0],
+                        utilityFile: document.getElementById('ob-utility-file').files[0]
+                    }, sessionTenantId);
+                }
+                form.querySelectorAll('input, select').forEach(el => { el.disabled = true; });
+                const result = await submitOnboardingAttempt(supabase, onboardingAttempt);
+                onboardingAttempt = null;
+                form.querySelectorAll('input, select').forEach(el => { el.disabled = false; });
+                form.reset();
+                toggleObType();
+                alert(`Application confirmed. Account ${result.account_number}: ${result.account_status}. Pending accounts await KYC approval.`);
+            } catch (err) {
+                if (!err.keepAttempt) onboardingAttempt = null;
+                alert(err.message || 'Onboarding failed.');
+            } finally {
+                if (!onboardingAttempt) form.querySelectorAll('input, select').forEach(el => { el.disabled = false; });
+                btn.innerHTML = onboardingAttempt ? 'CONFIRM PREVIOUS SUBMISSION' : 'ROUTE TO CENTRAL COMPLIANCE';
+                btn.disabled = false;
+            }
         });
 
         // ==========================================
@@ -1429,7 +1480,11 @@
             
             // Filter by the Reference prefix rather than the restricted ENUM type
             const standardRequests = vaultData?.filter(r => !r.reference.startsWith('OVR-')) || [];
-            const overrideRequests = vaultData?.filter(r => r.reference.startsWith('OVR-')) || [];
+            const { data: cashRequests, error: cashQueueError } = await supabase
+                .from('cash_transaction_approvals').select('*')
+                .eq('tenant_id', sessionTenantId).eq('status', 'PENDING');
+            if (cashQueueError) console.error('Cash approval queue failed:', cashQueueError);
+            const overrideRequests = cashRequests || [];
 
             if (standardRequests.length === 0) {
                 vaultContainer.innerHTML = '<div class="text-center p-3 border border-dashed rounded bg-light text-muted small">No pending vault requests.</div>';
@@ -1458,7 +1513,7 @@
                             <div>
                                 <span class="fw-bold text-danger small d-flex align-items-center gap-1"><span class="material-symbols-outlined fs-6">warning</span> HIGH VALUE LIMIT BREACH</span>
                                 <div class="fw-bold font-mono text-dark fs-5 mt-1">${formatter.format(req.amount)}</div>
-                                <div class="text-muted font-mono mt-1" style="font-size: 0.7rem;">Ref: ${req.reference} | Teller ID: ${req.teller_id.substring(0,8)}</div>
+                                <div class="text-muted font-mono mt-1" style="font-size: 0.7rem;">${req.direction} | Ref: ${req.request_reference} | Teller ID: ${req.requested_by.substring(0,8)}</div>
                             </div>
                             <div class="d-flex flex-column gap-2">
                                 <button class="btn btn-danger btn-sm fw-bold shadow-sm px-4" onclick="processOverride('${req.id}', ${req.amount}, 'APPROVED')">AUTHORIZE</button>
@@ -1469,26 +1524,35 @@
             }
         };
 
+        const cashReviewAttempts = new Map();
+        const cashReviewsBusy = new Set();
         window.processOverride = async (id, amount, status) => {
-            if(!confirm(`Are you sure you want to ${status} this transaction?`)) return;
-            
-            await supabase.from('vault_transfers').update({ status: status, manager_id: sessionUser.id, updated_at: new Date().toISOString() }).eq('id', id);
-            
-            if(status === 'APPROVED') {
-                await supabase.from('system_events').insert([{
-                    event_type: 'MANAGER_TX_OVERRIDE',
-                    severity: 'CRITICAL',
-                    user_id: sessionUser.id,
-                    message: `Branch Manager authorized a blocked high-value cash transaction of ${formatter.format(amount)}.`,
-                    metadata: { override_id: id }
-                }]);
-                alert("High-value transaction successfully authorized.");
-            } else {
-                alert("Transaction override rejected. Funds have not been moved.");
+            if (cashReviewsBusy.has(id)) return;
+            const previous = cashReviewAttempts.get(id);
+            if (previous && previous !== status) return alert('Confirm the previous cash decision before changing it.');
+            if (!confirm(`Are you sure you want to ${status} this transaction?`)) return;
+            cashReviewsBusy.add(id);
+            const buttons = document.querySelectorAll(`#manager-override-queue button[onclick*="${id}"]`);
+            buttons.forEach(button => { button.disabled = true; });
+            let confirmed = false;
+            try {
+                const {data,error} = await supabase.rpc('review_cash_transaction',{p_approval_id:id,p_approve:status==='APPROVED'});
+                if (error) { const failure=new Error(error.message);failure.definiteRejection=['22023','42501','P0001'].includes(error.code);throw failure; }
+                if (data?.approval_id!==id || data.decision!==(status==='APPROVED') ||
+                    (status==='APPROVED' ? data.status!=='POSTED'||!data.transaction_id : data.status!=='REJECTED')) throw new Error('Cash review response is incomplete.');
+                confirmed = true;
+                cashReviewAttempts.delete(id);
+                alert(data.status==='POSTED' ? `Cash transaction of ${formatter.format(amount)} posted after approval.` : 'Cash transaction rejected. No customer posting occurred.');
+            } catch(error) {
+                if (!error.definiteRejection || previous) {
+                    cashReviewAttempts.set(id,status);
+                    alert(`Cash approval outcome is uncertain. Confirm the same decision again. ${error.message}`);
+                } else { confirmed=true;cashReviewAttempts.delete(id);alert(`Cash approval rejected: ${error.message}`); }
+            } finally {
+                cashReviewsBusy.delete(id);
+                buttons.forEach(button => { button.disabled = cashReviewAttempts.has(id) && !button.getAttribute('onclick').includes(`'${status}'`); });
             }
-            
-            loadManagerDashboards();
-            loadBlotter();
+            if (confirmed) { loadManagerDashboards();loadBlotter(); }
         };
 
         window.overrideDiscrepancy = async (tillId, declaredBalance) => {

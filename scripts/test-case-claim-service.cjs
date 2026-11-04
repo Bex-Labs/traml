@@ -1,0 +1,20 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const ROOT=path.resolve(__dirname,'..');
+(async()=>{
+ const source=fs.readFileSync(path.join(ROOT,'js/services/alerts.service.js'),'utf8').replace(/^import .*;\s*$/gm,'').replace(/export /g,'');
+ let reply,calls=[];
+ const supabase={rpc(name,params){calls.push({name,params});return Promise.resolve(reply);}};
+ const execute=async op=>{const {data,error}=await op();if(error)throw error;return data;};
+ const realm=vm.createContext({supabase,execute,AbortSignal,console});vm.runInContext(source,realm);
+ const id='00000000-0000-4000-8000-000000000201',receipt={case_reference:'CASE-example',alert_ids:[id],investigator_id:'trusted-officer',replayed:false};
+ reply={data:receipt};assert.equal(await realm.claimCase(id),receipt);assert.equal(calls[0].name,'coreaml_claim_case');assert.deepEqual(Object.keys(calls[0].params),['p_alert_id']);console.log('PASS Actual service uses one RPC with no client-supplied officer or bank');
+ const adapted=await realm.claim(id,'untrusted-supplied-officer');assert.equal(adapted[0].assigned_user_id,'trusted-officer');assert.equal(calls[1].params.p_alert_id,id);console.log('PASS Compatibility adapter uses server-confirmed ownership');
+ reply={error:new Error('Permission denied')};await assert.rejects(()=>realm.claimCase(id),/Permission denied/);console.log('PASS Database rejection cannot become success');
+ for(const data of [null,{...receipt,alert_ids:[]},{...receipt,investigator_id:null}]){reply={data};await assert.rejects(()=>realm.claimCase(id),/did not confirm/);}console.log('PASS Missing or incomplete claim confirmation is rejected');
+ const html=fs.readFileSync(path.join(ROOT,'dashboard.html'),'utf8');
+ const start=html.indexOf("document.getElementById('btn-claim-alert')?.addEventListener");const end=html.indexOf('//',html.indexOf('            } finally {',start)+100);
+ const handler=html.slice(start,end>start?end:html.indexOf('        window.',start));
+ assert(handler.includes('await API.alerts.claimCase(alertId)'));assert(!handler.includes(".from('alerts')"));assert(!handler.includes(".from('system_events')"));console.log('PASS Claim button delegates ownership and audit writes to server');
+ console.log('5 claim service/UI contract checks passed; not a browser acceptance pass.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

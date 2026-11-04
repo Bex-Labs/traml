@@ -1,84 +1,12 @@
-// ======================================================
-// CoreAML Auth Service
-//
-// Owns session verification, JWT decoding, and
-// tenant/role resolution.
-//
-// Responsibilities
-// ----------------
-// - Verify active sessions
-// - Decode and refresh JWTs for RLS claims
-// - Execute database profile fallbacks
-// - Handle secure logout
-// ======================================================
-
-import { supabase } from "../config.js";
-
-/**
- * Retrieves the current session and securely resolves the user's role and tenant.
- * 
- * @returns {Promise<Object|null>} The resolved security context, or null if unauthenticated.
- */
-export async function getVerifiedSession() {
-    // 1. Verify Session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-        return null; 
-    }
-
-    // 2. Extract JWT Metadata
-    let jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
-    let userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-    let tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
-
-    // 3. JWT Refresh Engine: If claims are missing, force a session refresh to unlock RLS
-    if (!userRole || !tenantId) {
-        console.warn("⚠️ JWT claims missing. Forcing token refresh to unlock Row Level Security (RLS)...");
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        
-        if (refreshData?.session) {
-            jwtPayload = JSON.parse(atob(refreshData.session.access_token.split('.')[1]));
-            userRole = jwtPayload.app_metadata?.role || jwtPayload.user_metadata?.role;
-            tenantId = jwtPayload.app_metadata?.tenant_id || jwtPayload.user_metadata?.tenant_id;
-        }
-
-        // 4. Fallback: If STILL missing, query the profile table
-        if (!userRole || !tenantId) {
-            try {
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('role, tenant_id')
-                    .eq('id', session.user.id)
-                    .maybeSingle(); 
-
-                if (!error && profile) {
-                    userRole = profile.role;
-                    tenantId = profile.tenant_id;
-                }
-            } catch (fallbackErr) {
-                console.error("Fallback query failed:", fallbackErr);
-            }
-        }
-    }
-
-    // 5. Final safety net
-    if (!userRole || !tenantId || userRole === 'DEBUG_PROFILE_NOT_FOUND') {
-        throw new Error("Tenancy Context Failed. User lacks role or tenant mapping in both JWT and DB.");
-    }
-
-    return {
-        session,
-        user: session.user,
-        role: userRole,
-        tenantId: tenantId
-    };
+import {supabase} from '../config.js';
+// Page routing uses the same active-profile/trusted-claim boundary as the server RPCs.
+async function resolveSession(){
+ let {data:{session},error}=await supabase.auth.getSession();if(error||!session)return null;
+ const verified=await supabase.auth.getUser();if(verified.error||verified.data?.user?.id!==session.user.id)throw Error('Session identity could not be verified. Sign in again.');
+ let {data:c,error:denied}=await supabase.rpc('coreaml_dashboard_context');
+ if(denied&&typeof supabase.auth.refreshSession==='function'){const refreshed=await supabase.auth.refreshSession();if(!refreshed.error&&refreshed.data?.session?.user?.id===verified.data.user.id){session=refreshed.data.session;const retry=await supabase.rpc('coreaml_dashboard_context');c=retry.data;denied=retry.error;}}
+ if(denied||c?.actor_id!==session.user.id||!c.role||(c.role!=='it_admin'&&!c.tenant_id))throw Error('Active matching staff profile required. Refresh your session or contact the administrator.');
+ return {session,user:verified.data.user,role:c.role,tenantId:c.tenant_id,name:c.name};
 }
-
-/**
- * securely logs the user out and writes to the audit ledger.
- */
-export async function logout() {
-    await supabase.rpc('log_user_logout');
-    await supabase.auth.signOut();
-}
+export async function getVerifiedSession(timeout=15000){let timer;try{return await Promise.race([resolveSession(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Session verification timed out. Retry sign-in.')),timeout);})]);}finally{clearTimeout(timer);}}
+export async function logout(){try{await supabase.rpc('log_user_logout');}finally{const {error}=await supabase.auth.signOut();if(error)throw error;}}

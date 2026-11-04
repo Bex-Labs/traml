@@ -1,0 +1,1 @@
+'use strict';const {spawnSync}=require('node:child_process'),path=require('node:path');const p=spawnSync(process.execPath,[path.join(__dirname,'test-filing-review-client.mjs')],{stdio:'inherit',env:process.env});process.exitCode=p.status??1;

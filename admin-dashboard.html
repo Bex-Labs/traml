@@ -11,8 +11,9 @@
     <link href="./css/theme.css" rel="stylesheet">
 
     <script type="module" src="./js/session.js"></script>
+<link href="./css/dashboard-refinements.css?v=restore-1" rel="stylesheet">
 </head>
-<body class="bg-light font-inter" style="display: none;" id="secure-admin-body">
+<body class="bg-light font-inter"  id="secure-admin-body" data-admin-section="HEALTH">
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-4">
         <div class="container-fluid p-0">
@@ -20,11 +21,11 @@
                 <span class="material-symbols-outlined text-danger fs-4">terminal</span>
                 <span class="fs-6 fw-bold tracking-wide text-white uppercase">BexAML<span class="text-danger">Admin</span></span>
             </a>
-            
+
             <div class="d-flex align-items-center gap-2 border-start border-secondary ps-3">
                 <div class="text-end text-white">
-                    <div class="fw-semibold" style="font-size: 0.85rem;" id="ui-admin-name">Loading...</div>
-                    <div class="text-danger fw-bold uppercase" style="font-size: 0.65rem;">System Administrator</div>
+                    <div class="fw-semibold" style="font-size: 0.85rem;" id="viewer">Loading...</div>
+                    <div class="text-danger fw-bold uppercase" style="font-size: 0.65rem;" id="shell-role">System Administrator</div>
                 </div>
                 <span class="material-symbols-outlined text-muted fs-2">shield_person</span>
             </div>
@@ -32,552 +33,41 @@
     </nav>
 
     <div class="container-fluid">
-        <div class="row" style="height: calc(100vh - 57px);">
-            
+        <div class="row" style="min-height: calc(100vh - 57px);">
+
             <div class="col-md-2 bg-dark p-0 d-flex flex-column justify-content-between border-end border-secondary">
                <div class="list-group list-group-flush mt-3 bg-dark">
-                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3">
+                    <a href="admin-dashboard.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white bg-dark border-start border-danger border-3" data-platform data-admin-nav="HEALTH">
                         <span class="material-symbols-outlined">dns</span>
                         <span class="small fw-semibold">Platform Health</span>
                     </a>
 
-                    <a href="tenant-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                    <a href="tenant-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark" data-admin-nav="BANKS">
                         <span class="material-symbols-outlined">domain</span>
                         <span class="small fw-semibold">Tenant Management</span>
                     </a>
-                    
-                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+
+                    <a href="user-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark" data-admin-nav="USERS">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <span class="small fw-semibold">User Management</span>
                     </a>
-                    
-                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+
+                    <a href="audit-logs.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark" data-admin-nav="AUDIT">
                         <span class="material-symbols-outlined">history</span>
                         <span class="small fw-semibold">Global Audit Logs</span>
                     </a>
 
-                    <a href="role-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark">
+                    <a href="role-management.html" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark" data-platform data-admin-nav="ROLES">
                         <span class="material-symbols-outlined">admin_panel_settings</span>
                         <span class="small fw-semibold">Role Management</span>
                     </a>
-                </div>
+                <a href="admin-dashboard.html?tab=requests" class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-white-50 bg-dark" data-admin-nav="REQUESTS"><span class="material-symbols-outlined">receipt_long</span><span class="small fw-semibold">Requests & Outcomes</span></a></div>
 
                 <div class="p-3 border-top border-secondary">
-                    <button id="logout-btn" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                    <button id="logout" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
                         <span class="material-symbols-outlined fs-6">logout</span> Global Disconnect
                     </button>
                 </div>
             </div>
 
-            <div class="col-md-10 p-4 overflow-auto">
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2">Supabase API Status</div>
-                                <h4 class="fw-bold text-success mb-0 d-flex align-items-center gap-2">
-                                    <span class="material-symbols-outlined fs-5">check_circle</span> Operational
-                                </h4>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2">Total Tenants (Banks)</div>
-                                <h4 class="fw-bold mb-0">3 Active Nodes</h4>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="text-muted small fw-bold uppercase mb-2">Edge Functions</div>
-                                <h4 class="fw-bold mb-0">2 Deployed</h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card border-0 shadow-sm mt-4 rounded-3 overflow-hidden border-danger border border-2">
-                    <div class="card-header bg-dark border-bottom border-secondary py-3">
-                        <h6 class="mb-0 fw-bold text-danger d-flex align-items-center gap-2 uppercase tracking-wide">
-                            <span class="material-symbols-outlined">science</span> 
-                            AML Engine Sandbox (UAT / Demo Controls)
-                        </h6>
-                    </div>
-                    <div class="card-body bg-white p-4">
-                        <p class="text-muted small mb-4">Select a typology below to instantly inject synthetic transaction data into the live PostgreSQL database. The backend PL/pgSQL triggers will evaluate the stream and spawn alerts in real-time.</p>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('smurfing')" id="btn-smurfing">
-                                    <span class="material-symbols-outlined fs-3">call_split</span>
-                                    <span class="fw-bold text-dark">Structuring (Smurfing)</span>
-                                    <span class="small text-muted" style="font-size: 0.7rem;">Injects 3x ₦3.5M deposits rapidly to evade the ₦10M static reporting threshold.</span>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('round-trip')" id="btn-round-trip">
-                                    <span class="material-symbols-outlined fs-3">sync_alt</span>
-                                    <span class="fw-bold text-dark">Round-Tripping</span>
-                                    <span class="small text-muted" style="font-size: 0.7rem;">₦50.5M out to vendor, ₦50M returned as "consulting" within 24 hours.</span>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('whale')" id="btn-whale">
-                                    <span class="material-symbols-outlined fs-3">water_drop</span>
-                                    <span class="fw-bold text-dark">The Whale Spike</span>
-                                    <span class="small text-muted" style="font-size: 0.7rem;">A massive, anomalous single transfer of ₦150,000,000 in one hit.</span>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-outline-danger w-100 h-100 p-3 text-start d-flex flex-column gap-2" onclick="simulateTypology('velocity')" id="btn-velocity">
-                                    <span class="material-symbols-outlined fs-3">speed</span>
-                                    <span class="fw-bold text-dark">Velocity Attack</span>
-                                    <span class="small text-muted" style="font-size: 0.7rem;">Injects 15 rapid micro-transactions in under 5 minutes to simulate a bot.</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <hr class="my-4 border-secondary border-opacity-25">
-                        <h6 class="fw-bold text-dark mb-3 uppercase tracking-wide" style="font-size: 0.8rem;">Manual Precision Injector</h6>
-                        <form id="manual-injector-form">
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label class="form-label small fw-bold text-muted">Target Customer Account</label>
-                                    <select class="form-select bg-light border-secondary" id="manual-account-id" required>
-                                        <option value="">Loading customer accounts...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-muted">Amount (NGN)</label>
-                                    <input type="number" class="form-control bg-light border-secondary" id="manual-amount" placeholder="e.g. 5500000" required>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted">Type</label>
-                                    <select class="form-select bg-light border-secondary" id="manual-type" required>
-                                        <option value="CREDIT">CREDIT</option>
-                                        <option value="DEBIT">DEBIT</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-dark w-100 fw-bold" id="btn-manual-inject">Inject</button>
-                                </div>
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-
-                <div class="card border-0 shadow-sm mt-4 rounded-3 overflow-hidden">
-                    <div class="card-header bg-dark border-bottom border-secondary py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 fw-bold text-white d-flex align-items-center gap-2 uppercase tracking-wide">
-                            <span class="material-symbols-outlined text-success" id="pulse-icon">sensors</span> 
-                            Live System Telemetry
-                        </h6>
-                        <div class="d-flex gap-2">
-                            <button id="refresh-telemetry-btn" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 fw-medium">
-                                <span class="material-symbols-outlined fs-6">refresh</span> Sync Feed
-                            </button>
-                        </div>
-                    </div>
-                    <div class="table-responsive bg-white">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                            <thead class="table-light text-muted uppercase fw-semibold tracking-wider">
-                                <tr>
-                                    <th class="ps-4 py-3">Timestamp</th>
-                                    <th class="py-3">Event Vector</th>
-                                    <th class="py-3">Severity</th>
-                                    <th class="py-3 w-50">System Message</th>
-                                    <th class="pe-4 py-3 text-end">Payload</th>
-                                </tr>
-                            </thead>
-                            <tbody id="telemetry-feed-body">
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
-                                        <span class="spinner-border spinner-border-sm me-2"></span> Initializing secure telemetry link...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script type="module">
-        import { supabase } from './js/config.js';
-
-        async function initializeAdminDashboard() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return window.location.replace('index.html');
-
-            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
-            if (jwtPayload.app_metadata?.role !== 'it_admin') {
-                return window.location.replace('dashboard.html');
-            }
-
-            document.getElementById('secure-admin-body').style.display = 'block';
-            document.getElementById('ui-admin-name').innerText = session.user.email;
-            
-            // Boot the telemetry feed
-            loadTelemetryFeed();
-
-            // Initiate Realtime WebSockets
-            subscribeToSystemTelemetry();
-
-            loadAccountsDropdown();
-        }
-
-        // --- Custom Role Compiler ---
-        document.getElementById('custom-role-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('save-role-btn');
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Compiling...';
-            submitBtn.disabled = true;
-
-            // Gather inputs
-            const roleName = document.getElementById('role-name').value;
-            const roleDesc = document.getElementById('role-desc').value;
-
-            // Build the JSON Permissions Object
-            let permissions = {};
-            document.querySelectorAll('.perm-cb').forEach(cb => {
-                if (cb.checked) {
-                    const key = `${cb.getAttribute('data-mod')}_${cb.getAttribute('data-act')}`;
-                    permissions[key] = true;
-                }
-            });
-
-            console.log("🚀 Payload Ready for Backend:", { role_name: roleName, description: roleDesc, permissions: permissions });
-            alert("Role compiled! Check your browser's Developer Console to view the JSON output.");
-
-            submitBtn.innerHTML = 'Deploy Custom Role';
-            submitBtn.disabled = false;
-        });
-
-        // --- Fetch Accounts for the Dropdown ---
-        async function loadAccountsDropdown() {
-            const select = document.getElementById('manual-account-id');
-            const { data, error } = await supabase
-                .from('accounts')
-                // We ask for ALL name fields now
-                .select(`id, account_number, customers(entity_name, first_name, last_name)`); 
-            
-            if (error) {
-                console.error("Error loading accounts:", error);
-                select.innerHTML = '<option value="">Error loading accounts</option>';
-                return;
-            }
-            
-            select.innerHTML = data.map(acc => {
-                const c = acc.customers || {};
-                // If entity_name exists, use it. Otherwise, combine first & last name.
-                const displayName = c.entity_name || (c.first_name ? `${c.first_name} ${c.last_name}` : 'Unknown Entity');
-                return `<option value="${acc.id}">${displayName} - Acc: ${acc.account_number.slice(-4)}</option>`;
-            }).join('');
-        }
-
-        // Call this inside initializeAdminDashboard()
-        // loadAccountsDropdown();
-
-        // --- PURE MANUAL PRECISION INJECTOR ---
-        document.getElementById('manual-injector-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-manual-inject');
-            const originalText = btn.innerHTML;
-            
-            try {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-                btn.disabled = true;
-                
-                const accountId = document.getElementById('manual-account-id').value;
-                const amount = parseFloat(document.getElementById('manual-amount').value);
-                const type = document.getElementById('manual-type').value;
-                
-                // 1. Create and inject the transaction 
-                // (Your backend SQL triggers will catch this and create the alert!)
-                const txn = createTxnPayload(accountId, amount, type, 'Manual UAT Injection');
-                const { error: txError } = await supabase.from('transactions').insert([txn]);
-                if (txError) throw txError;
-                
-                // 2. Log the injection to telemetry
-                await supabase.from('system_events').insert([{
-                    event_type: 'MANUAL_INJECTION',
-                    severity: 'INFO',
-                    message: `Admin manually injected ₦${amount.toLocaleString()} ${type} into account. Awaiting SQL trigger evaluation.`,
-                    metadata: { amount: amount, type: type, target: accountId }
-                }]);
-                
-                // 3. Visual Success Feedback
-                btn.classList.replace('btn-dark', 'btn-success');
-                btn.innerHTML = 'Sent to DB';
-                document.getElementById('manual-amount').value = ''; 
-                
-                setTimeout(() => {
-                    btn.classList.replace('btn-success', 'btn-dark');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 2000);
-                
-            } catch (err) {
-                console.error("Manual Injection Error:", err);
-                alert("Failed to inject transaction.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
-        // --- TAML-76: Telemetry Engine ---
-        async function loadTelemetryFeed() {
-            const tbody = document.getElementById('telemetry-feed-body');
-            const refreshBtn = document.getElementById('refresh-telemetry-btn');
-            
-            // UI Loading State
-            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
-            refreshBtn.disabled = true;
-
-            try {
-                // Fetch the latest 50 system events
-                const { data: events, error } = await supabase
-                    .from('system_events')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(50);
-
-                if (error) throw error;
-
-                if (events.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No system telemetry recorded.</td></tr>`;
-                    return;
-                }
-
-                // Render the feed
-                tbody.innerHTML = events.map(ev => {
-                    // 1. Format Time (HH:MM:SS)
-                    const time = new Date(ev.created_at).toLocaleTimeString([], { hour12: false });
-                    
-                    // 2. Map Severity to Colors
-                    let badge = 'bg-secondary';
-                    let rowClass = '';
-                    if (ev.severity === 'INFO') badge = 'bg-info bg-opacity-25 text-info border border-info';
-                    if (ev.severity === 'WARNING') badge = 'bg-warning bg-opacity-25 text-warning border border-warning';
-                    if (ev.severity === 'ERROR') badge = 'bg-danger text-white';
-                    if (ev.severity === 'CRITICAL') {
-                        badge = 'bg-dark text-danger border border-danger';
-                        rowClass = 'table-danger bg-opacity-25'; // Highlight the whole row
-                    }
-
-                    // 3. Stringify the JSON metadata for the inspector button
-                    const metaString = JSON.stringify(ev.metadata).replace(/"/g, '&quot;');
-
-                    return `
-                    <tr class="${rowClass}">
-                        <td class="ps-4 text-muted font-monospace small">${time}</td>
-                        <td class="fw-bold text-dark">${ev.event_type}</td>
-                        <td><span class="badge ${badge} fw-semibold">${ev.severity}</span></td>
-                        <td class="text-truncate text-muted" style="max-width: 400px;" title="${ev.message}">${ev.message}</td>
-                        <td class="pe-4 text-end">
-                            <button class="btn btn-sm btn-light border font-monospace text-muted fw-bold" style="font-size: 0.7rem;" onclick="alert('RAW JSON METADATA:\\n\\n${metaString}')">
-                                { JSON }
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('');
-
-            } catch (err) {
-                console.error("Telemetry Sync Failed:", err);
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger fw-bold">Link Offline: ${err.message}</td></tr>`;
-            } finally {
-                // Restore UI State
-                refreshBtn.innerHTML = '<span class="material-symbols-outlined fs-6">refresh</span> Sync Feed';
-                refreshBtn.disabled = false;
-            }
-        }
-
-        // Attach listener to the manual refresh button
-        document.getElementById('refresh-telemetry-btn')?.addEventListener('click', loadTelemetryFeed);
-
-        // --- TAML-76: Realtime WebSocket Link ---
-        function subscribeToSystemTelemetry() {
-            console.log("📡 Initializing secure WebSocket link...");
-            
-            supabase
-                .channel('system_telemetry_feed')
-                .on('postgres_changes', 
-                    { event: 'INSERT', schema: 'public', table: 'system_events' }, 
-                    (payload) => {
-                        console.log('🚨 Incoming Telemetry Packet:', payload.new);
-                        
-                        // 1. Visual Indicator (Flash the Refresh Button)
-                        const refreshBtn = document.getElementById('refresh-telemetry-btn');
-                        const originalHtml = refreshBtn.innerHTML;
-                        
-                        refreshBtn.classList.replace('btn-outline-light', 'btn-warning');
-                        refreshBtn.classList.add('text-dark');
-                        refreshBtn.innerHTML = '<span class="material-symbols-outlined fs-6 animate-pulse">warning</span> New Event Detected!';
-                        
-                        // 2. Auto-pull the latest data grid
-                        loadTelemetryFeed().then(() => {
-                            // 3. Reset the button after 2 seconds
-                            setTimeout(() => {
-                                refreshBtn.classList.replace('btn-warning', 'btn-outline-light');
-                                refreshBtn.classList.remove('text-dark');
-                                refreshBtn.innerHTML = originalHtml;
-                            }, 2000);
-                        });
-                    }
-                )
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
-                        console.log("✅ WebSocket Link Established.");
-                    }
-                });
-        }
-
-        // --- TAML-21: SIMULATION SANDBOX ENGINE ---
-        window.simulateTypology = async (typology) => {
-            const btn = document.getElementById(`btn-${typology}`);
-            const originalHtml = btn.innerHTML;
-            
-            try {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm text-danger"></span><span class="fw-bold text-dark mt-2">Injecting Payload...</span>';
-                btn.disabled = true;
-
-                // 1. Grab a random active account to use as the target victim
-                const { data: accounts, error: accErr } = await supabase.from('accounts').select('id').limit(10);
-                if (accErr || !accounts.length) throw new Error("No accounts found. Please run seed_master.py first.");
-                const targetAccount = accounts[Math.floor(Math.random() * accounts.length)].id;
-
-                let txns = [];
-                const now = new Date();
-
-                // 2. Build the specific typology payload
-                if (typology === 'smurfing') {
-                    for(let i=0; i<3; i++) {
-                        txns.push(createTxnPayload(targetAccount, 3500000, 'CREDIT', 'Smurf Deposit'));
-                    }
-                } else if (typology === 'whale') {
-                    txns.push(createTxnPayload(targetAccount, 150000000, 'CREDIT', 'Anomalous Wire In'));
-                } else if (typology === 'round-trip') {
-                    txns.push(createTxnPayload(targetAccount, 50500000, 'DEBIT', 'Consulting Fees Out'));
-                    // Make the return happen exactly 2 hours later
-                    const returnTime = new Date(now.getTime() + (2 * 60 * 60 * 1000)); 
-                    txns.push(createTxnPayload(targetAccount, 50000000, 'CREDIT', 'Refund/Adjustment In', returnTime.toISOString()));
-                } else if (typology === 'velocity') {
-                    for(let i=0; i<15; i++) {
-                        // Spread by 1 minute each
-                        const spreadTime = new Date(now.getTime() + (i * 60000));
-                        txns.push(createTxnPayload(targetAccount, Math.random() * (150000 - 50000) + 50000, 'CREDIT', 'Micro Transfer', spreadTime.toISOString()));
-                    }
-                }
-
-                // 3. Inject into database (Because RLS is disabled on transactions, this works natively from the client)
-                const { error: txErr } = await supabase.from('transactions').insert(txns);
-                if (txErr) throw txErr;
-
-                // 4. Log the action to the Admin Telemetry Feed
-                await supabase.from('system_events').insert([{
-                    event_type: 'SIMULATION_TRIGGERED',
-                    severity: 'WARNING',
-                    message: `Admin injected '${typology}' typology payload (${txns.length} records) into Account ${targetAccount.substring(0,8)}.`,
-                    metadata: { typology: typology, injected_records: txns.length, target: targetAccount }
-                }]);
-
-                // Success feedback animation
-                btn.innerHTML = '<span class="material-symbols-outlined fs-3 text-success">check_circle</span><span class="fw-bold text-success mt-2">Payload Sent</span>';
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                }, 3000);
-
-            } catch (err) {
-                console.error("Simulation Error:", err);
-                alert("Simulation failed: " + err.message);
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
-        };
-
-        // Helper function to structure the transaction records
-        function createTxnPayload(accountId, amount, type, narration, timestamp = new Date().toISOString()) {
-            return {
-                id: crypto.randomUUID(),
-                account_id: accountId,
-                amount: amount,
-                transaction_type: type,
-                transaction_timestamp: timestamp,
-                transaction_reference: `SIM-${crypto.randomUUID().substring(0,8).toUpperCase()}`,
-                channel: 'WEB',
-                narration: narration
-            };
-        }
-
-        // --- TAML-22: MANUAL PRECISION INJECTOR ---
-        document.getElementById('manual-injector-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-manual-inject');
-            const originalText = btn.innerHTML;
-            
-            try {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-                btn.disabled = true;
-                
-                const accountId = document.getElementById('manual-account-id').value.trim();
-                const amount = parseFloat(document.getElementById('manual-amount').value);
-                const type = document.getElementById('manual-type').value;
-                
-                // Use our existing helper to build the payload
-                const txn = createTxnPayload(accountId, amount, type, 'Manual UAT Injection');
-                
-                // Push directly to the live transactions table
-                const { error } = await supabase.from('transactions').insert([txn]);
-                if (error) throw error;
-                
-                // Log to telemetry
-                await supabase.from('system_events').insert([{
-                    event_type: 'MANUAL_INJECTION',
-                    severity: 'INFO',
-                    message: `Admin manually injected ₦${amount.toLocaleString()} ${type} into Account ${accountId.substring(0,8)}.`,
-                    metadata: { amount: amount, type: type, target: accountId }
-                }]);
-                
-                // Visual Success Feedback
-                btn.classList.replace('btn-dark', 'btn-success');
-                btn.innerHTML = 'Success';
-                document.getElementById('manual-injector-form').reset();
-                
-                setTimeout(() => {
-                    btn.classList.replace('btn-success', 'btn-dark');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 2000);
-                
-            } catch (err) {
-                console.error("Manual Injection Error:", err);
-                alert("Failed to inject transaction. Check the console and ensure the UUID is valid.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
-        initializeAdminDashboard();
-
-        // Logout Handler
-        document.getElementById('logout-btn')?.addEventListener('click', async () => {
-            // 1. Write the logout event to the database BEFORE destroying the session
-            await supabase.rpc('log_user_logout');
-            
-            // 2. Destroy the session and redirect
-            await supabase.auth.signOut();
-            window.location.replace('index.html');
-        });
-    </script>
-</body>
-</html>
+            <div class="col-md-10 p-4" id="restored-shell-content"><a class="back" id="compliance-back" href="./dashboard.html?view=case-management" hidden>← Back to Compliance</a><div class="d-flex justify-content-between align-items-end gap-3 flex-wrap mb-4"><div><p class="text-muted small fw-bold text-uppercase mb-1" id="scope-label">PLATFORM OPERATIONS</p><h3 class="fw-bold text-dark mb-1" id="title">IT Command Center</h3><p class="muted layout-note">Manage authorized access with attributed requests and confirmed outcomes.</p></div><button id="refresh">Refresh</button></div><p id="status" role="status" aria-live="polite">Checking authorized access…</p><button id="retry" hidden>Retry exact request</button><div id="workspace" hidden><p class="notice" id="boundary-note">Platform administration does not grant investigation approval, regulatory filing, access to customer evidence, or permission to insert banking transactions.</p><div class="tools"><button id="open-invite">Invite authorized staff</button><button id="open-bank" data-platform>Create institution</button></div><div id="platform-health" hidden><div class="row g-4 mb-4"><div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted small fw-bold text-uppercase mb-2">Administration API</div><h4 class="fw-bold text-success mb-0" id="platform-connection">Checking…</h4></div></div></div><div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted small fw-bold text-uppercase mb-2">Total Tenants (Banks)</div><h4 class="fw-bold mb-0" id="platform-tenants">—</h4></div></div></div><div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted small fw-bold text-uppercase mb-2">Administration requests</div><h4 class="fw-bold mb-0" id="platform-requests">—</h4></div></div></div></div><div class="card border-0 shadow-sm border-danger mb-4"><div class="card-header bg-dark text-danger fw-bold py-3">Administrative Operations</div><div class="card-body"><div class="row g-3"><div class="col-md-3"><a class="btn btn-outline-danger w-100 p-3" href="tenant-management.html">Tenant Management</a></div><div class="col-md-3"><a class="btn btn-outline-danger w-100 p-3" href="user-management.html">User Management</a></div><div class="col-md-3"><a class="btn btn-outline-danger w-100 p-3" href="role-management.html">Role Management</a></div><div class="col-md-3"><a class="btn btn-outline-danger w-100 p-3" href="admin-dashboard.html?tab=requests">Requests & Outcomes</a></div></div><p class="small text-muted mb-0 mt-3">Banking transaction injection remains unavailable to platform administrators.</p></div></div></div><section id="list-view" class="card border-0 shadow-sm"><div class="card-body"><div class="tools"><label for="search">Search this section<input id="search" maxlength="120" placeholder="Name, role, institution or event"></label><button id="search-button">Search</button></div><div id="rows"></div><div id="paging" class="paging"><button id="previous">Previous</button><span id="page-count"></span><button id="next">Next</button></div></div></section><section id="detail" class="card card-body border-0 shadow-sm" hidden></section></div></div></div></div><script type="module" src="./js/controllers/admin-dashboard.page.js?v=restore-1"></script></body></html>

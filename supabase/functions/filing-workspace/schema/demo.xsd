@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- STRICT FICTIONAL DEMO SCHEMA. Not an NFIU schema and not suitable for regulatory submission. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"><xs:element name="report"><xs:complexType><xs:sequence>
+<xs:element name="rentity_id" type="xs:positiveInteger"/><xs:element name="submission_code"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="E"/></xs:restriction></xs:simpleType></xs:element>
+<xs:element name="report_code"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="STR"/><xs:enumeration value="SAR"/></xs:restriction></xs:simpleType></xs:element>
+<xs:element name="entity_reference" type="xs:string"/><xs:element name="submission_date" type="xs:dateTime"/><xs:element name="currency_code_local"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="NGN"/></xs:restriction></xs:simpleType></xs:element>
+<xs:element name="reason"><xs:simpleType><xs:restriction base="xs:string"><xs:minLength value="15"/></xs:restriction></xs:simpleType></xs:element>
+<xs:element name="transaction" minOccurs="0" maxOccurs="500"><xs:complexType><xs:sequence><xs:element name="transactionnumber" type="xs:string"/><xs:element name="date_transaction" type="xs:dateTime"/><xs:element name="amount_local" type="xs:decimal"/></xs:sequence></xs:complexType></xs:element>
+</xs:sequence></xs:complexType></xs:element></xs:schema>

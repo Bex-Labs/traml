@@ -1,0 +1,3 @@
+'use strict';
+function worklistReadAllowed(method,b){if(method==='OPTIONS')return true;if(method!=='POST'||!b||JSON.stringify(Object.keys(b).sort())!==JSON.stringify(['p_from','p_kind','p_limit','p_offset','p_owner','p_search','p_status','p_until']))return false;return ['CASES','QA','EXECUTIVE'].includes(b.p_kind)&&typeof b.p_search==='string'&&[...b.p_search].length<=120&&['ALL','INVESTIGATING','PENDING_QA_REVIEW','ESCALATED','CLOSED','MIXED'].includes(b.p_status)&&['ALL','MINE'].includes(b.p_owner)&&Number.isInteger(b.p_offset)&&b.p_offset>=0&&b.p_offset<=1000000&&Number.isInteger(b.p_limit)&&b.p_limit>0&&b.p_limit<=50&&[b.p_from,b.p_until].every(v=>v===null||typeof v==='string'&&Number.isFinite(Date.parse(v)));}
+module.exports={worklistReadAllowed};

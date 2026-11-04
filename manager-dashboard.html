@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>coreAML | Command Center</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:; connect-src 'self' https: data: wss: http://127.0.0.1:55321 ws://127.0.0.1:55321;">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap" rel="stylesheet" />
+    <script type="module" src="./js/session.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <link href="./css/theme.css" rel="stylesheet">
+    <link href="./css/executive-review.css?v=tables-1" rel="stylesheet">
+    <link href="./css/review-pages.css?v=pages-1" rel="stylesheet">
+    <link href="./css/investigation-layout.css?v=layout-2" rel="stylesheet">
+    <link href="./css/managed-case-portfolio.css?v=filing-1" rel="stylesheet">
+    <link href="./css/case-management-hub.css?v=detail-1" rel="stylesheet">
+    <link href="./css/intelligence.css" rel="stylesheet">
+
+    <style>
+       :root {
+            /* Theme Colors: Blue & White */
+            --bs-primary: #0F172A; /* Deep Institutional Blue */
+            --bs-body-bg: #F8FAFC; /* Crisp White/Slate Surface */
+            --bs-dark: #0B1120;
+            --bs-light: #F1F5F9;
+
+            /* Call-outs & Buttons: Action Red */
+            --brand-red: #DC2626;
+            --brand-red-hover: #B91C1C;
+
+            /* Typography */
+            --font-body: 'Inter', sans-serif;
+            --font-headline: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bs-body-bg) !important;
+        }
+
+        h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title, .fw-bold, .offcanvas-title, th {
+            font-family: var(--font-headline) !important;
+        }
+
+        .font-monospace, table tbody tr td:first-child, .badge {
+            font-family: var(--font-mono) !important;
+        }
+
+        /* 1. Navbar (White/Glass) */
+        .navbar.bg-white {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #E2E8F0 !important;
+        }
+
+        /* 2. Sidebar (Deep Blue) */
+        .col-md-2.bg-white {
+            background-color: var(--bs-primary) !important;
+            border-right: 1px solid #1E293B !important;
+        }
+
+        .list-group-item {
+            background-color: transparent !important;
+            border-color: transparent !important;
+            margin-bottom: 4px !important;
+            border-radius: 8px !important;
+            margin-left: 12px !important;
+            margin-right: 12px !important;
+            width: auto !important;
+        }
+
+        .col-md-2 a.text-muted {
+            color: #94A3B8 !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .col-md-2 a.text-muted:hover {
+            background-color: rgba(255,255,255,0.05) !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Sidebar Links (Active) - Red Callout Edge */
+        .col-md-2 a.text-primary.bg-light {
+            background-color: rgba(220, 38, 38, 0.1) !important;
+            color: #FFFFFF !important;
+            border-left: 4px solid var(--brand-red) !important;
+            border-radius: 0 8px 8px 0 !important;
+            margin-left: 0 !important;
+            padding-left: 20px !important;
+        }
+
+        .col-md-2 .bg-white, .col-md-2 .border-top {
+            background-color: var(--bs-primary) !important;
+            border-top-color: #1E293B !important;
+        }
+
+        /* 3. Card Transformations */
+        .card {
+            background-color: #ffffff !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 4px 24px -1px rgba(15, 23, 42, 0.05) !important;
+        }
+
+        .card-header.bg-white, .card-header.bg-light {
+            background-color: #F8FAFC !important;
+            border-bottom: 1px solid #E2E8F0 !important;
+        }
+
+        /* 4. Button Transformations (Action Red) */
+        .btn-primary {
+            background-color: var(--brand-red) !important;
+            border-color: var(--brand-red) !important;
+            color: #ffffff !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--brand-red-hover) !important;
+            border-color: var(--brand-red-hover) !important;
+        }
+
+        /* 5. Table Enhancements */
+        .table-light th {
+            background-color: #F1F5F9 !important;
+            color: #475569 !important;
+        }
+
+        /* 6. Intelligence Hub Upgrades */
+        /* Smooth Sidebar Collapse */
+        #main-sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-x: hidden; }
+        .sidebar-collapsed { width: 80px !important; flex: 0 0 80px !important; }
+        .sidebar-collapsed .nav-link-item span:not(.material-symbols-outlined) { display: none; }
+        .sidebar-collapsed #brand-text { display: none; }
+        .sidebar-collapsed .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+        /* CRITICAL Radar Pulse */
+        @keyframes radarPulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .pulse-critical {
+            animation: radarPulse 2s infinite;
+            border-radius: 50%;
+            background-color: #DC2626 !important;
+            color: white !important;
+        }
+
+        /* Kanban Board Styling */
+        .kanban-column { background-color: #F1F5F9; border-radius: 12px; padding: 16px; min-width: 320px; max-height: calc(100vh - 200px); display: flex; flex-direction: column; }
+        .kanban-cards { flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 150px; padding-bottom: 20px; }
+        .kanban-card { background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: grab; box-shadow: 0 2px 4px rgba(15,23,42,0.03); transition: transform 0.2s, box-shadow 0.2s; }
+        .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(15,23,42,0.08); }
+        .kanban-card:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background-color: #E2E8F0; border: 2px dashed #94A3B8; }
+    </style>
+
+<link href="./css/dashboard-refinements.css?v=restore-1" rel="stylesheet">
+</head>
+<body class="bg-light "  id="secure-body">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4">
+        <div class="container-fluid p-0">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-light border-0 d-flex align-items-center justify-content-center p-2 rounded-circle" id="btn-toggle-sidebar">
+                    <span class="material-symbols-outlined text-dark fs-5">menu_open</span>
+                </button>
+                <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="#">
+                    <img src="./assets/zero day logo.png" id="brand-logo-img" alt="coreAML Logo" style="height: 32px; width: auto;" class="d-none">
+                    <span class="material-symbols-outlined text-danger fs-4 d-none" id="admin-brand-icon">admin_panel_settings</span>
+                    <span class="fs-5 fw-bold tracking-wide text-dark uppercase" id="brand-text" style="color: #0F172A !important;">core<span style="color: #DC2626;">AML</span></span>
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center gap-4">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0"><span class="material-symbols-outlined fs-6">search</span></span>
+                    <input type="text" class="form-control bg-light border-start-0" id="manager-global-search" placeholder="Search transaction reference">
+                </div>
+
+                <div class="d-flex align-items-center gap-2 border-start ps-3">
+                    <div class="text-end">
+                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;" id="viewer">Loading...</div>
+                        <div class="text-primary fw-bold uppercase" style="font-size: 0.65rem;" id="ui-user-role">Bank Manager</div>
+                    </div>
+                    <span class="material-symbols-outlined text-muted fs-2">account_circle</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-0">
+        <div class="row g-0" style="min-height: calc(100vh - 57px);">
+
+            <div class="col-md-2 bg-white border-end p-0 d-flex flex-column h-100" id="main-sidebar" style="transition: all 0.3s ease;">
+                <div class="list-group list-group-flush mt-3 flex-grow-1 overflow-y-auto">
+                    <a href="#" id="nav-command-center" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-primary bg-light border-start border-primary border-3" data-section="OVERVIEW">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="small fw-semibold">Command Center</span>
+                    </a>
+                    <a href="#" id="nav-kyc" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted border-start border-transparent border-3" aria-disabled="true" title="Restricted to authorized operational roles">
+                        <span class="material-symbols-outlined">badge</span>
+                        <span class="small fw-semibold">KYC & Identity</span>
+                    </a>
+                    <a href="#" id="nav-tx-monitoring" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted" data-section="TRANSACTIONS">
+                        <span class="material-symbols-outlined">monitoring</span>
+                        <span class="small fw-semibold">Transaction Monitoring</span>
+                    </a>
+                   <a href="#" id="nav-case-management" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted" data-section="CASES">
+                        <span class="material-symbols-outlined">folder_managed</span>
+                        <span class="small fw-semibold">Case Management</span>
+                    </a>
+
+                    <a href="#" id="nav-team-management" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted" data-section="STAFF">
+                        <span class="material-symbols-outlined">group_add</span>
+                        <span class="small fw-semibold">Compliance Team</span>
+                    </a>
+
+                    <a href="#" id="nav-system-config" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span class="small fw-semibold">System Config</span>
+                    </a>
+
+                    <a href="#" id="nav-report-archive" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">inventory_2</span>
+                        <span class="small fw-semibold">Immutable Vault</span>
+                    </a>
+
+                    <a href="#" id="nav-audit-logs" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
+                        <span class="material-symbols-outlined">plagiarism</span>
+                        <span class="small fw-semibold">Branch Audit Ledger</span>
+                    </a>
+                </div>
+
+                <div class="p-3 border-top mt-auto">
+                    <button id="logout" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                        <span class="material-symbols-outlined fs-6">logout</span> Secure Logout
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-10 p-4">
+
+
+<p id="status" role="status" aria-live="polite">Checking authorized access…</p><div id="workspace" hidden><p class="notice">Read-only bank oversight. Investigation findings, evidence documents, SAR/STR content, approval controls and customer account actions are restricted to their separately authorized workflows.</p><div id="manager-overview">                <div id="view-bank-manager">
+                    <div class="d-flex justify-content-between align-items-end mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">Executive Risk Exposure</h4>
+                            <p class="text-muted small mb-0">Recorded customer risk tiers, risk-data completeness and grouped case workload.</p>
+                        </div>
+                        <button class="btn btn-outline-danger fw-bold d-flex align-items-center gap-2" id="print">
+                            <span class="material-symbols-outlined fs-6">picture_as_pdf</span> PDF Report
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-2" id="refresh">Refresh metrics</button>
+                    <p id="analytics-manager-status" class="small text-muted" role="status">Loading measured dashboard data…</p>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Customers with recorded risk <span class="material-symbols-outlined text-success fs-5">health_and_safety</span>
+                                    </div>
+                                    <h3 class="fw-bold text-success mb-0" id="kpi-comp-health">—</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        High-Risk Entities <span class="material-symbols-outlined text-danger fs-5">report</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0" id="kpi-high-risk">—</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Open Cases (Bank) <span class="material-symbols-outlined text-warning fs-5">folder_open</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-open-cases">—</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="text-muted small fw-bold uppercase mb-2 d-flex justify-content-between">
+                                        Completed LIVE reporting <span class="material-symbols-outlined text-primary fs-5">gavel</span>
+                                    </div>
+                                    <h3 class="fw-bold text-dark mb-0" id="kpi-sars-filed">—</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Customer Risk Tiers</h6>
+                                </div>
+                                <div class="card-body chart-holder">
+                                    <canvas id="riskTierChart" height="220"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold uppercase text-dark">Customer Risk by Industry</h6>
+                                </div>
+                                <div class="card-body chart-holder">
+                                    <canvas id="industryRiskChart" height="220"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+<p id="chart-status" class="small text-muted" role="status"></p><div id="overview-reporting" class="card card-body border-0 shadow-sm mt-4"></div></div><section id="list-view" class="card card-body border-0 shadow-sm"><div class="tools" id="tools"><label for="search">Search this section<input id="search" maxlength="120" placeholder="Reference, name or role"></label><button id="search-button">Search</button><button id="table-refresh">Refresh</button></div><div id="rows"></div><div id="paging" class="paging"><button id="previous">Previous</button><span id="page-count"></span><button id="next">Next</button></div></section><section id="detail" class="card card-body border-0 shadow-sm" hidden></section></div></div></div></div><script type="module" src="./js/controllers/manager-dashboard.page.js?v=restore-1"></script></body></html>
