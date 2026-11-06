@@ -1,3 +1,3 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 import {createPlatformAdminHandler} from '../_shared/platform-admin.mjs';
-Deno.serve(createPlatformAdminHandler({createClient,env:(name:string)=>Deno.env.get(name),kind:'actions'}));
+Deno.serve(createPlatformAdminHandler({createClient,env:(name:string)=>Deno.env.get(name) ?? (Deno.env.get('SUPABASE_URL')==='https://mbwgglgvykjpsnvnvcsj.supabase.co' ? ({COREAML_APP_ORIGINS:'https://traml.vercel.app',COREAML_APP_URL:'https://traml.vercel.app'} as Record<string,string>)[name] : undefined),kind:'actions'}));

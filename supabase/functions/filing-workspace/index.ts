@@ -3,11 +3,10 @@ import * as lib from 'npm:libxml2-wasm@0.7.2';
 import {schemaManifest,schemaFiles} from './schema-bundle.mjs';
 import {validateOperation,validateXmlAgainstSource,sha256,exact,canonical} from './core.mjs';
 const url=Deno.env.get('SUPABASE_URL')!,anon=Deno.env.get('SUPABASE_ANON_KEY')!,key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const origins=(Deno.env.get('COREAML_FILING_ORIGINS')||'http://127.0.0.1:5520,http://localhost:5520').split(',').map(x=>x.trim()).filter(Boolean);
+const origins=(Deno.env.get('COREAML_FILING_ORIGINS')||(url==='https://mbwgglgvykjpsnvnvcsj.supabase.co'?'https://traml.vercel.app':'http://127.0.0.1:5520,http://localhost:5520')).split(',').map(x=>x.trim()).filter(Boolean);
 const headers=(origin:string)=>({'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'});
 // Validation is synchronous after schema files have loaded. No await occurs while global XML IO is registered.
-async function schemaProfile(tenant:string,mode:string){
- const manifest=schemaManifest;
+async function schemaProfile(tenant:string,mode:string){ const manifest=schemaManifest;
  const profile=manifest.profiles?.find((p:any)=>p.tenant_id===tenant&&p.mode===mode);
  if(!profile)throw Error('No schema profile is configured for this bank and mode.');
  if(mode==='LIVE'&&Deno.env.get('COREAML_FILING_ALLOW_LIVE')!=='true')throw Error('Live report export is not enabled.');
