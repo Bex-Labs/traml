@@ -27,24 +27,26 @@ export function attachKycSanctionsPilot(client) {
     const localHosts = ['127.0.0.1', 'localhost'];
     if (!client.supabaseUrl) return;
     const backend = new URL(client.supabaseUrl);
-    if (location.protocol === 'https:' && backend.protocol === 'https:' &&
-        !localHosts.includes(location.hostname) && !localHosts.includes(backend.hostname)) {
-        return () => enableReferrals(client);
-    }
-    if (!localHosts.includes(location.hostname) || !localHosts.includes(backend.hostname)) return;
+    const hosted = location.protocol === 'https:' && backend.protocol === 'https:' &&
+        !localHosts.includes(location.hostname) && !localHosts.includes(backend.hostname);
+    const local = localHosts.includes(location.hostname) && localHosts.includes(backend.hostname);
+    if (!hosted && !local) return;
 
     const modal = document.getElementById('kycVerificationModal');
+    const enable = () => enableReferrals(client, local ? modal : undefined);
     const applicant = document.getElementById('kyc-customer-id');
     const anchor = modal?.querySelector('label[for="kyc-screening-reference"]');
-    if (!anchor || !applicant) return;
+    if (!anchor || !applicant) return hosted ? enable : undefined;
 
     const panel = element('section', '', 'border rounded p-3 mb-3');
-    panel.setAttribute('aria-label', 'Local sanctions screening');
-    const heading = element('h6', 'Sanctions screening · Local pilot', 'small fw-bold');
-    const description = element('p',
-        'Compare this applicant’s recorded name with the imported sanctions snapshot. Review each candidate before approving KYC. Complete PEP review separately.',
+    panel.setAttribute('aria-label', 'Sanctions screening');
+    const heading = element('h6', hosted ? 'Sanctions screening' : 'Sanctions screening · Local pilot', 'small fw-bold');
+    const description = element('p', hosted
+        ? 'Compare the recorded applicant name with the current watchlist. Use the results for manual review and complete PEP review separately.'
+        : 'Compare this applicant’s recorded name with the imported sanctions snapshot. Review each candidate before approving KYC. Complete PEP review separately.',
         'small text-muted');
-    const run = element('button', 'Run or reload sanctions check', 'btn btn-sm btn-outline-primary');
+    const run = element('button', hosted ? 'Run sanctions check' : 'Run or reload sanctions check',
+        'btn btn-sm btn-outline-primary');
     run.type = 'button';
     const status = element('p', '', 'small mt-2 mb-1');
     status.setAttribute('role', 'status');
@@ -69,21 +71,24 @@ export function attachKycSanctionsPilot(client) {
         const ticket = ++generation;
         busy = true;
         run.disabled = true;
+        if (hosted) results.replaceChildren();
         results.querySelectorAll('button').forEach(button => { button.disabled = true; });
         status.textContent = 'Waiting for the server…';
         try {
             const { data, error } = await client.rpc(rpc, payload);
             if (ticket !== generation || applicant.value !== customerId) return;
             if (error) throw Error(error.message || 'Screening request failed');
-            if (data?.mode !== 'LOCAL_PILOT' || data.customer_id !== customerId ||
-                !data.run_id || !Array.isArray(data.hits) ||
-                (payload.p_run_id && data.run_id !== payload.p_run_id)) {
+            const validReceipt = hosted
+                ? /^[a-f0-9]{64}$/.test(data?.snapshot_sha256) && Number.isFinite(Date.parse(data.last_verified_at))
+                : data?.run_id && (!payload.p_run_id || data.run_id === payload.p_run_id);
+            if (data?.mode !== (hosted ? 'HOSTED_PREVIEW' : 'LOCAL_PILOT') ||
+                data.customer_id !== customerId || !Array.isArray(data.hits) || !validReceipt) {
                 throw Error('The server did not confirm this screening result');
             }
             render(data);
         } catch (error) {
             if (ticket === generation && applicant.value === customerId) {
-                status.textContent = error.message + ' Reload the screening check to confirm the saved result.';
+                status.textContent = hosted ? error.message : error.message + ' Reload the screening check to confirm the saved result.';
             }
         } finally {
             if (ticket === generation) {
@@ -99,13 +104,14 @@ export function attachKycSanctionsPilot(client) {
         const total = data.hits.length;
         status.textContent = total ? `${total} possible match${total === 1 ? '' : 'es'}.`
             : 'No name match in this snapshot.';
-        if (data.confirmed_hold) {
+        if (!hosted && data.confirmed_hold) {
             status.textContent = 'Confirmed sanctions match referred to Head of Compliance. Account activation is on hold.';
-        } else if (data.hits.some((_, index) => !data.decisions?.[index])) {
+        } else if (!hosted && data.hits.some((_, index) => !data.decisions?.[index])) {
             status.textContent += ' Review all candidates before approving KYC.';
         }
-        results.append(element('p', `Snapshot last checked ${new Date(data.last_verified_at || data.retrieved_at).toLocaleString()}. Screening reference ${data.run_id}.`,
-            'small text-muted'));
+        const reference = hosted ? `Snapshot SHA-256 ${data.snapshot_sha256}.` : `Screening reference ${data.run_id}.`;
+        results.append(element('p', `Snapshot last checked ${new Date(data.last_verified_at || data.retrieved_at).toLocaleString()}. ${reference}`,
+            'small text-muted text-break'));
         data.hits.forEach((hit, index) => {
             const item = element('article', '', 'border rounded p-2 mb-2');
             const title = element('strong', hit.name, 'small d-block');
@@ -117,6 +123,10 @@ export function attachKycSanctionsPilot(client) {
             source.rel = 'noopener noreferrer';
             item.append(title, evidence, source);
 
+            if (hosted) {
+                results.append(item);
+                return;
+            }
             const decision = data.decisions?.[index];
             if (decision) {
                 const label = decision.outcome === 'CONFIRMED_MATCH' ? 'Confirmed match' : 'False positive';
@@ -154,10 +164,11 @@ export function attachKycSanctionsPilot(client) {
 
     run.addEventListener('click', () => {
         if (!applicant.value) return;
-        void request('coreaml_kyc_screen_sanctions', { p_customer_id: applicant.value }, applicant.value);
+        const rpc = hosted ? 'coreaml_kyc_preview_sanctions' : 'coreaml_kyc_screen_sanctions';
+        void request(rpc, { p_customer_id: applicant.value }, applicant.value);
     });
 
-    return () => enableReferrals(client, modal);
+    return enable;
 }
 
 function enableReferrals(client, modal) {
