@@ -1,0 +1,10 @@
+{
+  "name": "coreaml-browser-sdk-build",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "build": "node build.cjs" },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "esbuild": "0.28.2"
+  }
+}
