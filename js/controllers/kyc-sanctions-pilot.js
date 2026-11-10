@@ -105,7 +105,7 @@ export function attachKycSanctionsPilot(client) {
         const total = data.hits.length;
         status.textContent = total ? `${total} possible match${total === 1 ? '' : 'es'}.`
             : 'No name match in this snapshot.';
-        if (!hosted && data.confirmed_hold) {
+        if (data.confirmed_hold) {
             status.textContent = 'Confirmed sanctions match referred to Head of Compliance. Account activation is on hold.';
         } else if (data.hits.some((_, index) => !data.decisions?.[index])) {
             status.textContent += hosted ? ' Record a decision for each possible match.' : ' Review all candidates before approving KYC.';
@@ -196,7 +196,7 @@ function enableReferrals(client, modal) {
     bell.hidden = true;
     bell.setAttribute('aria-hidden', 'true');
     launch.append(element('span', 'Sanctions referrals'));
-    if (localPilot) launch.append(bell);
+    launch.append(bell);
     filters.classList.add('kyc-referrals-filters');
     filters.append(launch);
 
@@ -209,7 +209,7 @@ function enableReferrals(client, modal) {
     title.id = 'kyc-sanctions-referrals-title';
     const description = localPilot
         ? 'Review activation holds, approved corrections, and rescreening matches.'
-        : 'Review possible sanctions matches from hosted rescreening for this bank.';
+        : 'Review confirmed matches and possible matches from hosted rescreening for this bank.';
     heading.append(title, element('p', description, 'kyc-referrals__subtitle mb-0'));
     queue.append(heading);
     profiles.after(queue);
@@ -218,48 +218,53 @@ function enableReferrals(client, modal) {
     function showHoldIndicator(hasHolds, ticket) {
         if (ticket !== indicatorGeneration) return;
         bell.hidden = !hasHolds;
-        launch.setAttribute('aria-label', hasHolds ? 'Sanctions referrals, open holds' : 'Sanctions referrals');
+        launch.setAttribute('aria-label', hasHolds ? 'Sanctions referrals, confirmed matches' : 'Sanctions referrals');
     }
 
     async function refreshHoldIndicator() {
         const ticket = ++indicatorGeneration;
         try {
-            const { data, error } = await client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: 'OPEN', p_offset: 0 });
+            const { data, error } = await readConfirmed(0);
             if (!error && Array.isArray(data)) showHoldIndicator(data.length > 0, ticket);
         } catch {
             // Keep the last verified indicator when the read is unavailable.
         }
     }
 
-    const directoryIsVisible = () => !directory.classList.contains('d-none');
-    const viewButtons = [];
-    if (localPilot) {
-        let wasVisible = directoryIsVisible();
-        if (wasVisible) void refreshHoldIndicator();
-        new MutationObserver(() => {
-            const visible = directoryIsVisible();
-            if (visible && !wasVisible) void refreshHoldIndicator();
-            wasVisible = visible;
-        }).observe(directory, { attributes: true, attributeFilter: ['class'] });
-        window.addEventListener('focus', () => {
-            if (directoryIsVisible()) void refreshHoldIndicator();
-        });
-
-        const views = element('div', '', 'kyc-referrals__views');
-        views.setAttribute('role', 'group');
-        views.setAttribute('aria-label', 'Referral views');
-        const openView = element('button', 'Open holds', 'btn btn-sm btn-dark');
-        const historyView = element('button', 'Correction history', 'btn btn-sm btn-outline-secondary');
-        const rescreenView = element('button', 'Rescreening matches', 'btn btn-sm btn-outline-secondary');
-        viewButtons.push([openView, 'OPEN'], [historyView, 'HISTORY'], [rescreenView, 'RESCREEN']);
-        for (const [button, key] of viewButtons) {
-            button.type = 'button';
-            button.setAttribute('aria-pressed', String(key === 'OPEN'));
-            button.addEventListener('click', () => selectView(key));
-            views.append(button);
-        }
-        queue.append(views);
+    function readConfirmed(page) {
+        return localPilot
+            ? client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: 'OPEN', p_offset: page })
+            : client.rpc('coreaml_kyc_hosted_confirmed_referrals', { p_offset: page });
     }
+
+    const directoryIsVisible = () => !directory.classList.contains('d-none');
+    let wasVisible = directoryIsVisible();
+    if (wasVisible) void refreshHoldIndicator();
+    new MutationObserver(() => {
+        const visible = directoryIsVisible();
+        if (visible && !wasVisible) void refreshHoldIndicator();
+        wasVisible = visible;
+    }).observe(directory, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('focus', () => {
+        if (directoryIsVisible()) void refreshHoldIndicator();
+    });
+
+    const views = element('div', '', 'kyc-referrals__views');
+    views.setAttribute('role', 'group');
+    views.setAttribute('aria-label', 'Referral views');
+    const openView = element('button', localPilot ? 'Open holds' : 'Confirmed matches', 'btn btn-sm btn-dark');
+    const historyView = element('button', 'Correction history', 'btn btn-sm btn-outline-secondary');
+    const rescreenView = element('button', 'Rescreening matches', 'btn btn-sm btn-outline-secondary');
+    const viewButtons = [[openView, 'OPEN']];
+    if (localPilot) viewButtons.push([historyView, 'HISTORY']);
+    viewButtons.push([rescreenView, 'RESCREEN']);
+    for (const [button, key] of viewButtons) {
+        button.type = 'button';
+        button.setAttribute('aria-pressed', String(key === 'OPEN'));
+        button.addEventListener('click', () => selectView(key));
+        views.append(button);
+    }
+    queue.append(views);
 
     const queueStatus = element('p', '', 'kyc-referrals__status');
     queueStatus.setAttribute('role', 'status');
@@ -297,7 +302,7 @@ function enableReferrals(client, modal) {
     const pageButtons = [refresh, previous, next, ...viewButtons.map(([button]) => button)];
     const date = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
     let offset = 0;
-    let view = localPilot ? 'OPEN' : 'RESCREEN';
+    let view = 'OPEN';
     async function load(page) {
         const indicatorTicket = view === 'OPEN' && page === 0 ? ++indicatorGeneration : null;
         const isRescreen = view === 'RESCREEN';
@@ -311,7 +316,8 @@ function enableReferrals(client, modal) {
         try {
             const { data, error } = isRescreen
                 ? await client.rpc('coreaml_kyc_sanctions_rescreen_page', { p_offset: page })
-                : await client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: view, p_offset: page });
+                : view === 'OPEN' ? await readConfirmed(page)
+                    : await client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: view, p_offset: page });
             if (error || !Array.isArray(data)) throw Error(error?.message || 'Referrals unavailable.');
             if (indicatorTicket !== null) showHoldIndicator(data.length > 0, indicatorTicket);
             offset = page;
@@ -349,8 +355,10 @@ function enableReferrals(client, modal) {
                     items.append(row);
                     continue;
                 }
-                applicant.append(element('span', entry.corrected ? 'Match corrected' : 'Activation on hold',
-                    entry.corrected ? 'kyc-referrals__corrected' : 'kyc-referrals__hold'));
+                const pending = ['PENDING', 'PENDING_EDD'].includes(entry.kyc_status);
+                const label = entry.corrected ? 'Match corrected' : entry.has_active_account ? 'Account already active'
+                    : !localPilot && !pending ? 'Confirmed match · follow-up required' : 'Activation on hold';
+                applicant.append(element('span', label, entry.corrected ? 'kyc-referrals__corrected' : 'kyc-referrals__hold'));
                 const correction = entry.correction;
                 if (view === 'HISTORY') {
                     const detail = element('div', '', 'mt-2');
@@ -378,7 +386,7 @@ function enableReferrals(client, modal) {
                         element('span', 'Approved ' + date.format(new Date(correction.decided_at)), 'kyc-referrals__muted')
                     );
                     action.append(decision);
-                } else {
+                } else if (localPilot || (pending && !entry.has_active_account)) {
                     const open = element('button', 'Open KYC review', 'btn btn-sm btn-outline-dark text-nowrap');
                     open.type = 'button';
                     open.addEventListener('click', () => void window.openKYCVerification(entry.customer_id));
@@ -387,7 +395,7 @@ function enableReferrals(client, modal) {
                 row.append(applicant, evidence, reason, action);
                 items.append(row);
 
-                if (view === 'HISTORY') continue;
+                if (!localPilot || view === 'HISTORY') continue;
                 if (correction) {
                     const labels = { PROPOSED: 'Correction proposed', APPROVED: 'Correction approved', REJECTED: 'Correction rejected' };
                     reason.append(
@@ -416,7 +424,7 @@ function enableReferrals(client, modal) {
             viewport.hidden = visible.length === 0;
             queueStatus.hidden = visible.length > 0;
             const emptyStates = {
-                OPEN: 'No open sanctions holds on this page.',
+                OPEN: localPilot ? 'No open sanctions holds on this page.' : 'No confirmed sanctions matches on this page.',
                 HISTORY: 'No approved corrections on this page.',
                 RESCREEN: 'No rescreening matches on this page.',
             };
@@ -631,7 +639,8 @@ function enableReferrals(client, modal) {
         if (!refresh.disabled) void load(0);
     });
     for (const button of profileTabs) button.addEventListener('click', () => showReferrals(false));
-    modal?.addEventListener('hidden.bs.modal', () => {
+    const verificationModal = modal ?? document.getElementById('kycVerificationModal');
+    verificationModal?.addEventListener('hidden.bs.modal', () => {
         if (!directoryIsVisible()) return;
         const reloadOpenPage = !queue.hidden && !refresh.disabled && view === 'OPEN';
         if (reloadOpenPage) void load(offset);
