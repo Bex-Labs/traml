@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <link href="./css/theme.css" rel="stylesheet">
+    <link href="./css/kyc-sanctions-referrals.css?v=hosted-1" rel="stylesheet">
     <link href="./css/executive-review.css?v=tables-1" rel="stylesheet">
     <link href="./css/review-pages.css?v=pages-1" rel="stylesheet">
     <link href="./css/investigation-layout.css?v=layout-2" rel="stylesheet">
@@ -1868,7 +1869,9 @@
         import * as kycController from "./js/controllers/kyc.controller.js";
         import { createKycReview, submitKycReview } from "./js/services/kyc-review.service.js";
         import { attachProvnSandbox } from "./js/controllers/provn-sandbox.controller.js";
+        import { attachKycSanctionsPilot } from "./js/controllers/kyc-sanctions-pilot.js?v=hosted-1";
         attachProvnSandbox(supabase);
+        const enableSanctionsReferrals = attachKycSanctionsPilot(supabase);
         import * as txController from "./js/controllers/transactions.controller.js";
         import {resolveWorkspaceOwner, renderWorkspaceOwner} from "./js/controllers/workspace-owner.js";
         import * as casesController from "./js/controllers/cases.controller.js?v=streamlined-3";
@@ -1904,6 +1907,7 @@
                 if(role==='bank_manager'){window.location.replace('./manager-dashboard.html');return;}
                 if(!['head_of_compliance','compliance_officer'].includes(role)){window.location.replace('./core-banking.html');return;}
                 document.getElementById('view-case-management').dataset.caseRole = role;
+                if (role === 'head_of_compliance') enableSanctionsReferrals?.();
 
                 // 2. Unhide the page securely
                 document.getElementById('secure-body').style.display = 'block';
