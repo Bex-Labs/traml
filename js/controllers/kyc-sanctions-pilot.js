@@ -42,11 +42,10 @@ export function attachKycSanctionsPilot(client) {
     panel.setAttribute('aria-label', 'Sanctions screening');
     const heading = element('h6', hosted ? 'Sanctions screening' : 'Sanctions screening · Local pilot', 'small fw-bold');
     const description = element('p', hosted
-        ? 'Compare the recorded applicant name with the current watchlist. Use the results for manual review and complete PEP review separately.'
+        ? 'Screen the recorded applicant name against the current watchlist and record a reason for each decision. KYC approval and PEP review are separate steps.'
         : 'Compare this applicant’s recorded name with the imported sanctions snapshot. Review each candidate before approving KYC. Complete PEP review separately.',
         'small text-muted');
-    const run = element('button', hosted ? 'Run sanctions check' : 'Run or reload sanctions check',
-        'btn btn-sm btn-outline-primary');
+    const run = element('button', 'Run or reload sanctions check', 'btn btn-sm btn-outline-primary');
     run.type = 'button';
     const status = element('p', '', 'small mt-2 mb-1');
     status.setAttribute('role', 'status');
@@ -71,24 +70,26 @@ export function attachKycSanctionsPilot(client) {
         const ticket = ++generation;
         busy = true;
         run.disabled = true;
-        if (hosted) results.replaceChildren();
+        if (hosted && !payload.p_run_id) results.replaceChildren();
         results.querySelectorAll('button').forEach(button => { button.disabled = true; });
         status.textContent = 'Waiting for the server…';
         try {
             const { data, error } = await client.rpc(rpc, payload);
             if (ticket !== generation || applicant.value !== customerId) return;
             if (error) throw Error(error.message || 'Screening request failed');
-            const validReceipt = hosted
-                ? /^[a-f0-9]{64}$/.test(data?.snapshot_sha256) && Number.isFinite(Date.parse(data.last_verified_at))
-                : data?.run_id && (!payload.p_run_id || data.run_id === payload.p_run_id);
-            if (data?.mode !== (hosted ? 'HOSTED_PREVIEW' : 'LOCAL_PILOT') ||
-                data.customer_id !== customerId || !Array.isArray(data.hits) || !validReceipt) {
+            const validRun = data?.run_id && (!payload.p_run_id || data.run_id === payload.p_run_id);
+            const validSnapshot = !hosted || (/^[a-f0-9]{64}$/.test(data?.snapshot_sha256) &&
+                Number.isFinite(Date.parse(data.last_verified_at)));
+            const validDecision = !hosted || !payload.p_run_id ||
+                data?.decisions?.[payload.p_hit_index]?.outcome === payload.p_outcome;
+            if (data?.mode !== (hosted ? 'HOSTED_AUDIT' : 'LOCAL_PILOT') || data.customer_id !== customerId ||
+                !Array.isArray(data.hits) || !validRun || !validSnapshot || !validDecision) {
                 throw Error('The server did not confirm this screening result');
             }
             render(data);
         } catch (error) {
             if (ticket === generation && applicant.value === customerId) {
-                status.textContent = hosted ? error.message : error.message + ' Reload the screening check to confirm the saved result.';
+                status.textContent = error.message + ' Reload the screening check to confirm the saved result.';
             }
         } finally {
             if (ticket === generation) {
@@ -106,10 +107,13 @@ export function attachKycSanctionsPilot(client) {
             : 'No name match in this snapshot.';
         if (!hosted && data.confirmed_hold) {
             status.textContent = 'Confirmed sanctions match referred to Head of Compliance. Account activation is on hold.';
-        } else if (!hosted && data.hits.some((_, index) => !data.decisions?.[index])) {
-            status.textContent += ' Review all candidates before approving KYC.';
+        } else if (data.hits.some((_, index) => !data.decisions?.[index])) {
+            status.textContent += hosted ? ' Record a decision for each possible match.' : ' Review all candidates before approving KYC.';
+        } else if (hosted && total) {
+            status.textContent = 'All candidate decisions are recorded for this screening.';
         }
-        const reference = hosted ? `Snapshot SHA-256 ${data.snapshot_sha256}.` : `Screening reference ${data.run_id}.`;
+        const runReference = `Screening reference ${data.run_id}.`;
+        const reference = hosted ? `${runReference} Snapshot SHA-256 ${data.snapshot_sha256}.` : runReference;
         results.append(element('p', `Snapshot last checked ${new Date(data.last_verified_at || data.retrieved_at).toLocaleString()}. ${reference}`,
             'small text-muted text-break'));
         data.hits.forEach((hit, index) => {
@@ -123,14 +127,15 @@ export function attachKycSanctionsPilot(client) {
             source.rel = 'noopener noreferrer';
             item.append(title, evidence, source);
 
-            if (hosted) {
-                results.append(item);
-                return;
-            }
             const decision = data.decisions?.[index];
             if (decision) {
                 const label = decision.outcome === 'CONFIRMED_MATCH' ? 'Confirmed match' : 'False positive';
                 item.append(element('p', `${label}. ${decision.rationale}`, 'small mb-0'));
+                if (hosted) {
+                    const time = new Date(decision.reviewed_at).toLocaleString();
+                    item.append(element('p', `Reviewed ${time} · Reviewer ID ${decision.reviewed_by}`,
+                        'small text-muted text-break mb-0'));
+                }
             } else {
                 const label = element('label', 'Review reason', 'small d-block');
                 const reason = element('textarea', '', 'form-control form-control-sm mb-2');
@@ -148,7 +153,8 @@ export function attachKycSanctionsPilot(client) {
                             reason.focus();
                             return;
                         }
-                        void request('coreaml_kyc_review_sanctions', {
+                        const rpc = hosted ? 'coreaml_kyc_review_hosted_sanctions' : 'coreaml_kyc_review_sanctions';
+                        void request(rpc, {
                             p_run_id: data.run_id,
                             p_hit_index: index,
                             p_outcome: outcome,
@@ -164,7 +170,7 @@ export function attachKycSanctionsPilot(client) {
 
     run.addEventListener('click', () => {
         if (!applicant.value) return;
-        const rpc = hosted ? 'coreaml_kyc_preview_sanctions' : 'coreaml_kyc_screen_sanctions';
+        const rpc = hosted ? 'coreaml_kyc_screen_hosted_sanctions' : 'coreaml_kyc_screen_sanctions';
         void request(rpc, { p_customer_id: applicant.value }, applicant.value);
     });
 
