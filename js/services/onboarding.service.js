@@ -15,23 +15,43 @@ export function createOnboardingAttempt(input, tenantId, customerId = crypto.ran
     if (!/^[A-Za-z0-9_-]+$/.test(tenantId || '')) throw new Error('A valid assigned bank is required.');
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(customerId)) throw new Error('Invalid submission reference.');
     const type = input.customerType;
-    const firstName = type === 'RETAIL' ? input.firstName?.trim() : null;
-    const lastName = type === 'RETAIL' ? input.lastName?.trim() : null;
-    const entityName = type === 'CORPORATE' ? input.entityName?.trim() : null;
-    const bvn = input.bvn?.trim();
-    if (!['RETAIL', 'CORPORATE'].includes(type) || !/^[0-9]{11}$/.test(bvn || '')
-        || (type === 'RETAIL' && (!firstName || !lastName)) || (type === 'CORPORATE' && !entityName)) {
-        throw new Error('Enter the customer name and an 11-digit BVN.');
-    }
     const prefix = `${tenantId}/${customerId}/`;
     const idPath = `${prefix}id_document.${documentExtension(input.idFile)}`;
     const utilityPath = `${prefix}utility_bill.${documentExtension(input.utilityFile)}`;
-    return {
-        customerId, idFile: input.idFile, utilityFile: input.utilityFile, uploaded: new Set(), rpcStarted: false,
-        payload: Object.freeze({ p_customer_id: customerId, p_customer_type: type,
-            p_first_name: firstName, p_last_name: lastName, p_entity_name: entityName,
-            p_bvn: bvn, p_id_path: idPath, p_utility_path: utilityPath }),
-    };
+    const documents = { p_customer_id: customerId, p_id_path: idPath, p_utility_path: utilityPath };
+    let rpc = 'onboard_customer';
+    let payload;
+    if (type === 'RETAIL') {
+        const firstName = input.firstName?.trim();
+        const lastName = input.lastName?.trim();
+        const bvn = input.bvn?.trim();
+        if (!firstName || !lastName || !/^[0-9]{11}$/.test(bvn || '')) {
+            throw new Error('Enter the customer name and an 11-digit BVN.');
+        }
+        payload = { ...documents, p_customer_type: type, p_first_name: firstName,
+            p_last_name: lastName, p_entity_name: null, p_bvn: bvn };
+    } else if (type === 'CORPORATE') {
+        const entityName = input.entityName?.trim();
+        const registration = input.registrationNumber?.trim().toUpperCase().replace(/^RC[ -]*/, '').trim();
+        const people = (input.people || []).map(person => Object.freeze({
+            full_name: person.full_name.trim(), role: person.role, bvn: person.bvn.trim()
+        }));
+        if (!entityName || entityName.length > 200 || !/^[0-9]{1,20}$/.test(registration || '')) {
+            throw new Error('Enter the registered company name and a valid CAC RC number.');
+        }
+        if (!people.length || people.length > 50 || people.some(person =>
+            !person.full_name || person.full_name.length > 200 || !/^[0-9]{11}$/.test(person.bvn) ||
+            !['DIRECTOR', 'SIGNATORY', 'BENEFICIAL_OWNER'].includes(person.role))) {
+            throw new Error('Enter a name, role, and 11-digit BVN for each linked person.');
+        }
+        rpc = 'onboard_corporate_customer';
+        payload = { ...documents, p_entity_name: entityName, p_registration_number: registration,
+            p_people: Object.freeze(people) };
+    } else {
+        throw new Error('Select a customer type.');
+    }
+    return { customerId, idFile: input.idFile, utilityFile: input.utilityFile,
+        uploaded: new Set(), rpcStarted: false, rpc, payload: Object.freeze(payload) };
 }
 
 export async function submitOnboardingAttempt(client, attempt) {
@@ -56,7 +76,7 @@ export async function submitOnboardingAttempt(client, attempt) {
     }
     attempt.rpcStarted = true;
     let response;
-    try { response = await client.rpc('onboard_customer', attempt.payload); }
+    try { response = await client.rpc(attempt.rpc, attempt.payload); }
     catch (error) {
         const uncertain = new Error(`Submission could not be confirmed. Keep this page open and retry reference ${attempt.customerId}.`);
         uncertain.keepAttempt = true;
