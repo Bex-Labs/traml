@@ -209,7 +209,7 @@ function enableReferrals(client, modal) {
     title.id = 'kyc-sanctions-referrals-title';
     const description = localPilot
         ? 'Review activation holds, approved corrections, and rescreening matches.'
-        : 'Review confirmed matches and possible matches from hosted rescreening for this bank.';
+        : 'Review confirmed matches, correction history, and rescreening matches for this bank.';
     heading.append(title, element('p', description, 'kyc-referrals__subtitle mb-0'));
     queue.append(heading);
     profiles.after(queue);
@@ -224,17 +224,16 @@ function enableReferrals(client, modal) {
     async function refreshHoldIndicator() {
         const ticket = ++indicatorGeneration;
         try {
-            const { data, error } = await readConfirmed(0);
+            const { data, error } = await readReferrals('OPEN', 0);
             if (!error && Array.isArray(data)) showHoldIndicator(data.length > 0, ticket);
         } catch {
             // Keep the last verified indicator when the read is unavailable.
         }
     }
 
-    function readConfirmed(page) {
-        return localPilot
-            ? client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: 'OPEN', p_offset: page })
-            : client.rpc('coreaml_kyc_hosted_confirmed_referrals', { p_offset: page });
+    function readReferrals(referralView, page) {
+        const rpc = localPilot ? 'coreaml_kyc_sanctions_referral_page' : 'coreaml_kyc_hosted_referral_page';
+        return client.rpc(rpc, { p_view: referralView, p_offset: page });
     }
 
     const directoryIsVisible = () => !directory.classList.contains('d-none');
@@ -255,9 +254,7 @@ function enableReferrals(client, modal) {
     const openView = element('button', localPilot ? 'Open holds' : 'Confirmed matches', 'btn btn-sm btn-dark');
     const historyView = element('button', 'Correction history', 'btn btn-sm btn-outline-secondary');
     const rescreenView = element('button', 'Rescreening matches', 'btn btn-sm btn-outline-secondary');
-    const viewButtons = [[openView, 'OPEN']];
-    if (localPilot) viewButtons.push([historyView, 'HISTORY']);
-    viewButtons.push([rescreenView, 'RESCREEN']);
+    const viewButtons = [[openView, 'OPEN'], [historyView, 'HISTORY'], [rescreenView, 'RESCREEN']];
     for (const [button, key] of viewButtons) {
         button.type = 'button';
         button.setAttribute('aria-pressed', String(key === 'OPEN'));
@@ -316,8 +313,7 @@ function enableReferrals(client, modal) {
         try {
             const { data, error } = isRescreen
                 ? await client.rpc('coreaml_kyc_sanctions_rescreen_page', { p_offset: page })
-                : view === 'OPEN' ? await readConfirmed(page)
-                    : await client.rpc('coreaml_kyc_sanctions_referral_page', { p_view: view, p_offset: page });
+                : await readReferrals(view, page);
             if (error || !Array.isArray(data)) throw Error(error?.message || 'Referrals unavailable.');
             if (indicatorTicket !== null) showHoldIndicator(data.length > 0, indicatorTicket);
             offset = page;
@@ -395,7 +391,7 @@ function enableReferrals(client, modal) {
                 row.append(applicant, evidence, reason, action);
                 items.append(row);
 
-                if (!localPilot || view === 'HISTORY') continue;
+                if (view === 'HISTORY') continue;
                 if (correction) {
                     const labels = { PROPOSED: 'Correction proposed', APPROVED: 'Correction approved', REJECTED: 'Correction rejected' };
                     reason.append(
@@ -408,7 +404,7 @@ function enableReferrals(client, modal) {
                     }
                 }
 
-                if (entry.corrected) continue;
+                if (entry.corrected || (!localPilot && (!pending || entry.has_active_account))) continue;
                 if (correction?.state === 'PROPOSED' && !correction.can_decide) {
                     action.append(element('span', 'Awaiting another Head of Compliance', 'kyc-referrals__muted d-block mt-2'));
                     continue;
