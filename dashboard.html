@@ -1206,29 +1206,38 @@
                     <div class="d-flex justify-content-between align-items-end mb-4">
                         <div>
                             <h4 class="fw-bold text-dark mb-1">Institutional Team Directory</h4>
-                            <p class="text-muted small mb-0">Manage officer credentials, evaluate case workloads, and audit platform telemetry.</p>
+                            <p class="text-muted small mb-0">Manage your bank’s team and review case workloads.</p>
                         </div>
-                        <button class="btn btn-primary fw-bold d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#inviteModal">
+                        <button class="btn btn-primary fw-bold d-flex align-items-center gap-2" id="team-open-invite" data-bs-toggle="modal" data-bs-target="#inviteModal">
                             <span class="material-symbols-outlined fs-6">person_add</span> Provision New Officer
                         </button>
                     </div>
 
+                    <form id="team-search-form" class="d-flex gap-2 flex-wrap mb-3">
+                        <input id="team-search" type="search" class="form-control form-control-sm w-auto" aria-label="Search team members" maxlength="120" placeholder="Search team members">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Search</button>
+                        <button id="team-refresh" type="button" class="btn btn-sm btn-outline-secondary">Refresh</button>
+                        <button id="team-retry" type="button" class="btn btn-sm btn-outline-warning" hidden>Retry saved request</button>
+                    </form>
+                    <p id="team-status" class="small text-muted" role="status" aria-live="polite"></p>
                     <div class="card border-0 shadow-sm flex-grow-1 overflow-hidden d-flex flex-column">
                         <div class="table-responsive flex-grow-1">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light text-muted small text-uppercase sticky-top">
                                     <tr>
-                                        <th class="py-3 px-4 fw-semibold">Officer Directory Context</th>
-                                        <th class="py-3 fw-semibold">Assigned Platform Role</th>
-                                        <th class="py-3 fw-semibold">Active Workload Metrics</th>
-                                        <th class="py-3 fw-semibold">Telemetry Pulse</th>
-                                        <th class="py-3 text-end px-4 fw-semibold">Governance</th>
+                                        <th class="py-3 px-4 fw-semibold">Team member</th>
+                                        <th class="py-3 fw-semibold">Role</th>
+                                        <th class="py-3 fw-semibold">Grouped case workload</th>
+                                        <th class="py-3 fw-semibold">Access status</th>
+                                        <th class="py-3 text-end px-4 fw-semibold">Access actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="team-directory-body" class="bg-white">
-                                    <!-- Populated dynamically via engine -->
-                                </tbody>
+                                <tbody id="team-directory-body" class="bg-white"></tbody>
                             </table>
+                        </div>
+                        <div class="card-footer bg-white d-flex gap-2 justify-content-end">
+                            <button id="team-prev" type="button" class="btn btn-sm btn-outline-secondary" disabled>Previous</button>
+                            <button id="team-next" type="button" class="btn btn-sm btn-outline-secondary" disabled>Next</button>
                         </div>
                     </div>
                 </div>
@@ -1417,11 +1426,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small mb-4">Send a secure setup link to a new compliance officer. They will automatically be assigned to your institution.</p>
+                    <p class="text-muted small mb-4">Send a setup link for the selected role in your bank.</p>
                     <form id="invite-form">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-muted">Email</label>
-                            <input type="email" class="form-control bg-light" id="invite-email" required placeholder="officer@bank.com">
+                            <input type="email" class="form-control bg-light" id="invite-email" maxlength="254" required placeholder="officer@bank.com">
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-semibold text-muted">Platform Role</label>
@@ -1432,6 +1441,7 @@
                                 <option value="head_of_compliance">Head of Compliance</option>
                             </select>
                         </div>
+                        <p id="team-invite-status" class="small text-muted" role="status"></p>
                         <button type="submit" class="btn btn-primary w-100 fw-semibold" id="invite-submit-btn">
                             Send Secure Invite
                         </button>
@@ -1878,6 +1888,9 @@
         import * as analyticsController from "./js/controllers/analytics.controller.js";
         import * as customersController from "./js/controllers/customers.controller.js";
 
+        import { createTeamManagement } from "./js/controllers/team-management.js";
+        const teamManagement = createTeamManagement(supabase, analyticsController.getRecordedCaseWorkload);
+
         let reviewPageHost=null;
         let pendingLedgerParams = {};
         window.openTransactionMonitoring = (params = {}) => {
@@ -1968,8 +1981,7 @@
                 document.getElementById('qa-governance-section').classList.toggle('d-none',role!=='head_of_compliance');
                 document.getElementById('case-review-submission-panel').classList.toggle('d-none', role!=='compliance_officer');
 
-                // 5. Populate the invite dropdown with custom roles
-                loadDynamicRoles();
+                teamManagement.authorize(context);
 
                 // Establish Global User ID for secure memory isolation
                 window.currentUserId = user.id;
@@ -2051,6 +2063,10 @@
         };
 
         function switchView(viewName, activeElement) {
+            if (viewName === 'team-management' && document.getElementById('view-case-management').dataset.caseRole !== 'head_of_compliance') {
+                viewName = 'command-center';
+                activeElement = document.getElementById('nav-command-center');
+            }
             if(typeof reviewPageHost!=='undefined'&&reviewPageHost?.active&&!reviewPageHost.close({restore:false}))return;
             if (viewName !== 'investigation-workspace') {
                 const workspace = document.getElementById('view-investigation-workspace');
@@ -2110,9 +2126,8 @@
                 if (isExecutive) document.getElementById('component-escalation-queue')?.classList.remove('d-none');
                 loadCaseManagement();
             } else if (viewName === 'team-management') {
-                window.location.assign('./admin-dashboard.html?tab=users');return;
                 document.getElementById('view-team-management').classList.remove('d-none');
-                loadTeamDirectory();
+                void teamManagement.load();
             } else if (viewName === 'investigation-workspace') {     
                 document.getElementById('view-investigation-workspace').classList.remove('d-none');
             } else if (viewName === 'report-archive') {
@@ -2138,37 +2153,6 @@
                 }
             }
         }
-
-        // --- Invite User Logic ---
-        document.getElementById('invite-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('invite-submit-btn');
-            submitBtn.innerHTML = 'Sending...';
-            submitBtn.disabled = true;
-
-            const email = document.getElementById('invite-email').value;
-            const role = document.getElementById('role-select').value;
-
-            const { data: { session } } = await supabase.auth.getSession();
-            const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
-            const tenantId = jwtPayload.app_metadata.tenant_id;
-
-            const { data, error } = await supabase.functions.invoke('invite-user', {
-                body: { email: email, role: role, tenantId: tenantId }
-            });
-
-            if (error) {
-                alert(`Error: ${error.message}`);
-            } else {
-                const toastElement = document.getElementById('successToast');
-                document.getElementById('toastMessage').innerText = `Invitation sent to ${email}`;
-                const successToast = new bootstrap.Toast(toastElement, { delay: 3000 });
-                successToast.show();
-            }
-
-            submitBtn.innerHTML = 'Send Secure Invite';
-            submitBtn.disabled = false;
-        });
 
         const reviewScrollRoot=document.getElementById('view-case-management').parentElement;
         reviewPageHost=createReviewPageHost(document,{getScroll:()=>reviewScrollRoot.scrollTop,setScroll:y=>{reviewScrollRoot.scrollTop=y;}});
@@ -2204,84 +2188,6 @@
         window.openExecutiveReview = id => void executiveReview.open(id);
         document.getElementById('qa-resolution-form').addEventListener('submit',event=>event.preventDefault());
         document.getElementById('exec-resolution-form').addEventListener('submit',event=>event.preventDefault());
-
-        // --- LIVE ENTERPRISE TEAM DIRECTORY ENGINE (NO MOCK DATA) ---
-        window.loadTeamDirectory = async () => {
-            try {
-                const tbody = document.getElementById('team-directory-body');
-                if (!tbody) return;
-
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span> Syncing Live Team Telemetry...</td></tr>';
-
-                // 1. Fetch live profiles from the database
-                const { data: teamMembers, error: teamError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .order('full_name', { ascending: true });
-
-                if (teamError) throw teamError;
-
-                // 2. Fetch live alert workloads
-                const groupedWorkload = await analyticsController.getRecordedCaseWorkload();
-                
-                // 3. Fetch recent system activity to calculate "Pulse" (last 15 mins)
-                const { data: events } = await supabase
-                    .from('system_events')
-                    .select('user_id, created_at')
-                    .order('created_at', { ascending: false });
-
-                tbody.innerHTML = '';
-
-                if (!teamMembers || teamMembers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No operational team accounts found in database. Click "Provision" to invite members.</td></tr>';
-                    return;
-                }
-
-                teamMembers.forEach(officer => {
-                    // Match real-time workloads
-                    const activeCases = groupedWorkload.filter(g => g.owner === officer.id && g.status === 'INVESTIGATING').length;
-                    const resolvedCases = groupedWorkload.filter(g => g.owner === officer.id && g.status === 'CLOSED').length;
-
-                    // Match telemetry using system event footprint
-                    const userEvents = events ? events.filter(e => e.user_id === officer.id) : [];
-                    const lastEvent = userEvents.length > 0 ? new Date(userEvents[0].created_at) : null;
-                    const isOnline = lastEvent && (new Date() - lastEvent) / 60000 < 15; 
-                    
-                    const statusText = isOnline ? "Recently active" : "Not recently observed";
-                    const badgeClass = isOnline ? "bg-success" : "bg-secondary";
-                    const lastActiveTime = lastEvent ? lastEvent.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Never";
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-4 py-3">
-                            <div class="fw-bold text-dark small">${officer.full_name || 'Active Officer'}</div>
-                            <div class="text-muted font-monospace" style="font-size: 0.7rem;">${officer.email}</div>
-                        </td>
-                        <td class="py-3">
-                            <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1 small fw-semibold uppercase" style="font-size: 0.65rem;">${(officer.role || 'compliance_officer').replace(/_/g, ' ')}</span>
-                        </td>
-                        <td class="py-3">
-                            <div class="small fw-medium text-dark">Grouped active cases: <span class="text-danger fw-bold">${activeCases}</span></div>
-                            <div class="text-muted" style="font-size: 0.7rem;">Grouped closed cases: ${resolvedCases}</div>
-                        </td>
-                        <td class="py-3">
-                            <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.substring(3)} border px-2 py-1 d-inline-flex align-items-center gap-1">
-                                <span class="material-symbols-outlined" style="font-size: 10px;">fiber_manual_record</span> ${statusText}
-                            </span>
-                            <div class="text-muted mt-1" style="font-size: 0.65rem;">Last Action: ${lastActiveTime}</div>
-                        </td>
-                        <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-outline-danger font-monospace fw-bold" onclick="alert('Governance: Revoke restricted to IT-Admin support window.')" style="font-size: 0.65rem;">REVOKE</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-            } catch (err) {
-                console.error("Live team directory engine failure:", err);
-                document.getElementById('team-directory-body').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger small">Failed to connect to directory matrix.</td></tr>';
-            }
-        };
 
         // --- IMMUTABLE VAULT LOGIC ---
         window.loadReportArchive = async () => {
@@ -2981,92 +2887,6 @@
         };
         window.toggleRuleInputs=()=>{};
         document.getElementById('rule-builder-form')?.addEventListener('submit',e=>{e.preventDefault();window.location.assign('./rule-governance.html');});
-        // --- LIVE ENTERPRISE TEAM DIRECTORY ENGINE (NO MOCK DATA) ---
-        window.loadTeamDirectory = async () => {
-            try {
-                const tbody = document.getElementById('team-directory-body');
-                if (!tbody) return;
-
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><span class="spinner-border spinner-border-sm me-2"></span> Syncing Live Team Telemetry...</td></tr>';
-
-                // 1. Securely extract the active user's Tenant ID
-                const { data: { session } } = await supabase.auth.getSession();
-                const jwtPayload = JSON.parse(atob(session.access_token.split('.')[1]));
-                const currentTenantId = jwtPayload.app_metadata?.tenant_id;
-
-                // 2. Fetch live profiles: ISOLATED by Tenant ID, EXCLUDING IT Admins
-                const { data: teamMembers, error: teamError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('tenant_id', currentTenantId)
-                    .neq('role', 'it_admin')
-                    .neq('role', 'system_admin')
-                    .order('full_name', { ascending: true });
-
-                if (teamError) throw teamError;
-
-                // 3. Fetch live alert workloads
-                const groupedWorkload = await analyticsController.getRecordedCaseWorkload();
-                
-                // 4. Fetch recent system activity to calculate "Pulse" (last 15 mins)
-                const { data: events } = await supabase
-                    .from('system_events')
-                    .select('user_id, created_at')
-                    .order('created_at', { ascending: false });
-
-                tbody.innerHTML = '';
-
-                if (!teamMembers || teamMembers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No operational team accounts found in this tenancy block. Click "Provision" to invite members.</td></tr>';
-                    return;
-                }
-
-                teamMembers.forEach(officer => {
-                    // Match real-time workloads
-                    const activeCases = groupedWorkload.filter(g => g.owner === officer.id && g.status === 'INVESTIGATING').length;
-                    const resolvedCases = groupedWorkload.filter(g => g.owner === officer.id && g.status === 'CLOSED').length;
-
-                    // Match telemetry using system event footprint
-                    const userEvents = events ? events.filter(e => e.user_id === officer.id) : [];
-                    const lastEvent = userEvents.length > 0 ? new Date(userEvents[0].created_at) : null;
-                  const isOnline = lastEvent && (new Date() - lastEvent) / 60000 < 15; 
-                    
-                    const statusText = isOnline ? "Recently active" : "Not recently observed";
-                    const badgeClass = isOnline ? "bg-success" : "bg-dark"; // Removed purple override
-                    const lastActiveTime = lastEvent ? lastEvent.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Never";
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-4 py-3">
-                            <div class="fw-bold text-dark small">${officer.full_name || 'Active Officer'}</div>
-                            <div class="text-muted font-monospace" style="font-size: 0.7rem;">${officer.email}</div>
-                        </td>
-                        <td class="py-3">
-                            <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1 small fw-semibold uppercase" style="font-size: 0.65rem;">${(officer.role || 'compliance_officer').replace(/_/g, ' ')}</span>
-                        </td>
-                        <td class="py-3">
-                            <div class="small fw-medium text-dark">Grouped active cases: <span class="text-danger fw-bold">${activeCases}</span></div>
-                            <div class="text-muted" style="font-size: 0.7rem;">Grouped closed cases: ${resolvedCases}</div>
-                        </td>
-                        <td class="py-3">
-                            <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.substring(3)} border px-2 py-1 d-inline-flex align-items-center gap-1">
-                                <span class="material-symbols-outlined" style="font-size: 10px;">fiber_manual_record</span> ${statusText}
-                            </span>
-                            <div class="text-muted mt-1" style="font-size: 0.65rem;">Last Action: ${lastActiveTime}</div>
-                        </td>
-                        <td class="px-4 py-3 text-end">
-                            <button class="btn btn-sm btn-outline-danger font-monospace fw-bold" onclick="alert('Governance: Revoke restricted to IT-Admin support window.')" style="font-size: 0.65rem;">REVOKE</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-            } catch (err) {
-                console.error("Live team directory engine failure:", err);
-                document.getElementById('team-directory-body').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger small">Failed to connect to directory matrix.</td></tr>';
-            }
-        };
-
         // --- DISPLAY-ONLY REALTIME SUBSCRIPTIONS ---
         function initializeRealtimePulse() {
             console.log("🟢 Establishing display-only realtime updates...");
@@ -3296,26 +3116,6 @@
         loadTxMonitoring();
         loadLiveTransactions();
         initializeRealtimePulse();
-
-        async function loadDynamicRoles() {
-            const roleSelect = document.getElementById('role-select'); 
-            if (!roleSelect) return;
-
-            const { data: customRoles, error } = await supabase.from('custom_roles').select('role_name');
-            if (error) return console.error("Failed to load custom roles:", error);
-
-            if (customRoles && customRoles.length > 0) {
-                const optGroup = document.createElement('optgroup');
-                optGroup.label = "Bank-Specific Roles"; 
-                customRoles.forEach(role => {
-                    const option = document.createElement('option');
-                    option.value = role.role_name;
-                    option.innerText = role.role_name;
-                    optGroup.appendChild(option);
-                });
-                roleSelect.appendChild(optGroup);
-            }
-        }
 
        // ==========================================
         // PROACTIVE INVESTIGATION WORKSPACE ENGINE (ENTERPRISE ENHANCED)
