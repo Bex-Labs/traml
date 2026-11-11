@@ -313,14 +313,36 @@
                             <div class="col-6"><label class="form-label small fw-bold text-muted text-uppercase mb-1">Last Name</label><input type="text" class="form-control form-control-dense" id="ob-last-name" required></div>
                         </div>
 
-                        <div class="mb-3 d-none" id="ob-corporate-fields">
-                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Entity Name (Business)</label>
-                            <input type="text" class="form-control form-control-dense" id="ob-entity-name">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase mb-1">BVN (11 Digits)</label>
-                            <input type="text" class="form-control form-control-dense font-mono text-primary fw-bold" id="ob-bvn" maxlength="11" required>
+                        <fieldset class="mb-3" id="ob-corporate-fields" hidden disabled>
+                            <div class="mb-3">
+                                <label class="form-label" for="ob-entity-name">Registered company name</label>
+                                <input class="form-control" id="ob-entity-name" maxlength="200" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="ob-registration">CAC registration number (RC)</label>
+                                <input class="form-control" id="ob-registration" placeholder="RC123456" maxlength="24" required>
+                            </div>
+                            <div id="ob-company-people"></div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="ob-add-person">Add linked person</button>
+                        </fieldset>
+                        <template id="ob-person-template">
+                            <fieldset class="border rounded p-3 mb-2 ob-person">
+                                <legend class="float-none w-auto fs-6 px-1">Linked person</legend>
+                                <label class="form-label d-block">Full name <input class="form-control ob-person-name" maxlength="200" required></label>
+                                <label class="form-label d-block">Role
+                                    <select class="form-select ob-person-role">
+                                        <option value="DIRECTOR">Director</option>
+                                        <option value="SIGNATORY">Authorised signatory</option>
+                                        <option value="BENEFICIAL_OWNER">Beneficial owner</option>
+                                    </select>
+                                </label>
+                                <label class="form-label d-block">BVN <input class="form-control ob-person-bvn" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" required></label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ob-remove-person">Remove</button>
+                            </fieldset>
+                        </template>
+                        <div class="mb-3" id="ob-retail-bvn">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-1" for="ob-bvn">BVN (11 Digits)</label>
+                            <input type="text" class="form-control form-control-dense font-mono text-primary fw-bold" id="ob-bvn" inputmode="numeric" maxlength="11" required>
                         </div>
 
                         <hr class="my-4">
@@ -1147,7 +1169,7 @@
         const cashStorageKey = () => `coreaml.cash.${sessionTenantId}.${sessionUser.id}`;
         function renderCashAttempt() {
             const form = document.getElementById('tx-form');
-            form.querySelectorAll('input, select').forEach(el => { el.disabled = !!cashAttempt || cashBusy; });
+            form.querySelectorAll('input, select, #ob-add-person, .ob-remove-person').forEach(el => { el.disabled = !!cashAttempt || cashBusy; });
             const total = document.getElementById('matrix-total');
             if (cashAttempt && total) total.innerText = formatter.format(cashAttempt.payload.p_amount);
             const btn = document.getElementById('btn-post-tx');
@@ -1372,14 +1394,34 @@
         // ==========================================
         // ONBOARDING (MAKER)
         // ==========================================
+        const companyPeople = document.getElementById('ob-company-people');
+        const addPersonButton = document.getElementById('ob-add-person');
+        function updatePersonControls() {
+            addPersonButton.disabled = companyPeople.childElementCount >= 50;
+            for (const button of companyPeople.querySelectorAll('.ob-remove-person')) {
+                button.disabled = companyPeople.childElementCount === 1;
+            }
+        }
+        function addCompanyPerson() {
+            const row = document.getElementById('ob-person-template').content.firstElementChild.cloneNode(true);
+            row.querySelector('.ob-remove-person').addEventListener('click', () => {
+                row.remove();
+                updatePersonControls();
+            });
+            companyPeople.append(row);
+            updatePersonControls();
+        }
+        addPersonButton.addEventListener('click', addCompanyPerson);
+        addCompanyPerson();
+
         window.toggleObType = () => {
-            const type = document.getElementById('ob-type').value;
-            if (type === 'RETAIL') {
-                document.getElementById('ob-retail-fields').classList.remove('d-none'); document.getElementById('ob-corporate-fields').classList.add('d-none');
-                document.getElementById('ob-first-name').required = true; document.getElementById('ob-last-name').required = true; document.getElementById('ob-entity-name').required = false;
-            } else {
-                document.getElementById('ob-retail-fields').classList.add('d-none'); document.getElementById('ob-corporate-fields').classList.remove('d-none');
-                document.getElementById('ob-first-name').required = false; document.getElementById('ob-last-name').required = false; document.getElementById('ob-entity-name').required = true;
+            const corporate = document.getElementById('ob-type').value === 'CORPORATE';
+            document.getElementById('ob-retail-fields').classList.toggle('d-none', corporate);
+            document.getElementById('ob-retail-bvn').hidden = corporate;
+            const company = document.getElementById('ob-corporate-fields');
+            company.hidden = company.disabled = !corporate;
+            for (const id of ['ob-first-name', 'ob-last-name', 'ob-bvn']) {
+                document.getElementById(id).required = !corporate;
             }
         };
 
@@ -1398,22 +1440,31 @@
                         lastName: document.getElementById('ob-last-name').value,
                         entityName: document.getElementById('ob-entity-name').value,
                         bvn: document.getElementById('ob-bvn').value,
+                        registrationNumber: document.getElementById('ob-registration').value,
+                        people: [...companyPeople.children].map(row => ({
+                            full_name: row.querySelector('.ob-person-name').value,
+                            role: row.querySelector('.ob-person-role').value,
+                            bvn: row.querySelector('.ob-person-bvn').value
+                        })),
                         idFile: document.getElementById('ob-id-file').files[0],
                         utilityFile: document.getElementById('ob-utility-file').files[0]
                     }, sessionTenantId);
                 }
-                form.querySelectorAll('input, select').forEach(el => { el.disabled = true; });
+                form.querySelectorAll('input, select, #ob-add-person, .ob-remove-person').forEach(el => { el.disabled = true; });
                 const result = await submitOnboardingAttempt(supabase, onboardingAttempt);
                 onboardingAttempt = null;
-                form.querySelectorAll('input, select').forEach(el => { el.disabled = false; });
+                form.querySelectorAll('input, select, #ob-add-person, .ob-remove-person').forEach(el => { el.disabled = false; });
                 form.reset();
+                companyPeople.replaceChildren();
+                addCompanyPerson();
                 toggleObType();
                 alert(`Application confirmed. Account ${result.account_number}: ${result.account_status}. Pending accounts await KYC approval.`);
             } catch (err) {
                 if (!err.keepAttempt) onboardingAttempt = null;
                 alert(err.message || 'Onboarding failed.');
             } finally {
-                if (!onboardingAttempt) form.querySelectorAll('input, select').forEach(el => { el.disabled = false; });
+                if (!onboardingAttempt) form.querySelectorAll('input, select, #ob-add-person, .ob-remove-person').forEach(el => { el.disabled = false; });
+                if (!onboardingAttempt) updatePersonControls();
                 btn.innerHTML = onboardingAttempt ? 'CONFIRM PREVIOUS SUBMISSION' : 'ROUTE TO CENTRAL COMPLIANCE';
                 btn.disabled = false;
             }
