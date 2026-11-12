@@ -43,42 +43,42 @@ function parseRoster(payload) {
     });
 }
 
-function publicationSql(rows, lit) {
+function publicationSql(rows, lit, sourceName = source) {
     return `BEGIN;
 SET LOCAL standard_conforming_strings = on;
 LOCK TABLE coreaml_private.pep_officeholder_records IN SHARE ROW EXCLUSIVE MODE;
-CREATE TEMP TABLE senate_roster_import ON COMMIT DROP AS
+CREATE TEMP TABLE pep_roster_import ON COMMIT DROP AS
 SELECT * FROM jsonb_to_recordset(${lit(JSON.stringify(rows))}::jsonb)
 AS r(source_reference text, full_name text, public_role text, jurisdiction text);
 DO $$
 DECLARE previous_count integer; incoming_count integer;
 BEGIN
     SELECT count(*) INTO previous_count
-    FROM coreaml_private.pep_officeholder_records WHERE source_name=${lit(source)};
-    SELECT count(*) INTO incoming_count FROM pg_temp.senate_roster_import;
+    FROM coreaml_private.pep_officeholder_records WHERE source_name=${lit(sourceName)};
+    SELECT count(*) INTO incoming_count FROM pg_temp.pep_roster_import;
     IF previous_count > 0 AND incoming_count * 10 < previous_count * 9 THEN
-        RAISE EXCEPTION 'Senate roster shrank by more than 10 percent. Inspect the source before publishing.';
+        RAISE EXCEPTION 'Officeholder roster shrank by more than 10 percent. Inspect the source before publishing.';
     END IF;
     IF EXISTS (
-        SELECT 1 FROM pg_temp.senate_roster_import i
+        SELECT 1 FROM pg_temp.pep_roster_import i
         JOIN coreaml_private.pep_officeholder_records r USING (source_reference)
-        WHERE r.source_name <> ${lit(source)}
+        WHERE r.source_name <> ${lit(sourceName)}
     ) THEN
-        RAISE EXCEPTION 'A Senate profile reference belongs to another source.';
+        RAISE EXCEPTION 'An officeholder reference belongs to another source.';
     END IF;
 END
 $$;
 DELETE FROM coreaml_private.pep_officeholder_records r
-WHERE r.source_name=${lit(source)}
-  AND NOT EXISTS (SELECT 1 FROM pg_temp.senate_roster_import i WHERE i.source_reference=r.source_reference);
+WHERE r.source_name=${lit(sourceName)}
+  AND NOT EXISTS (SELECT 1 FROM pg_temp.pep_roster_import i WHERE i.source_reference=r.source_reference);
 INSERT INTO coreaml_private.pep_officeholder_records
     (source_reference,full_name,public_role,jurisdiction,source_name,checked_at,valid_until)
-SELECT source_reference,full_name,public_role,jurisdiction,${lit(source)},now(),now()+interval '7 days'
-FROM pg_temp.senate_roster_import
+SELECT source_reference,full_name,public_role,jurisdiction,${lit(sourceName)},now(),now()+interval '7 days'
+FROM pg_temp.pep_roster_import
 ON CONFLICT (source_reference) DO UPDATE SET
     full_name=excluded.full_name, public_role=excluded.public_role,
     jurisdiction=excluded.jurisdiction, checked_at=excluded.checked_at, valid_until=excluded.valid_until;
-SELECT count(*) FROM coreaml_private.pep_officeholder_records WHERE source_name=${lit(source)};
+SELECT count(*) FROM coreaml_private.pep_officeholder_records WHERE source_name=${lit(sourceName)};
 COMMIT;`;
 }
 
