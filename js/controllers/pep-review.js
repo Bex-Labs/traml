@@ -161,8 +161,9 @@ export function attachPepReview(client, Modal) {
             for (const match of onboarding.source_evidence) {
                 const item = element('div', '', 'border-top py-2 small');
                 const reference = element('div', match.source_reference, 'text-break');
-                if (/^https:\/\/www\.nass\.gov\.ng\/mps\/single\/[1-9]\d{0,11}$/.test(match.source_reference)) {
-                    const link = element('a', 'National Assembly profile');
+                const executive = /^https:\/\/statehouse\.gov\.ng\/(?:the-cabinet|people)\/#:~:text=[A-Za-z0-9%._~!-]+$/.test(match.source_reference);
+                if (executive || /^https:\/\/www\.nass\.gov\.ng\/mps\/single\/[1-9]\d{0,11}$/.test(match.source_reference)) {
+                    const link = element('a', executive ? 'State House source' : 'National Assembly profile');
                     link.href = match.source_reference;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
