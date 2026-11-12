@@ -623,6 +623,7 @@
                                 <button id="tab-kyc-pending" class="btn btn-sm btn-outline-dark fw-bold px-3">Pending EDD</button>
                                 <button id="tab-kyc-completed" class="btn btn-sm btn-outline-dark fw-bold px-3">Verified</button>
                             </div>
+                            <button id="kyc-pep-queue" type="button" class="btn btn-sm btn-outline-dark">PEP review queue</button>
                             <div class="input-group input-group-sm shadow-sm" style="width: 250px;">
                                 <span class="input-group-text bg-white border-end-0"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
                                 <input type="text" class="form-control border-start-0 ps-0" id="kyc-directory-search" placeholder="Search BVN, RC or Name...">
@@ -1876,11 +1877,13 @@
         import { openAlertEvidence } from "./js/controllers/alert-evidence.controller.js?v=review-pages-1";
         import {createReviewPageHost,mountReadTabs} from "./js/controllers/review-page-host.js?v=pages-1";
         import {createReviewDetailReadService} from "./js/services/review-detail-read.service.js";
-        import * as kycController from "./js/controllers/kyc.controller.js";
+        import * as kycController from "./js/controllers/kyc.controller.js?v=pep-review-1";
         import { createKycReview, submitKycReview } from "./js/services/kyc-review.service.js";
         import { attachProvnSandbox } from "./js/controllers/provn-sandbox.controller.js";
+        import { attachPepReview } from "./js/controllers/pep-review.js?v=pep-senate-1";
         import { attachKycSanctionsPilot } from "./js/controllers/kyc-sanctions-pilot.js?v=hosted-5";
         attachProvnSandbox(supabase);
+        attachPepReview(supabase, bootstrap.Modal);
         const enableSanctionsReferrals = attachKycSanctionsPilot(supabase);
         import * as txController from "./js/controllers/transactions.controller.js";
         import {resolveWorkspaceOwner, renderWorkspaceOwner} from "./js/controllers/workspace-owner.js";

@@ -337,6 +337,14 @@
                                     </select>
                                 </label>
                                 <label class="form-label d-block">BVN <input class="form-control ob-person-bvn" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" required></label>
+                                <label class="form-label d-block">PEP declaration
+                                    <select class="form-select ob-person-pep" required>
+                                        <option value="">Select a declaration</option>
+                                        <option value="NO_EXPOSURE">No exposure declared</option>
+                                        <option value="EXPOSURE">Public office, family or close association declared</option>
+                                        <option value="UNKNOWN">Declaration unavailable</option>
+                                    </select>
+                                </label>
                                 <button type="button" class="btn btn-sm btn-outline-secondary ob-remove-person">Remove</button>
                             </fieldset>
                         </template>
@@ -938,7 +946,7 @@
     <script type="module">
         import { supabase } from './js/config.js';
         import {getVerifiedSession} from './js/services/auth.service.js?v=admin-manager-1';
-        import { createOnboardingAttempt, submitOnboardingAttempt } from './js/services/onboarding.service.js';
+        import { createOnboardingAttempt, submitOnboardingAttempt } from './js/services/onboarding.service.js?v=pep-declaration-1';
 
         let sessionUser = null; let sessionTenantId = null; let userRole = null;
         let activeTill = null; let eodModalInstance = null;
@@ -1444,6 +1452,7 @@
                         people: [...companyPeople.children].map(row => ({
                             full_name: row.querySelector('.ob-person-name').value,
                             role: row.querySelector('.ob-person-role').value,
+                            pep_declaration: row.querySelector('.ob-person-pep').value,
                             bvn: row.querySelector('.ob-person-bvn').value
                         })),
                         idFile: document.getElementById('ob-id-file').files[0],
