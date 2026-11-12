@@ -34,7 +34,8 @@ export function createOnboardingAttempt(input, tenantId, customerId = crypto.ran
         const entityName = input.entityName?.trim();
         const registration = input.registrationNumber?.trim().toUpperCase().replace(/^RC[ -]*/, '').trim();
         const people = (input.people || []).map(person => Object.freeze({
-            full_name: person.full_name.trim(), role: person.role, bvn: person.bvn.trim()
+            full_name: person.full_name.trim(), role: person.role, bvn: person.bvn.trim(),
+            pep_declaration: person.pep_declaration
         }));
         if (!entityName || entityName.length > 200 || !/^[0-9]{1,20}$/.test(registration || '')) {
             throw new Error('Enter the registered company name and a valid CAC RC number.');
@@ -43,6 +44,9 @@ export function createOnboardingAttempt(input, tenantId, customerId = crypto.ran
             !person.full_name || person.full_name.length > 200 || !/^[0-9]{11}$/.test(person.bvn) ||
             !['DIRECTOR', 'SIGNATORY', 'BENEFICIAL_OWNER'].includes(person.role))) {
             throw new Error('Enter a name, role, and 11-digit BVN for each linked person.');
+        }
+        if (people.some(person => !['NO_EXPOSURE', 'EXPOSURE', 'UNKNOWN'].includes(person.pep_declaration))) {
+            throw new Error('Record a PEP declaration for each linked person.');
         }
         rpc = 'onboard_corporate_customer';
         payload = { ...documents, p_entity_name: entityName, p_registration_number: registration,
