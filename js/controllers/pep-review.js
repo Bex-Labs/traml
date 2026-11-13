@@ -162,8 +162,11 @@ export function attachPepReview(client, Modal) {
                 const item = element('div', '', 'border-top py-2 small');
                 const reference = element('div', match.source_reference, 'text-break');
                 const executive = /^https:\/\/statehouse\.gov\.ng\/(?:the-cabinet|people)\/#:~:text=[A-Za-z0-9%._~!-]+$/.test(match.source_reference);
-                if (executive || /^https:\/\/www\.nass\.gov\.ng\/mps\/single\/[1-9]\d{0,11}$/.test(match.source_reference)) {
-                    const link = element('a', executive ? 'State House source' : 'National Assembly profile');
+                const governor = /^https:\/\/www\.ngf\.org\.ng\/index\.php\/the-ngf\/governors\/[1-9]\d{0,11}-[a-z]+(?:-[a-z]+)*-state-governor$/.test(match.source_reference);
+                if (governor || executive || /^https:\/\/www\.nass\.gov\.ng\/mps\/single\/[1-9]\d{0,11}$/.test(match.source_reference)) {
+                    const label = governor ? 'Nigeria Governors’ Forum profile'
+                        : executive ? 'State House source' : 'National Assembly profile';
+                    const link = element('a', label);
                     link.href = match.source_reference;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
