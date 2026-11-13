@@ -19,6 +19,7 @@ const roles = {
 const triggers = {
     DECLARATION: 'Onboarding declaration',
     POSSIBLE_MATCH: 'Officeholder name match',
+    ROSTER_RESCREEN: 'Roster rescreening match',
     SCREENING_INCOMPLETE: 'Incomplete screening'
 };
 
@@ -154,11 +155,15 @@ export function attachPepReview(client, Modal) {
         editor.append(element('p', prior ? outcomes[prior.status] : 'No review recorded', 'fw-semibold mb-1'));
         if (prior) editor.append(element('p', prior.evidence, 'small text-break'));
         const onboarding = subject.onboarding;
-        if (onboarding) {
+        const evidenceGroups = [
+            onboarding,
+            subject.rescreening?.length && { reason: 'ROSTER_RESCREEN', source_evidence: subject.rescreening }
+        ].filter(Boolean);
+        for (const group of evidenceGroups) {
             const details = element('section', '', 'border rounded p-3 mb-3');
-            details.append(element('h3', triggers[onboarding.reason], 'fs-6'),
-                element('p', assignment(onboarding), 'small mb-2'));
-            for (const match of onboarding.source_evidence) {
+            details.append(element('h3', triggers[group.reason], 'fs-6'));
+            if (group === onboarding) details.append(element('p', assignment(group), 'small mb-2'));
+            for (const match of group.source_evidence) {
                 const item = element('div', '', 'border-top py-2 small');
                 const reference = element('div', match.source_reference, 'text-break');
                 const executive = /^https:\/\/statehouse\.gov\.ng\/(?:the-cabinet|people)\/#:~:text=[A-Za-z0-9%._~!-]+$/.test(match.source_reference);
