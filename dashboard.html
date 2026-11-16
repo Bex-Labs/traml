@@ -612,6 +612,7 @@
                 </div>
 
                 <div id="view-kyc-directory" class="d-none h-100 d-flex flex-column">
+                    <div id="kyc-directory-content" class="flex-grow-1 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
                         <div>
                             <h4 class="fw-bold text-dark mb-1">Customer Profile Directory</h4>
@@ -623,7 +624,10 @@
                                 <button id="tab-kyc-pending" class="btn btn-sm btn-outline-dark fw-bold px-3">Pending EDD</button>
                                 <button id="tab-kyc-completed" class="btn btn-sm btn-outline-dark fw-bold px-3">Verified</button>
                             </div>
-                            <button id="kyc-pep-queue" type="button" class="btn btn-sm btn-outline-dark">PEP review queue</button>
+                            <div class="btn-group shadow-sm" aria-label="PEP worklists">
+                                <button id="kyc-pep-queue" type="button" class="btn btn-sm btn-outline-dark fw-bold">PEP review queue</button>
+                                <button id="kyc-pep-monitoring" type="button" class="btn btn-sm btn-outline-dark fw-bold">Enhanced monitoring</button>
+                            </div>
                             <div class="input-group input-group-sm shadow-sm" style="width: 250px;">
                                 <span class="input-group-text bg-white border-end-0"><span class="material-symbols-outlined fs-6 text-muted">search</span></span>
                                 <input type="text" class="form-control border-start-0 ps-0" id="kyc-directory-search" placeholder="Search BVN, RC or Name...">
@@ -649,6 +653,15 @@
                         </div>
                         <div class="card-footer bg-white d-flex justify-content-between align-items-center small"><span id="kyc-directory-count"></span><div><button type="button" id="kyc-page-prev" class="btn btn-sm btn-outline-secondary">Previous</button> <button type="button" id="kyc-page-next" class="btn btn-sm btn-outline-secondary">Next</button></div></div>
                     </div>
+                    </div>
+                    <section id="kyc-pep-workspace" class="d-none" aria-labelledby="pep-review-title">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-4">
+                            <h4 id="pep-review-title" class="fw-bold text-dark mb-0" tabindex="-1">PEP review</h4>
+                            <button id="kyc-pep-back" type="button" class="btn btn-sm btn-outline-secondary">← Customer directory</button>
+                        </div>
+                        <p id="pep-review-status" class="small text-muted" role="status"></p>
+                        <div id="pep-review-content"></div>
+                    </section>
                 </div>
 
                 <div id="view-case-management" class="d-none d-flex flex-column">
@@ -1877,13 +1890,13 @@
         import { openAlertEvidence } from "./js/controllers/alert-evidence.controller.js?v=review-pages-1";
         import {createReviewPageHost,mountReadTabs} from "./js/controllers/review-page-host.js?v=pages-1";
         import {createReviewDetailReadService} from "./js/services/review-detail-read.service.js";
-        import * as kycController from "./js/controllers/kyc.controller.js?v=pep-review-1";
+        import * as kycController from "./js/controllers/kyc.controller.js?v=pep-in-kyc-1";
         import { createKycReview, submitKycReview } from "./js/services/kyc-review.service.js";
+        import { mountPepReview } from "./js/controllers/pep-review.js?v=monitoring-ledger-1";
         import { attachProvnSandbox } from "./js/controllers/provn-sandbox.controller.js";
-        import { attachPepReview } from "./js/controllers/pep-review.js?v=roster-rescreen-1";
         import { attachKycSanctionsPilot } from "./js/controllers/kyc-sanctions-pilot.js?v=hosted-5";
         attachProvnSandbox(supabase);
-        attachPepReview(supabase, bootstrap.Modal);
+        const pepWorkspace = mountPepReview(supabase);
         const enableSanctionsReferrals = attachKycSanctionsPilot(supabase);
         import * as txController from "./js/controllers/transactions.controller.js";
         import {resolveWorkspaceOwner, renderWorkspaceOwner} from "./js/controllers/workspace-owner.js";
@@ -1994,6 +2007,7 @@
                 const requestedReturn = new URL(window.location.href).searchParams.get('view');
                 const savedView = requestedReturn === 'case-management' ? 'case-management'
                     : requestedReturn === 'command-center' ? 'command-center'
+                    : requestedReturn === 'kyc' ? 'kyc'
                     : storedView === 'investigation-workspace' ? 'case-management'
                     : storedView === 'intelligence' ? 'command-center' : storedView;
                 if (savedView) {
@@ -2081,6 +2095,7 @@
                 workspaceTimeline.clear();
                 if (activeCaseDraft) { activeCaseDraft.dispose(); activeCaseDraft = null; }
             }
+            if (!pepWorkspace.close()) return;
             if (viewName !== 'tx-monitoring') txController.clearTxMonitoring();
 
             // Persist the user's active view securely to their specific session ID
