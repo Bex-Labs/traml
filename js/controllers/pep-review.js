@@ -455,6 +455,7 @@ export function mountPepReview(client) {
                 && (awaitingOfficer || ![data.preparer, data.actor_id].includes(data.staff_id));
             const stateLabels = eddStages;
             if (latest) results.append(element('h6', stateLabels[latest.action]));
+            if (data.preparer) results.append(element('p', `Preparing officer: ${data.preparer_label ?? data.preparer}`, 'small'));
             if (awaitingOfficer && !data.superseded) {
                 results.append(element('p', 'Return this submission so a compliance officer can take over and submit it.', 'small text-muted'));
             } else if (!latest && !editable && !data.superseded) {
@@ -474,6 +475,24 @@ export function mountPepReview(client) {
                     summary.append(element('dt', label, 'col-sm-4'), element('dd', checks[key] || '—', 'col-sm-8 text-break'));
                 }
                 results.append(summary);
+            }
+            const assignments = data.reassignments ?? [];
+            if (assignments.length) {
+                const history = element('details', '', 'my-3');
+                history.append(element('summary', 'Reassignment history'));
+                for (const entry of assignments) {
+                    const row = element('div', '', 'border-bottom py-2 small');
+                    row.append(element('p', `${entry.previous_officer ?? 'Unassigned'} → ${entry.officer}`, 'fw-semibold mb-1'),
+                        element('p', `${entry.actor} · ${new Date(entry.created_at).toLocaleString()}`, 'text-muted mb-1'),
+                        element('p', entry.reason, 'text-break mb-1'));
+                    history.append(row);
+                }
+                results.append(history);
+            }
+            if (data.role === 'head_of_compliance' && !data.superseded
+                && ['DRAFT','RETURNED'].includes(latest?.action)) {
+                showReassignment(data, latest, customer, subject);
+                return;
             }
             if (!editable && !canReview) return;
 
@@ -512,6 +531,33 @@ export function mountPepReview(client) {
                 return {...args,p_request:pending.id};
             }, () => showEdd(data.id, customer, subject), 'EDD update saved.');
         });
+    }
+
+    function showReassignment(data, latest, customer, subject) {
+        if (!data.officers?.length) {
+            results.append(element('p', 'No other active compliance officer is available.', 'small text-muted'));
+            return;
+        }
+        const control = button('Reassign EDD', () => {
+            control.remove();
+            const form = element('form');
+            const officer = options(Object.fromEntries(data.officers.map(person => [person.id,person.label])),
+                data.officers.map(person => person.id), 'Select an officer');
+            officer.required = true;
+            const reason = monitoringNotes();
+            form.append(field('New preparing officer', officer), field('Reassignment reason', reason));
+            let pending;
+            submitMonitoring(form, 'Save reassignment', 'coreaml_reassign_pep_edd', () => {
+                const args = {
+                    p_exposure: data.id, p_edd_event: latest.id, p_prior_assignment: data.reassignments[0]?.id ?? null,
+                    p_officer: officer.value, p_reason: reason.value.trim()
+                };
+                const signature = JSON.stringify(args);
+                if (pending?.signature !== signature) pending = {signature,id:crypto.randomUUID()};
+                return {...args,p_request:pending.id};
+            }, () => showEdd(data.id, customer, subject), 'EDD reassigned.');
+        });
+        results.append(control);
     }
 
     function showMonitoring(offset = 0) {
