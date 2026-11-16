@@ -6,6 +6,13 @@ const outcomes = {
     CONFIRMED_EXPOSURE: 'Confirmed exposure',
     EDD_REVIEWED: 'EDD reviewed'
 };
+const eddStages = {
+    NOT_STARTED: 'EDD not started',
+    DRAFT: 'EDD draft',
+    SUBMITTED: 'Awaiting Head review',
+    RETURNED: 'Returned to officer',
+    APPROVED: 'EDD approved'
+};
 const exposures = {
     DOMESTIC: 'Domestic', FOREIGN: 'Foreign',
     INTERNATIONAL_ORGANISATION: 'International organisation',
@@ -18,6 +25,8 @@ const roles = {
 
 const triggers = {
     DECLARATION: 'Onboarding declaration',
+    CUSTOMER_DECLARATION: 'Customer declaration',
+    OFFICER_RESEARCH: 'Officer research',
     POSSIBLE_MATCH: 'Officeholder name match',
     ROSTER_RESCREEN: 'Roster rescreening match',
     SCREENING_INCOMPLETE: 'Incomplete screening'
@@ -168,11 +177,13 @@ export function mountPepReview(client) {
             }
             results.append(tabs);
             renderWorklist({
-                columns: ['Person', 'Customer', 'Status', 'Referral', 'Assignment'],
+                columns: ['Person', 'Customer', 'Status', 'EDD stage', 'Referral', 'Assignment'],
                 rows: rows.map(row => ({
-                    values: [row.subject_name, row.customer_name, outcomes[row.status], triggers[row.reason],
+                    values: [row.subject_name, row.customer_name, outcomes[row.status], eddStages[row.edd_stage], triggers[row.reason],
                         row.reason ? assignment(row) : '—'].map(value => value ?? '—'),
-                    action: button('Open review', () => void showCustomer(row.customer_id, row.subject_id))
+                    action: row.edd_stage
+                        ? button('Open EDD', () => void showEdd(row.id, row.customer_id, row.subject_id))
+                        : button('Open review', () => void showCustomer(row.customer_id, row.subject_id))
                 })),
                 empty: 'No PEP reviews on this page.', offset, load: showQueue,
                 otherLabel: 'Enhanced monitoring', openOther: () => void showMonitoring()
@@ -181,7 +192,7 @@ export function mountPepReview(client) {
     }
 
     function showCustomer(customer, focusSubject) {
-        return read('coreaml_pep_subjects', {p_customer: customer}, 'PEP review', ({subjects}) => {
+        return read('coreaml_pep_subjects', {p_customer: customer}, 'PEP review', ({role, subjects}) => {
             const navigation = element('div', '', 'mb-3');
             navigation.append(button('PEP review queue', () => void showQueue()));
             results.append(navigation);
@@ -199,7 +210,7 @@ export function mountPepReview(client) {
                 const update = () => {
                     const selected = subjects.find(s => s.subject_id === subject.value);
                     editor.replaceChildren();
-                    if (selected) renderEditor(editor, subject, customer, selected);
+                    if (selected) renderEditor(editor, subject, customer, selected, role);
                 };
                 subject.addEventListener('change', update);
                 results.append(field('Person', subject), editor);
@@ -208,10 +219,12 @@ export function mountPepReview(client) {
         });
     }
 
-    function renderEditor(editor, selector, customer, subject, editing = false) {
+    function renderEditor(editor, selector, customer, subject, role, editing = false) {
         const prior = subject.latest;
         editor.append(element('p', prior ? outcomes[prior.status] : 'No review recorded', 'fw-semibold mb-1'));
-        if (prior) editor.append(element('p', prior.evidence, 'small text-break'));
+        if (prior && !subject.referrals?.some(referral => referral.event_id === prior.id)) {
+            editor.append(element('p', prior.evidence, 'small text-break'));
+        }
         const onboarding = subject.onboarding;
         const evidenceGroups = [
             onboarding,
@@ -243,6 +256,7 @@ export function mountPepReview(client) {
             }
             editor.append(details);
         }
+        renderManualReferrals(editor, subject.referrals ?? [], prior?.id);
         if (prior?.status === 'EDD_REVIEWED') {
             const actions = element('div', '', 'd-flex gap-2 flex-wrap');
             actions.append(button('Relationship decision and monitoring', () => void showPlan(prior.id, customer, subject.subject_id)),
@@ -254,16 +268,24 @@ export function mountPepReview(client) {
             editor.append(button('Open EDD workspace', () => void showEdd(prior.id, customer, subject.subject_id)));
             return;
         }
+        const actions = element('div', '', 'd-flex gap-2 flex-wrap mb-3');
+        if (!editing && prior?.status !== 'POSSIBLE_EXPOSURE' && role === 'compliance_officer') {
+            actions.append(button('Refer possible exposure', () => showManualReferral(customer, subject)));
+        }
         if (prior && !editing) {
-            editor.append(button('Record follow-up decision', () => {
+            actions.append(button('Record follow-up decision', () => {
                 editor.replaceChildren();
-                renderEditor(editor, selector, customer, subject, true);
+                renderEditor(editor, selector, customer, subject, role, true);
                 editor.querySelector('form select')?.focus();
             }));
+            editor.append(actions);
             return;
         }
+        if (actions.childElementCount) editor.append(actions);
         const form = element('form');
-        const outcome = options(outcomes, Object.keys(outcomes).filter(key => key !== 'EDD_REVIEWED'), 'Select an outcome');
+        const optionsForReview = Object.keys(outcomes).filter(key =>
+            key !== 'EDD_REVIEWED' && (key !== 'POSSIBLE_EXPOSURE' || (prior?.status !== 'POSSIBLE_EXPOSURE' && role !== 'compliance_officer')));
+        const outcome = options(outcomes, optionsForReview, 'Select an outcome');
         const exposure = options(exposures, Object.keys(exposures), 'Select a category where applicable');
         const evidence = element('textarea', '', 'form-control');
         evidence.required = true;
@@ -311,6 +333,64 @@ export function mountPepReview(client) {
         });
     }
 
+    function renderManualReferrals(parent, referrals = [], activeId) {
+        for (const referral of referrals) {
+            const details = element('details', '', 'border rounded p-3 mb-3');
+            details.open = referral.event_id === activeId;
+            details.append(element('summary', `${triggers[referral.source]} · ${referral.pep_name}`, 'fw-semibold'));
+            const facts = element('dl', '', 'row small mb-0 mt-3');
+            for (const [label,value] of [['Exposure category', exposures[referral.category]],
+                ['Public role', referral.public_role], ['Connection', referral.relationship],
+                ['Evidence reference', referral.evidence_reference], ['Referral reason', referral.reason],
+                ['Recorded', new Date(referral.created_at).toLocaleString()]]) {
+                facts.append(element('dt', label, 'col-sm-4'), element('dd', value, 'col-sm-8 text-break'));
+            }
+            details.append(facts);
+            parent.append(details);
+        }
+    }
+
+    function showManualReferral(customer, subject) {
+        title.textContent = 'Refer possible PEP exposure';
+        title.focus();
+        status.textContent = '';
+        results.replaceChildren();
+        const nav = element('div', '', 'mb-3');
+        nav.append(button('Back to PEP review', () => void showCustomer(customer, subject.subject_id)));
+        results.append(nav, element('h5', subject.full_name, 'fs-6 mb-3'));
+        const form = element('form');
+        const source = options(triggers, ['CUSTOMER_DECLARATION','OFFICER_RESEARCH'], 'Select a source');
+        const category = options(exposures, Object.keys(exposures), 'Select an exposure category');
+        source.required = category.required = true;
+        form.append(field('Referral source', source), field('Exposure category', category));
+        const values = {};
+        for (const [key,label,min,max] of [
+            ['p_pep_name','Name of the politically exposed person',2,200],
+            ['p_public_role','Public role and institution',3,250],
+            ['p_relationship','Connection to the customer or linked person',3,500],
+            ['p_reference','Evidence reference or source URL',3,500],
+            ['p_reason','Reason for referral',10,1000]
+        ]) {
+            const input = key === 'p_reason' ? monitoringNotes() : element('input', '', 'form-control');
+            input.required = true;
+            input.minLength = min;
+            input.maxLength = max;
+            values[key] = input;
+            form.append(field(label, input));
+        }
+        let pending;
+        submitMonitoring(form, 'Save referral', 'coreaml_refer_pep', () => {
+            const args = {
+                p_customer: customer, p_subject: subject.subject_id, p_prior: subject.latest?.id ?? null,
+                p_category: category.value, p_source: source.value,
+                ...Object.fromEntries(Object.entries(values).map(([key,input]) => [key,input.value.trim()]))
+            };
+            const signature = JSON.stringify(args);
+            if (pending?.signature !== signature) pending = {signature,id:crypto.randomUUID()};
+            return {...args,p_request:pending.id};
+        }, () => showCustomer(customer, subject.subject_id), 'Referral saved as possible exposure.');
+    }
+
     function showEdd(exposure, customer, subject) {
         return read('coreaml_pep_edd_workspace', {p_exposure: exposure}, 'Enhanced due diligence', data => {
             const latest = data.events[0];
@@ -322,6 +402,7 @@ export function mountPepReview(client) {
             results.append(nav, element('h5', data.subject, 'mb-1'),
                 element('p', [data.customer.name, exposures[data.category], data.customer.kyc_status].filter(Boolean).join(' · '), 'text-muted small'),
                 element('h6', 'Confirmed exposure'), element('p', data.finding, 'text-break'));
+            renderManualReferrals(results, data.referrals ?? []);
             const linked = data.people.filter(person => person.person_role !== 'CUSTOMER');
             if (linked.length) {
                 results.append(element('h6', 'Linked people'));
@@ -370,8 +451,7 @@ export function mountPepReview(client) {
             const canReview = !data.superseded && latest?.action === 'SUBMITTED'
                 && data.role === 'head_of_compliance'
                 && (awaitingOfficer || ![data.preparer, data.actor_id].includes(data.staff_id));
-            const stateLabels = {DRAFT: 'Draft saved', SUBMITTED: 'Awaiting Head of Compliance review',
-                RETURNED: 'Returned for more information', APPROVED: 'EDD approved'};
+            const stateLabels = eddStages;
             if (latest) results.append(element('h6', stateLabels[latest.action]));
             if (awaitingOfficer && !data.superseded) {
                 results.append(element('p', 'Return this submission so a compliance officer can take over and submit it.', 'small text-muted'));
