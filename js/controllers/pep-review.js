@@ -165,7 +165,8 @@ export function mountPepReview(client) {
             const tabs = element('div', '', 'btn-group shadow-sm flex-wrap mb-3');
             tabs.setAttribute('aria-label', 'PEP review status');
             for (const [value, label] of [['ALL','All'], ['POSSIBLE_EXPOSURE','Possible exposure'],
-                ['CONFIRMED_EXPOSURE','Confirmed exposure'], ['EDD_REVIEWED','EDD reviewed']]) {
+                ['CONFIRMED_EXPOSURE','Confirmed exposure'], ['EDD_REVIEWED','EDD reviewed'],
+                ['NEEDS_MY_ACTION','Needs my action']]) {
                 const tab = button(label, () => {
                     queueStatus = value;
                     void showQueue();
@@ -185,7 +186,8 @@ export function mountPepReview(client) {
                         ? button('Open EDD', () => void showEdd(row.id, row.customer_id, row.subject_id))
                         : button('Open review', () => void showCustomer(row.customer_id, row.subject_id))
                 })),
-                empty: 'No PEP reviews on this page.', offset, load: showQueue,
+                empty: queueStatus === 'NEEDS_MY_ACTION' ? 'No EDD cases need your action on this page.' : 'No PEP reviews on this page.',
+                offset, load: showQueue,
                 otherLabel: 'Enhanced monitoring', openOther: () => void showMonitoring()
             });
         });
