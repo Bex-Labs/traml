@@ -76,6 +76,7 @@ export function mountPepReview(client) {
     let saving = false;
     let queueStatus = 'ALL';
     let monitoringDue = 'ALL';
+    let monitoringMine = false;
     let origin;
 
     function close({restoreFocus = false} = {}) {
@@ -567,8 +568,21 @@ export function mountPepReview(client) {
     }
 
     function showMonitoring(offset = 0) {
-        return read('coreaml_pep_monitoring', {p_edd: null, p_offset: offset, p_due_filter: monitoringDue},
+        return read('coreaml_pep_monitoring', {p_edd: null, p_offset: offset, p_due_filter: monitoringDue, p_mine: monitoringMine},
             'Enhanced monitoring', ({items, today}) => {
+            const scope = element('div', '', 'form-check mb-3');
+            const mine = element('input', '', 'form-check-input');
+            mine.id = 'pep-monitoring-my-plans';
+            mine.type = 'checkbox';
+            mine.checked = monitoringMine;
+            mine.addEventListener('change', () => {
+                monitoringMine = mine.checked;
+                void showMonitoring();
+            });
+            const label = element('label', 'My plans only', 'form-check-label');
+            label.htmlFor = mine.id;
+            scope.append(mine,label);
+            results.append(scope);
             renderQueueTabs('Monitoring due date', [
                 ['ALL','All'], ['OVERDUE','Overdue'], ['DUE_TODAY','Due today'], ['UPCOMING','Upcoming']
             ], monitoringDue, value => {
