@@ -75,6 +75,7 @@ export function mountPepReview(client) {
     let generation = 0;
     let saving = false;
     let queueStatus = 'ALL';
+    let monitoringDue = 'ALL';
     let origin;
 
     function close({restoreFocus = false} = {}) {
@@ -160,23 +161,28 @@ export function mountPepReview(client) {
         results.append(toolbar, card);
     }
 
+    function renderQueueTabs(label, choices, selected, select) {
+        const tabs = element('div', '', 'btn-group shadow-sm flex-wrap mb-3');
+        tabs.setAttribute('aria-label', label);
+        for (const [value, text] of choices) {
+            const tab = button(text, () => select(value));
+            const active = selected === value;
+            tab.className = `btn btn-sm fw-bold px-3 ${active ? 'btn-dark active' : 'btn-outline-dark'}`;
+            tab.setAttribute('aria-pressed', String(active));
+            tabs.append(tab);
+        }
+        results.append(tabs);
+    }
+
     function showQueue(offset = 0) {
         return read('coreaml_pep_queue', {p_offset: offset, p_status: queueStatus}, 'PEP review queue', rows => {
-            const tabs = element('div', '', 'btn-group shadow-sm flex-wrap mb-3');
-            tabs.setAttribute('aria-label', 'PEP review status');
-            for (const [value, label] of [['ALL','All'], ['POSSIBLE_EXPOSURE','Possible exposure'],
-                ['CONFIRMED_EXPOSURE','Confirmed exposure'], ['EDD_REVIEWED','EDD reviewed'],
-                ['NEEDS_MY_ACTION','Needs my action']]) {
-                const tab = button(label, () => {
-                    queueStatus = value;
-                    void showQueue();
-                });
-                const active = queueStatus === value;
-                tab.className = `btn btn-sm fw-bold px-3 ${active ? 'btn-dark active' : 'btn-outline-dark'}`;
-                tab.setAttribute('aria-pressed', String(active));
-                tabs.append(tab);
-            }
-            results.append(tabs);
+            renderQueueTabs('PEP review status', [
+                ['ALL','All'], ['POSSIBLE_EXPOSURE','Possible exposure'], ['CONFIRMED_EXPOSURE','Confirmed exposure'],
+                ['EDD_REVIEWED','EDD reviewed'], ['NEEDS_MY_ACTION','Needs my action']
+            ], queueStatus, value => {
+                queueStatus = value;
+                void showQueue();
+            });
             renderWorklist({
                 columns: ['Person', 'Customer', 'Status', 'EDD stage', 'Referral', 'Assignment'],
                 rows: rows.map(row => ({
@@ -455,6 +461,7 @@ export function mountPepReview(client) {
                 && (awaitingOfficer || ![data.preparer, data.actor_id].includes(data.staff_id));
             const stateLabels = eddStages;
             if (latest) results.append(element('h6', stateLabels[latest.action]));
+            if (data.preparer) results.append(element('p', `Preparing officer: ${data.preparer_label ?? data.preparer}`, 'small'));
             if (awaitingOfficer && !data.superseded) {
                 results.append(element('p', 'Return this submission so a compliance officer can take over and submit it.', 'small text-muted'));
             } else if (!latest && !editable && !data.superseded) {
@@ -474,6 +481,24 @@ export function mountPepReview(client) {
                     summary.append(element('dt', label, 'col-sm-4'), element('dd', checks[key] || '—', 'col-sm-8 text-break'));
                 }
                 results.append(summary);
+            }
+            const assignments = data.reassignments ?? [];
+            if (assignments.length) {
+                const history = element('details', '', 'my-3');
+                history.append(element('summary', 'Reassignment history'));
+                for (const entry of assignments) {
+                    const row = element('div', '', 'border-bottom py-2 small');
+                    row.append(element('p', `${entry.previous_officer ?? 'Unassigned'} → ${entry.officer}`, 'fw-semibold mb-1'),
+                        element('p', `${entry.actor} · ${new Date(entry.created_at).toLocaleString()}`, 'text-muted mb-1'),
+                        element('p', entry.reason, 'text-break mb-1'));
+                    history.append(row);
+                }
+                results.append(history);
+            }
+            if (data.role === 'head_of_compliance' && !data.superseded
+                && ['DRAFT','RETURNED'].includes(latest?.action)) {
+                showReassignment(data, latest, customer, subject);
+                return;
             }
             if (!editable && !canReview) return;
 
@@ -514,8 +539,42 @@ export function mountPepReview(client) {
         });
     }
 
+    function showReassignment(data, latest, customer, subject) {
+        if (!data.officers?.length) {
+            results.append(element('p', 'No other active compliance officer is available.', 'small text-muted'));
+            return;
+        }
+        const control = button('Reassign EDD', () => {
+            control.remove();
+            const form = element('form');
+            const officer = options(Object.fromEntries(data.officers.map(person => [person.id,person.label])),
+                data.officers.map(person => person.id), 'Select an officer');
+            officer.required = true;
+            const reason = monitoringNotes();
+            form.append(field('New preparing officer', officer), field('Reassignment reason', reason));
+            let pending;
+            submitMonitoring(form, 'Save reassignment', 'coreaml_reassign_pep_edd', () => {
+                const args = {
+                    p_exposure: data.id, p_edd_event: latest.id, p_prior_assignment: data.reassignments[0]?.id ?? null,
+                    p_officer: officer.value, p_reason: reason.value.trim()
+                };
+                const signature = JSON.stringify(args);
+                if (pending?.signature !== signature) pending = {signature,id:crypto.randomUUID()};
+                return {...args,p_request:pending.id};
+            }, () => showEdd(data.id, customer, subject), 'EDD reassigned.');
+        });
+        results.append(control);
+    }
+
     function showMonitoring(offset = 0) {
-        return read('coreaml_pep_monitoring', {p_offset: offset}, 'Enhanced monitoring', ({items, today}) => {
+        return read('coreaml_pep_monitoring', {p_edd: null, p_offset: offset, p_due_filter: monitoringDue},
+            'Enhanced monitoring', ({items, today}) => {
+            renderQueueTabs('Monitoring due date', [
+                ['ALL','All'], ['OVERDUE','Overdue'], ['DUE_TODAY','Due today'], ['UPCOMING','Upcoming']
+            ], monitoringDue, value => {
+                monitoringDue = value;
+                void showMonitoring();
+            });
             renderWorklist({
                 columns: ['Person', 'Owner', 'Next review', 'Status'],
                 rows: items.map(plan => ({
@@ -523,7 +582,7 @@ export function mountPepReview(client) {
                         plan.due < today ? 'Overdue' : plan.due === today ? 'Due today' : 'Upcoming'],
                     action: button('Open monitoring plan', () => void showPlan(plan.edd_id))
                 })),
-                empty: 'No monitoring plans on this page.', offset, load: showMonitoring,
+                empty: 'No monitoring plans match this filter.', offset, load: showMonitoring,
                 otherLabel: 'PEP review queue', openOther: () => void showQueue()
             });
         });
