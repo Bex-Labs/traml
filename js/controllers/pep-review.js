@@ -75,6 +75,7 @@ export function mountPepReview(client) {
     let generation = 0;
     let saving = false;
     let queueStatus = 'ALL';
+    let monitoringDue = 'ALL';
     let origin;
 
     function close({restoreFocus = false} = {}) {
@@ -160,23 +161,28 @@ export function mountPepReview(client) {
         results.append(toolbar, card);
     }
 
+    function renderQueueTabs(label, choices, selected, select) {
+        const tabs = element('div', '', 'btn-group shadow-sm flex-wrap mb-3');
+        tabs.setAttribute('aria-label', label);
+        for (const [value, text] of choices) {
+            const tab = button(text, () => select(value));
+            const active = selected === value;
+            tab.className = `btn btn-sm fw-bold px-3 ${active ? 'btn-dark active' : 'btn-outline-dark'}`;
+            tab.setAttribute('aria-pressed', String(active));
+            tabs.append(tab);
+        }
+        results.append(tabs);
+    }
+
     function showQueue(offset = 0) {
         return read('coreaml_pep_queue', {p_offset: offset, p_status: queueStatus}, 'PEP review queue', rows => {
-            const tabs = element('div', '', 'btn-group shadow-sm flex-wrap mb-3');
-            tabs.setAttribute('aria-label', 'PEP review status');
-            for (const [value, label] of [['ALL','All'], ['POSSIBLE_EXPOSURE','Possible exposure'],
-                ['CONFIRMED_EXPOSURE','Confirmed exposure'], ['EDD_REVIEWED','EDD reviewed'],
-                ['NEEDS_MY_ACTION','Needs my action']]) {
-                const tab = button(label, () => {
-                    queueStatus = value;
-                    void showQueue();
-                });
-                const active = queueStatus === value;
-                tab.className = `btn btn-sm fw-bold px-3 ${active ? 'btn-dark active' : 'btn-outline-dark'}`;
-                tab.setAttribute('aria-pressed', String(active));
-                tabs.append(tab);
-            }
-            results.append(tabs);
+            renderQueueTabs('PEP review status', [
+                ['ALL','All'], ['POSSIBLE_EXPOSURE','Possible exposure'], ['CONFIRMED_EXPOSURE','Confirmed exposure'],
+                ['EDD_REVIEWED','EDD reviewed'], ['NEEDS_MY_ACTION','Needs my action']
+            ], queueStatus, value => {
+                queueStatus = value;
+                void showQueue();
+            });
             renderWorklist({
                 columns: ['Person', 'Customer', 'Status', 'EDD stage', 'Referral', 'Assignment'],
                 rows: rows.map(row => ({
@@ -561,7 +567,14 @@ export function mountPepReview(client) {
     }
 
     function showMonitoring(offset = 0) {
-        return read('coreaml_pep_monitoring', {p_offset: offset}, 'Enhanced monitoring', ({items, today}) => {
+        return read('coreaml_pep_monitoring', {p_edd: null, p_offset: offset, p_due_filter: monitoringDue},
+            'Enhanced monitoring', ({items, today}) => {
+            renderQueueTabs('Monitoring due date', [
+                ['ALL','All'], ['OVERDUE','Overdue'], ['DUE_TODAY','Due today'], ['UPCOMING','Upcoming']
+            ], monitoringDue, value => {
+                monitoringDue = value;
+                void showMonitoring();
+            });
             renderWorklist({
                 columns: ['Person', 'Owner', 'Next review', 'Status'],
                 rows: items.map(plan => ({
@@ -569,7 +582,7 @@ export function mountPepReview(client) {
                         plan.due < today ? 'Overdue' : plan.due === today ? 'Due today' : 'Upcoming'],
                     action: button('Open monitoring plan', () => void showPlan(plan.edd_id))
                 })),
-                empty: 'No monitoring plans on this page.', offset, load: showMonitoring,
+                empty: 'No monitoring plans match this filter.', offset, load: showMonitoring,
                 otherLabel: 'PEP review queue', openOther: () => void showQueue()
             });
         });
