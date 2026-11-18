@@ -55,6 +55,7 @@
             background-size: 24px 24px;
         }
     </style>
+    <link rel="stylesheet" href="./css/auth-actions.css">
 </head>
 <body class="font-body-md text-on-surface selection:bg-primary-container selection:text-white">
     <div class="fixed inset-0 mesh-bg opacity-40 pointer-events-none"></div>
@@ -71,6 +72,7 @@
 
         <div class="w-full max-w-[440px] bg-white border border-outline-variant rounded-xl p-8 md:p-10 login-card transition-all duration-500">
             
+            <p id="login-status" class="text-sm text-primary" role="status"></p>
             <div id="login-stage-1">
                 <header class="mb-8">
                     <h2 class="font-headline-sm text-xl text-on-surface mb-2">Institutional Login</h2>
@@ -104,7 +106,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-action hover:bg-action-hover text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-action/20 active:scale-[0.98] transition-all">
+                    <button type="submit" class="w-full coreaml-auth-action text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-action/20 active:scale-[0.98] transition-all">
                         Authenticate Access
                         <span class="material-symbols-outlined">chevron_right</span>
                     </button>
@@ -113,13 +115,19 @@
 
             <div id="login-stage-2" class="hidden text-center">
                 <span class="material-symbols-outlined text-primary text-5xl mb-4">lock_clock</span>
-                <h5 class="font-headline-sm text-xl text-on-surface mb-2">Two-Factor Authentication</h5>
-                <p class="text-on-surface-variant text-sm mb-6">Enter the 6-digit code from your authenticator app.</p>
+                <h5 id="mfa-heading" class="font-headline-sm text-xl text-on-surface mb-2">Two-Factor Authentication</h5>
+                <p id="mfa-instructions" class="text-on-surface-variant text-sm mb-6">Enter the six-digit code from your authenticator app.</p>
+                <button id="mfa-start" type="button" class="hidden coreaml-auth-action w-full rounded-lg py-3">Set up authenticator</button>
+                <img id="mfa-qr" class="hidden mx-auto mb-5" width="176" height="176" alt="Authenticator setup QR code">
                 <form id="mfa-form" class="space-y-6">
-                    <div>
-                        <input type="text" class="w-full bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all text-center text-2xl tracking-[0.5em] py-3 font-label-mono text-primary" id="mfa-code" placeholder="000000" maxlength="6" required autocomplete="off">
+                    <div id="mfa-factor-picker" class="hidden text-left">
+                        <label for="mfa-factor" class="block text-sm mb-2">Authenticator</label>
+                        <select id="mfa-factor" class="w-full rounded-lg border border-outline-variant p-2"></select>
                     </div>
-                    <button type="submit" class="w-full bg-[#6e1284] hover:bg-primary text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-primary-container/20 active:scale-[0.98] transition-all">
+                    <div>
+                        <input type="text" class="w-full bg-surface border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg outline-none transition-all text-center text-2xl tracking-[0.5em] py-3 font-label-mono text-primary" id="mfa-code" aria-label="Authenticator code" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" maxlength="6" required autocomplete="one-time-code">
+                    </div>
+                    <button type="submit" class="w-full coreaml-auth-action text-white font-headline-sm text-lg py-4 rounded-lg shadow-lg shadow-action/20 active:scale-[0.98] transition-all">
                         Verify Identity
                     </button>
                 </form>
@@ -147,6 +155,6 @@
         });
     </script>
 
-    <script type="module" src="./js/auth.js"></script>
+    <script type="module" src="./js/auth.js?v=inline-mfa-2"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/auth.ts";
+import { corsHeaders, errorResponse, HttpError, requireUser } from "../_shared/auth.ts";
 
 serve(async (req) => {
     // 1. Handle CORS Preflight perfectly
@@ -8,6 +8,7 @@ serve(async (req) => {
     }
 
     try {
+        await requireUser(req, ["compliance_officer", "head_of_compliance"]);
         const { caseDetails, customerData, riskScore } = await req.json();
         
         // 2. Retrieve API Key securely
@@ -58,6 +59,7 @@ serve(async (req) => {
         });
 
     } catch (error) {
+        if (error instanceof HttpError) return errorResponse(req, error);
         // TYPE FIX: Tell TypeScript how to safely read the 'unknown' error
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error("Edge Function Error:", errorMessage);

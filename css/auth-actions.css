@@ -1,0 +1,16 @@
+.coreaml-auth-action,
+.coreaml-auth-action.btn {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #dc2626;
+    --bs-btn-border-color: #dc2626;
+    --bs-btn-hover-bg: #b91c1c;
+    --bs-btn-hover-border-color: #b91c1c;
+    --bs-btn-active-bg: #991b1b;
+    --bs-btn-active-border-color: #991b1b;
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+.coreaml-auth-action:hover,
+.coreaml-auth-action.btn:hover { background-color: #b91c1c; border-color: #b91c1c; color: #fff; }
+.coreaml-auth-action:focus-visible { outline: 2px solid #991b1b; outline-offset: 2px; }

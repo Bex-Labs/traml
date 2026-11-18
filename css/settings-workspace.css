@@ -1,0 +1,87 @@
+#view-system-config [hidden] { display: none !important; }
+.settings-tabs, #settings-panel-rules nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+}
+.settings-tabs .btn, #settings-panel-rules nav button {
+    border: 1px solid #c5cfdd;
+    background: #fff;
+    color: #172033;
+}
+.settings-tabs [aria-pressed="true"], #settings-panel-rules nav [aria-pressed="true"] {
+    background: #172033;
+    border-color: #172033;
+    color: #fff;
+}
+#settings-panel-rules .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 1.25rem;
+}
+#view-system-config { container-type: inline-size; }
+.settings-account {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 1.25rem;
+}
+@container (min-width: 56rem) {
+    .settings-account {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+}
+.settings-security-stack {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-self: stretch;
+    gap: 1.25rem;
+}
+.settings-account-section {
+    border-top: 1px solid #dce4ee;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+.settings-profile-photo { display: flex; align-items: flex-start; gap: 1rem; }
+.settings-profile-photo form { flex: 1; min-width: 0; }
+.settings-photo-frame {
+    display: grid;
+    place-items: center;
+    flex: 0 0 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #475569;
+}
+.settings-account-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .4rem 1rem; }
+.settings-account-facts dd { margin: 0; overflow-wrap: anywhere; }
+#settings-mfa-enroll { margin-top: 1rem; }
+@media (max-width: 425px) {
+    .settings-profile-photo { flex-direction: column; }
+    .settings-profile-photo form { width: 100%; }
+    .settings-photo-frame { flex-basis: auto; width: 64px; }
+}
+#settings-panel-rules .heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+#settings-panel-rules h2 { font-size: 1rem; font-weight: 700; }
+#settings-panel-rules #rules-health, #settings-panel-rules [id^="rules-panel-"] {
+    background: #fff;
+    border: 1px solid #dce4ee;
+    border-radius: .75rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+#settings-panel-rules .muted { color: #475569; }
+#settings-panel-rules .notice { background: #f1f5f9; border-left: 3px solid #64748b; padding: .75rem; }
+#settings-panel-rules .warning { background: #fff5db; border-color: #a15c08; }
+#settings-panel-rules .table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+#settings-panel-rules table { width: 100%; }
+#settings-panel-rules :is(th,td) { padding: .65rem; border-bottom: 1px solid #dce4ee; vertical-align: top; }
+#settings-panel-rules th { background: #f1f5f9; font-size: .8rem; }
+#settings-panel-rules td small { display: block; color: #475569; }
+#settings-panel-rules :is(input,select) { display: block; width: 100%; margin-top: .25rem; padding: .5rem; border: 1px solid #c5cfdd; border-radius: .4rem; }
+#settings-panel-rules button { border-radius: .4rem; padding: .4rem .7rem; }
+#settings-panel-rules button:not([data-tab]) { background: #dc2626; color: #fff; border: 1px solid #dc2626; }
+#settings-panel-rules button:not([data-tab]):hover { background: #b91c1c; }
+#settings-panel-rules button:disabled { opacity: .65; }
+#settings-panel-rules .actions { display: flex; gap: .4rem; flex-wrap: wrap; }

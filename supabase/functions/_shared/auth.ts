@@ -38,6 +38,12 @@ export async function requireUser(req: Request, allowedRoles: string[]) {
   if (error || !user) throw new HttpError(401, "Invalid or expired session.");
   const role = typeof user.app_metadata?.role === "string" ? user.app_metadata.role : undefined;
   if (!role || !allowedRoles.includes(role)) throw new HttpError(403, "You are not permitted to perform this action.");
+  if (role === "compliance_officer" || role === "head_of_compliance") {
+    const { data: context, error: contextError } = await client.rpc("coreaml_dashboard_context");
+    if (contextError || context?.actor_id !== user.id || context?.role !== role) {
+      throw new HttpError(403, "Active compliance access and authenticator verification are required.");
+    }
+  }
   return { user, role };
 }
 

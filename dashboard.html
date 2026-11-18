@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>coreAML | Command Center</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:; connect-src 'self' https: data: wss: http://127.0.0.1:55321 ws://127.0.0.1:55321;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: wss:; connect-src 'self' https: data: wss: http://127.0.0.1:55321 ws://127.0.0.1:55321; img-src 'self' https: data: blob:;">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -162,6 +162,7 @@
         .sortable-ghost { opacity: 0.4; background-color: #E2E8F0; border: 2px dashed #94A3B8; }
     </style>
 
+    <link rel="stylesheet" href="./css/settings-workspace.css">
 </head>
 <body class="bg-light vh-100 overflow-hidden" style="display: none;" id="secure-body">
 
@@ -189,7 +190,8 @@
                         <div class="fw-semibold text-dark" style="font-size: 0.85rem;" id="ui-user-name">Loading...</div>
                         <div class="text-primary fw-bold uppercase" style="font-size: 0.65rem;" id="ui-user-role">...</div>
                     </div>
-                    <span class="material-symbols-outlined text-muted fs-2">account_circle</span>
+                    <span id="ui-user-avatar-fallback" class="material-symbols-outlined text-muted fs-2">account_circle</span>
+                    <img id="ui-user-avatar" class="d-none rounded-circle object-fit-cover" width="32" height="32" alt="">
                 </div>
             </div>
         </div>
@@ -224,7 +226,7 @@
                     
                     <a href="#" id="nav-system-config" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
                         <span class="material-symbols-outlined">settings</span>
-                        <span class="small fw-semibold">System Config</span>
+                        <span class="small fw-semibold">Settings</span>
                     </a>
 
                     <a href="#" id="nav-report-archive" class="nav-link-item list-group-item list-group-item-action border-0 py-3 d-flex align-items-center gap-3 text-muted d-none">
@@ -1083,12 +1085,159 @@
                 <div id="view-system-config" class="d-none h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-end mb-4">
                         <div>
-                            <h4 class="fw-bold text-dark mb-1">System Configuration</h4>
-                            <p class="text-muted small mb-0">Manage automated reporting, API webhooks, and institutional settings.</p>
+                            <h4 class="fw-bold text-dark mb-1">Settings</h4>
+                            <p class="text-muted small mb-0">Manage your profile and account security.</p>
                         </div>
                     </div>
 
-                    <div class="row g-4">
+                    <nav class="settings-tabs" aria-label="Settings sections">
+                        <button type="button" class="btn btn-sm" data-settings-section="account" aria-pressed="true">Account</button>
+                        <button type="button" class="btn btn-sm" data-settings-section="rules" aria-pressed="false">Rules &amp; detection</button>
+                        <button type="button" class="btn btn-sm" data-settings-section="institution" aria-pressed="false" hidden>Institution</button>
+                    </nav>
+                    <div id="settings-panel-account" class="settings-account">
+                        <section class="card p-4" aria-labelledby="settings-profile-title">
+                            <h2 id="settings-profile-title" class="h6 fw-bold mb-3">Profile</h2>
+                            <dl class="settings-account-facts small mb-0">
+                                <dt>Sign-in email</dt><dd id="settings-email"></dd>
+                                <dt>Role</dt><dd class="text-capitalize" id="settings-role"></dd>
+                                <dt>Bank ID</dt><dd id="settings-bank"></dd>
+                            </dl>
+                            <div class="settings-account-section settings-profile-photo">
+                                <div class="settings-photo-frame">
+                                    <span id="settings-photo-placeholder" class="material-symbols-outlined" aria-hidden="true">person</span>
+                                    <img id="settings-photo-preview" class="d-none rounded-circle object-fit-cover" width="64" height="64" alt="Profile photo">
+                                </div>
+                                <form id="settings-photo-form">
+                                    <label for="settings-photo-file" class="form-label d-block">Profile photo</label>
+                                    <input id="settings-photo-file" class="form-control mb-2" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="settings-photo-help" required>
+                                    <p id="settings-photo-help" class="small text-muted mb-2">JPEG, PNG or WebP, up to 2 MB.</p>
+                                    <button id="settings-photo-upload" type="submit" class="btn btn-sm btn-primary" disabled>Upload photo</button>
+                                    <button id="settings-photo-remove" type="button" class="btn btn-sm btn-outline-secondary" disabled>Remove photo</button>
+                                    <p id="settings-photo-status" class="small mt-2 mb-0" role="status"></p>
+                                </form>
+                            </div>
+                            <div class="settings-account-section">
+                                <form id="settings-profile-form">
+                                    <label for="settings-display-name" class="form-label">Display name</label>
+                                    <input id="settings-display-name" class="form-control mb-2" autocomplete="name" minlength="2" maxlength="100" required>
+                                    <button type="submit" class="btn btn-sm btn-primary">Save display name</button>
+                                    <p id="settings-profile-status" class="small mt-2 mb-0" role="status"></p>
+                                </form>
+                            </div>
+                        </section>
+                        <div class="settings-security-stack">
+                            <section class="card p-4" aria-labelledby="settings-security-title">
+                                <h2 id="settings-security-title" class="h6 fw-bold mb-3">Account security</h2>
+                                <div>
+                                    <h3 class="h6 mb-1">Authenticator</h3>
+                                    <p id="settings-mfa-status" class="small mb-2" role="status">Checking authenticator status…</p>
+                                    <button id="settings-mfa-start" type="button" class="btn btn-sm btn-primary" hidden>Add an authenticator</button>
+                                    <div id="settings-mfa-enroll" hidden>
+                                        <p class="small">Scan this QR code with your authenticator app, then enter its six-digit code. Verifying a new authenticator signs out your other sessions.</p>
+                                        <img id="settings-mfa-qr" width="176" height="176" alt="Authenticator setup QR code">
+                                        <form id="settings-mfa-form" class="mt-3">
+                                            <label for="settings-mfa-code" class="form-label">Authenticator code</label>
+                                            <input id="settings-mfa-code" class="form-control mb-3" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+                                            <button type="submit" class="btn btn-sm btn-primary">Verify authenticator</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="card p-4" aria-labelledby="settings-password-title">
+                                <h3 id="settings-password-title" class="h6 fw-bold mb-3">Change password</h3>
+                                <form id="settings-password-form">
+                                    <label for="settings-password" class="form-label">New password</label>
+                                    <input id="settings-password" class="form-control mb-3" type="password" autocomplete="new-password" minlength="8" required>
+                                    <label for="settings-password-confirm" class="form-label">Confirm new password</label>
+                                    <input id="settings-password-confirm" class="form-control mb-3" type="password" autocomplete="new-password" minlength="8" required>
+                                    <button type="submit" class="btn btn-sm btn-primary">Change password</button>
+                                    <p id="settings-password-status" class="small mt-3 mb-0" role="status"></p>
+                                </form>
+                            </section>
+                        </div>
+                    </div>
+                    <section id="settings-panel-rules" hidden>
+                        <div class="heading">
+                            <div>
+                                <h2>Rules &amp; detection coverage</h2>
+                                <p class="muted">Versioned rules for your bank, independent approval and visible evaluation outcomes.</p>
+                            </div>
+                            <button id="rules-refresh">Refresh</button>
+                        </div>
+                        <p id="rules-status" role="status" aria-live="polite">Checking authorized access…</p>
+                        <button id="rules-retry" hidden>Retry exact request</button>
+                        <div id="rules-content" hidden>
+                            <section id="rules-health">
+                            </section>
+                            <nav aria-label="Rule workspace">
+                                <button data-tab="deployments" aria-pressed="true">Bank deployments</button>
+                                <button data-tab="proposal" aria-pressed="false">Propose a rule</button>
+                                <button data-tab="legacy" aria-pressed="false">Existing detectors</button>
+                                <button data-tab="feedback" aria-pressed="false">Dismissal feedback</button>
+                            </nav>
+                            <section id="rules-panel-deployments">
+                                <div id="rules-deployments">
+                                </div>
+                            </section>
+                            <section id="rules-panel-proposal" hidden>
+                                <h2>Propose a version</h2>
+                                <p>Submit the proposal to an independent Head of Compliance at your bank. It appears in Bank deployments for review. Shadow mode records matches without creating alerts. Activation requires usable shadow evaluations and a recorded review.</p>
+                                <form id="rules-proposal">
+                                    <div class="grid">
+                                        <label>Origin<select name="source">
+                                            <option value="BASELINE">CoreAML baseline</option>
+                                            <option value="CUSTOM">Bank custom rule</option>
+                                        </select>
+                                    </label>
+                                    <label>Scenario & catalogue version<select name="catalogue_code" id="rules-catalogue" required>
+                                    </select>
+                                </label>
+                                <label>Rule name<input name="name" minlength="3" maxlength="120" required>
+                                </label>
+                                <label>Currency<input name="currency" pattern="[A-Z]{3}" maxlength="3" placeholder="NGN" required>
+                                </label>
+                                <label>Customer type<select name="customer_type" id="rules-customer-type">
+                                    <option value="ALL">All customer types</option>
+                                </select>
+                            </label>
+                            <label>Direction<select name="direction">
+                                <option>CREDIT</option>
+                                <option>DEBIT</option>
+                                <option>BOTH</option>
+                            </select>
+                        </label>
+                        <label>Threshold · amount, count or days<input name="threshold" inputmode="decimal" pattern="[0-9]+([.][0-9]{1,2})?" required>
+                        </label>
+                        <label>Window · whole hours, 1–8760<input name="window_hours" type="number" min="1" max="8760" value="24" required>
+                        </label>
+                        <label>Explicitly replace an active governed deployment<select name="replaces_id" id="rules-replaces">
+                            <option value="">None · run alongside existing rules</option>
+                        </select>
+                    </label>
+                    </div>
+                    <p id="rules-scenario-help" class="notice">
+                    </p>
+                    <p class="muted">Use the bank’s approved parameters. No universal monetary threshold is supplied. Amount and dormancy scenarios do not use the window. Corrections require a new immutable proposal. Existing legacy rules are never replaced by this selection.</p>
+                    <button type="submit">Submit proposal</button>
+                    </form>
+                    </section>
+                    <section id="rules-panel-legacy" hidden>
+                    <h2>Existing detectors & custom rules</h2>
+                    <p class="notice">Existing detectors run alongside governed rules. Both may flag the same transaction, and both alerts stay visible for investigation. “Enabled” means the detector is switched on.</p>
+                    <div id="rules-legacy">
+                    </div>
+                    </section>
+                    <section id="rules-panel-feedback" hidden>
+                    <h2>Dismissal feedback</h2>
+                    <p>Categories describe officer recommendations, with Head outcomes shown separately. They do not automatically change thresholds or train a model. Older submissions remain unclassified.</p>
+                    <div id="rules-feedback">
+                    </div>
+                    </section>
+                    </div>
+                    </section>
+                    <div id="settings-panel-institution" class="row g-4" hidden>
+                        <h5 class="h6 fw-bold">Institution settings</h5>
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm border-start border-primary border-4">
                                 <div class="card-header bg-white border-bottom py-3">
@@ -1121,34 +1270,6 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
-                                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold uppercase text-dark d-flex align-items-center gap-2">
-                                        <span class="material-symbols-outlined text-danger fs-5">tune</span> Active AML Rules
-                                    </h6>
-                                    <button class="btn btn-sm btn-outline-danger fw-bold d-flex align-items-center gap-1" type="button" onclick="window.location.assign('./rule-governance.html')">
-                                        <span class="material-symbols-outlined fs-6">add</span> New Rule
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle mb-0">
-                                            <thead class="table-light text-muted small text-uppercase">
-                                                <tr>
-                                                    <th class="py-2 px-4">Rule Name</th>
-                                                    <th class="py-2">Condition</th>
-                                                    <th class="py-2 text-end px-4">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="active-rules-body">
-                                                <tr><td colspan="3" class="text-center py-4 text-muted small">Loading active rules...</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1884,7 +2005,7 @@
         import {createExecutiveReviewView,createReviewHistoryTable} from "./js/controllers/executive-review-view.js?v=governance-1";
         import { draftPayload } from "./js/services/case-workflow.service.js";
         import { createCaseDraftSession } from "./js/controllers/case-draft-session.js?v=governance-1";
-        import * as auth from "./js/services/auth.service.js?v=admin-manager-1";
+        import * as auth from "./js/services/auth.service.js?v=compliance-mfa-1";
         import * as alertsController from "./js/controllers/alerts.controller.js";
         import { loadInvestigationGraphLibrary } from "./js/services/investigation-graph-library.js";
         import { openAlertEvidence } from "./js/controllers/alert-evidence.controller.js?v=review-pages-1";
@@ -1892,6 +2013,7 @@
         import {createReviewDetailReadService} from "./js/services/review-detail-read.service.js";
         import * as kycController from "./js/controllers/kyc.controller.js?v=pep-in-kyc-1";
         import { createKycReview, submitKycReview } from "./js/services/kyc-review.service.js";
+        import { mountAccountSettings } from "./js/controllers/account-settings.js";
         import { mountPepReview } from "./js/controllers/pep-review.js?v=pep-monitoring-mine-1";
         import { attachProvnSandbox } from "./js/controllers/provn-sandbox.controller.js";
         import { attachKycSanctionsPilot } from "./js/controllers/kyc-sanctions-pilot.js?v=hosted-5";
@@ -1942,7 +2064,8 @@
                 document.getElementById('secure-body').style.display = 'block';
 
                 // 3. Populate UI with User Data
-                document.getElementById('ui-user-name').innerText = user.user_metadata?.full_name || user.email;
+                mountAccountSettings(supabase, context);
+                document.getElementById('nav-system-config').classList.remove('d-none');
                 document.getElementById('ui-user-role').innerText = role.replace(/_/g, ' ');
                 document.getElementById('ui-tenant-id').innerText = tenantId.split('-')[0] + '...';
 
@@ -1963,7 +2086,6 @@
 
                 // 4. Enforce UI Permissions (RBAC) & Handle Views
                 if (role === 'head_of_compliance') {
-                    document.getElementById('nav-system-config').classList.remove('d-none');
                     document.getElementById('nav-team-management').classList.remove('d-none'); 
                     document.getElementById('nav-audit-logs').classList.remove('d-none');
                     document.getElementById('nav-report-archive').classList.remove('d-none');
@@ -2008,6 +2130,7 @@
                 const savedView = requestedReturn === 'case-management' ? 'case-management'
                     : requestedReturn === 'command-center' ? 'command-center'
                     : requestedReturn === 'kyc' ? 'kyc'
+                    : requestedReturn === 'system-config' ? 'system-config'
                     : storedView === 'investigation-workspace' ? 'case-management'
                     : storedView === 'intelligence' ? 'command-center' : storedView;
                 if (savedView) {
@@ -2026,6 +2149,10 @@
                 }
 
             } catch (err) {
+                if (err.code === 'COREAML_MFA_REQUIRED') {
+                    window.location.replace('./index.html?mfa=resume');
+                    return;
+                }
                 console.error("Critical Boot Error:", err);
                 alert("Account provisioning incomplete. Please contact the System Administrator.");
             }
@@ -2062,6 +2189,12 @@
             e.preventDefault();
             switchView('system-config', e.currentTarget);
         });
+
+        function openRuleGovernance() {
+            switchView('system-config', document.getElementById('nav-system-config'));
+            document.querySelector('[data-settings-section="rules"]').click();
+        }
+        document.addEventListener('coreaml:open-rule-governance', openRuleGovernance);
 
         document.getElementById('nav-report-archive')?.addEventListener('click', (e) => {
             e.preventDefault();
@@ -2153,7 +2286,6 @@
                 loadReportArchive();
             } else if (viewName === 'system-config') {
                 document.getElementById('view-system-config').classList.remove('d-none');
-                loadActiveRules();
             } else if (viewName === 'audit-logs') {
                 document.getElementById('view-audit-logs').classList.remove('d-none');
                 loadAuditLogs();
@@ -2899,12 +3031,11 @@
             }
         });
 
-        // Rule authoring now uses independently approved, versioned bank deployments.
-        window.loadActiveRules = async () => {
-          const body=document.getElementById('active-rules-body');if(body)body.innerHTML='<tr><td colspan="3"><a class="btn btn-primary" href="./rule-governance.html">Open rules &amp; detection coverage</a><p class="small mt-2">Inspect legacy rules, propose baseline or custom rules, and review shadow evaluations.</p></td></tr>';
-        };
-        window.toggleRuleInputs=()=>{};
-        document.getElementById('rule-builder-form')?.addEventListener('submit',e=>{e.preventDefault();window.location.assign('./rule-governance.html');});
+        window.toggleRuleInputs = () => {};
+        document.getElementById('rule-builder-form')?.addEventListener('submit', event => {
+            event.preventDefault();
+            openRuleGovernance();
+        });
         // --- DISPLAY-ONLY REALTIME SUBSCRIPTIONS ---
         function initializeRealtimePulse() {
             console.log("🟢 Establishing display-only realtime updates...");
